@@ -3,70 +3,65 @@ var fs = require('fs');
 module.exports = new NodeID3;
 
 var TIF = {										//All text information frames
-	album: 				"TALB",
-	bpm: 				"TBPM",
-	composer: 			"TCOM",
-	genre: 				"TCON",
-	copyright: 			"TCOP",
-	date: 				"TDAT",
-	playlistDelay: 		"TDLY",
-	encodedBy: 			"TENC",
-	textWriter: 		"TEXT",
-	fileType: 			"TFLT",
-	time: 				"TIME",
-	contentGroup: 		"TIT1",
-	title: 				"TIT2",
-	subtitle: 			"TIT3",
-	initialKey: 		"TKEY",
-	language: 			"TLAN",
-	length: 			"TLEN",
-	mediaType: 			"TMED",
-	originalTitle: 		"TOAL",
-	originalFilename: 	"TOFN",
-	originalTextwriter: "TOLY",
-	originalArtist: 	"TOPE",
-	originalYear: 		"TORY",
-	fileOwner: 			"TOWN",
-	artist: 			"TPE1",
+	album:				"TALB",
+	bpm:				"TBPM",
+	composer:			"TCOM",
+	genre:				"TCON",
+	copyright:			"TCOP",
+	date:				"TDAT",
+	playlistDelay:		"TDLY",
+	encodedBy:			"TENC",
+	textWriter:			"TEXT",
+	fileType:			"TFLT",
+	time:				"TIME",
+	contentGroup:		"TIT1",
+	title:				"TIT2",
+	subtitle:			"TIT3",
+	initialKey:			"TKEY",
+	language:			"TLAN",
+	length:				"TLEN",
+	mediaType:			"TMED",
+	originalTitle:		"TOAL",
+	originalFilename:	"TOFN",
+	originalTextwriter:	"TOLY",
+	originalArtist:		"TOPE",
+	originalYear:		"TORY",
+	fileOwner:			"TOWN",
+	artist:				"TPE1",
 	performerInfo:		"TPE2",
-	conductor: 			"TPE3",
-	remixArtist: 		"TPE4",
-	partOfSet: 			"TPOS",
-	publisher: 			"TPUB",
-	trackNumber: 		"TRCK",
+	conductor:			"TPE3",
+	remixArtist:		"TPE4",
+	partOfSet:			"TPOS",
+	publisher:			"TPUB",
+	trackNumber:		"TRCK",
 	recordingDates:		"TRDA",
-	internetRadioName: 	"TRSN",
-	internetRadioOwner: "TRSO",
-	size: 				"TSIZ",
-	ISRC: 				"TSRC",
-	encodingTechnology: "TSSE",
-	year: 				"TYER"
+	internetRadioName:	"TRSN",
+	internetRadioOwner:	"TRSO",
+	size:				"TSIZ",
+	ISRC:				"TSRC",
+	encodingTechnology:	"TSSE",
+	year:				"TYER"
 }
 
 function NodeID3() {
-	this.tags = {};
 }
 
-NodeID3.prototype.setTags = function (tags) {
-	this.tags = tags || {};
-}
-
-NodeID3.prototype.write = function(filepath) {
+NodeID3.prototype.write = function(tags, filepath) {
 	var frames = [];
 	frames.push(this.createTagHeader());
 
-	var tagNames = Object.keys(this.tags);
+	var tagNames = Object.keys(tags);
 
 	for(var i = 0; i < tagNames.length; i++) {
 		if(TIF[tagNames[i]]) {						//IF TEXT FRAME
 			var specName = TIF[tagNames[i]];
-			var frame = this.createTextFrame(specName, this.tags[tagNames[i]]);
+			var frame = this.createTextFrame(specName, tags[tagNames[i]]);
 			if(frame instanceof Buffer) frames.push(frame);
 		}
 	}
 
-	if(this.tags.image) {
-		var frame = this.createPictureFrame(this.tags.image);
+	if(tags.image) {
+		var frame = this.createPictureFrame(tags.image);
 		if(frame instanceof Buffer) frames.push(frame);
 	}
 

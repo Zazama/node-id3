@@ -1,18 +1,13 @@
-var id3v2Writer = require('../index');
+var nodeID3 = require('../index.js');
 
+//tags.image is the path to the image (only png/jpeg files allowed)
 var tags = {
-	title: "Soshite Bokura wa",
-	artist: "Ray",
-	album: "Nagi no Asukara",
-	composer: "Nakazawa Tomoyuki",
-	image: "./image.jpeg"
+  title: "Soshite Bokura wa",
+  artist: "Ray",
+  album: "Nagi no Asukara",
+  composer: "Nakazawa Tomoyuki",
+  image: "./example/image.jpeg"
 }
 
-id3v2Writer.setTags(tags);
-var success = id3v2Writer.write("./music.mp3");
-if(success === true) {
-	console.log("MP3 File successfully tagged"):
-} else {
-	console.log("There was an error");
-	console.log(success);
-}
+var success = nodeID3.write(tags, "./example/music.mp3");  //Pass tags and filepath
+console.log(success);
