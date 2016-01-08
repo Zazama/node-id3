@@ -9,5 +9,5 @@ var tags = {
   image: "./example/image.jpeg"
 }
 
-var success = nodeID3.write(tags, "./example/music.mp3");  //Pass tags and filepath
-console.log(success);
+var success = nodeID3.write(tags, "./example/music.mp3");	//Pass tags and filepath
+console.log(success);										//true or contains error
