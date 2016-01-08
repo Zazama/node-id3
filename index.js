@@ -37,7 +37,7 @@ var TIF = {										//All text information frames
 	recordingDates:		"TRDA",
 	internetRadioName: 	"TRSN",
 	internetRadioOwner: "TRSO",
-	śize: 				"TSIZ",
+	size: 				"TSIZ",
 	ISRC: 				"TSRC",
 	encodingTechnology: "TSSE",
 	year: 				"TYER"
