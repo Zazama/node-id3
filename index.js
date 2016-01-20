@@ -70,7 +70,8 @@ NodeID3.prototype.write = function(tags, filepath) {
     for(var i = 0; i < frames.length; i++) {
         totalSize += frames[i].length;
     }
-    totalSize -= 10;    //EXCLUDE ID3v2 HEADER FROM SIZE
+
+    totalSize -= 10;
 
     var size = this.encodeSize(totalSize);
 
@@ -86,7 +87,7 @@ NodeID3.prototype.write = function(tags, filepath) {
     try {
         var data = fs.readFileSync(filepath);
         var rewriteFile = Buffer.concat([completeTag, data]);
-        fs.writeFileSync(filepath, rewriteFile);
+        fs.writeFileSync(filepath, rewriteFile, 'binary');
     } catch(e) {
         return e;
     }
@@ -117,7 +118,7 @@ NodeID3.prototype.removeTags = function(filepath) {
     var newData = data.slice(tagStart + encSize + 10);
 
     try {
-        fs.writeFileSync(filepath, newData);
+        fs.writeFileSync(filepath, newData, 'binary');
     } catch(e) {
         return e;
     }
@@ -127,13 +128,9 @@ NodeID3.prototype.removeTags = function(filepath) {
 
 NodeID3.prototype.encodeSize = function(totalSize) {
     byte_3 = totalSize & 0x7F;
-    totalSize = totalSize >> 7;
-    byte_2 = totalSize & 0x7F;
-    totalSize = totalSize >> 7;
-    byte_1 = totalSize & 0x7F;
-    totalSize = totalSize >> 7;
-    byte_0 = totalSize & 0x7F;
-    totalSize = totalSize >> 7;
+    byte_2 = (totalSize >> 7) & 0x7F;
+    byte_1 = (totalSize >> 14) & 0x7F;
+    byte_0 = (totalSize >> 21) & 0x7F;
     return ([byte_0, byte_1, byte_2, byte_3]);
 }
 
@@ -157,7 +154,6 @@ NodeID3.prototype.createTextFrame = function(specName, text) {
     buffer.fill(0);
     buffer.write(specName, 0);
     buffer.writeUInt32BE((text).length + 1, 4);     //Size of frame
-
     var encBuffer = new Buffer(1);                  //Encoding (currently only ISO - 00)
     encBuffer.fill(0);
 
@@ -167,21 +163,22 @@ NodeID3.prototype.createTextFrame = function(specName, text) {
 
 NodeID3.prototype.createPictureFrame = function(filepath) {
     try {
-        var apicData = fs.readFileSync(filepath);
-        var bHeader = new Buffer(11);               //Only Picture of type "other" supported currently
+        var apicData = new Buffer(fs.readFileSync(filepath, 'binary'), 'binary');
+        var bHeader = new Buffer(10);
         bHeader.fill(0);
         bHeader.write("APIC", 0);
-        bHeader.writeUInt32BE(apicData.length, 4);
 
-        var mime_type = "image/png";
+    	var mime_type = "image/png";
 
         if(apicData[0] == 0xff && apicData[1] == 0xd8 && apicData[2] == 0xff) {
             mime_type = "image/jpeg";
         }
 
-        var bContent = new Buffer(mime_type.length + 3)
+        var bContent = new Buffer(mime_type.length + 4, 'binary');
         bContent.fill(0);
-        bContent.write(mime_type, 0);
+        bContent.write(mime_type, 1);
+
+    	bHeader.writeUInt32BE(apicData.length + bContent.length, 4);     //Size of frame
 
         return Buffer.concat([bHeader, bContent, apicData]);
     } catch(e) {
