@@ -82,10 +82,9 @@ NodeID3.prototype.write = function(tags, filepath) {
 
     var completeTag = Buffer.concat(frames);
 
-    this.removeTags(filepath);
-
     try {
         var data = fs.readFileSync(filepath);
+        data = this.removeTagsFromBuffer(data);
         var rewriteFile = Buffer.concat([completeTag, data]);
         fs.writeFileSync(filepath, rewriteFile, 'binary');
     } catch(e) {
@@ -95,6 +94,23 @@ NodeID3.prototype.write = function(tags, filepath) {
     return true;
 }
 
+NodeID3.prototype.removeTagsFromBuffer = function (data){
+  var ts = String.prototype.indexOf.call(data, (new Buffer("ID3")));
+
+  if(ts == -1 || ts > 20) return true;
+
+  var hSize = new Buffer([data[ts +6], data[ts +7], data[ts +8], data[ts +9]]);
+
+  if ((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80) {
+      //INVALID TAG SIZE
+      return false;
+  }
+
+  var encSize = ((hSize[0] << 21) + (hSize[1] << 14) + (hSize[2] << 7) + (hSize[3]));
+  return data.slice(ts + encSize + 10);
+
+};
+
 NodeID3.prototype.removeTags = function(filepath) {
     try {
         var data = fs.readFileSync(filepath);
@@ -102,20 +118,8 @@ NodeID3.prototype.removeTags = function(filepath) {
         return e;
     }
 
-    var tagStart = String.prototype.indexOf.call(data, (new Buffer("ID3")))
-
-    if(tagStart == -1 || tagStart > 20) return true;    //No Tags found || TEMP FIX (TODO)
-
-    var hSize = new Buffer([data[tagStart + 6], data[tagStart + 7], data[tagStart + 8], data[tagStart + 9]]);
-
-    if ((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80) {
-        //INVALID TAG SIZE
-        return false;
-    }
-
-    var encSize = ((hSize[0] << 21) + (hSize[1] << 14) + (hSize[2] << 7) + (hSize[3]));
-
-    var newData = data.slice(tagStart + encSize + 10);
+    var newData = this.removeTagsFromBuffer(data);
+    if(!newData) return false;
 
     try {
         fs.writeFileSync(filepath, newData, 'binary');
