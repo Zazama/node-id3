@@ -174,7 +174,7 @@ NodeID3.prototype.createPictureFrame = function(filepath) {
             mime_type = "image/jpeg";
         }
 
-        var bContent = new Buffer(mime_type.length + 4, 'binary');
+        var bContent = new Buffer(mime_type.length + 4);
         bContent.fill(0);
         bContent.write(mime_type, 1);
 
