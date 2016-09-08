@@ -2,7 +2,7 @@
 
 node-id3 is a ID3-Tag library written in JavaScript without other dependencies.
 
-#### Right now, there's only write and remove support (No read, only ID3v2)
+#### Right now, there's only write, remove and partial read support (only ID3v2)
 
 ## Example:
 
@@ -18,13 +18,40 @@ var tags = {
   image: "./example/image.jpeg"
 }
 
-var success = nodeID3.write(tags, "./example/music.mp3");  	//Pass tags and filepath
-console.log(success);										//true or contains error
+nodeID3.removeTags("./example/music.mp3")
+
+//Pass tags and filepath
+var success = nodeID3.write(tags, "./example/music.mp3");
+
+//returns true if written correctly
+console.log(success);
+
+//Pass filepath/buffer
+var read = nodeID3.read("./example/music.mp3");
+
+//returns tags
+console.log(read);
+```
+
+###Write ID3v2-Tags
+```
+//Pass tags and filepath
+var success = nodeID3.write(tags, "./example/music.mp3");
+//returns true if written correctly
+console.log(success);
+```
+
+###Read ID3v2-Tags (currently no support for images)
+```
+//Pass filepath/buffer
+var read = nodeID3.read("./example/music.mp3");
+//returns tags
+console.log(read);
 ```
 
 ###Remove ID3v2-Tags
 ```
-nodeID3.removeTags("./music.mp3");  //Pass the path to the mp3 file
+nodeID3.removeTags("./example/music.mp3");  //Pass the path to the mp3 file
 ```
 
 ###Supported tag keys (only pass strings)

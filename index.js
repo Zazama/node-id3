@@ -73,7 +73,7 @@ NodeID3.prototype.write = function(tags, filepath) {
 
     totalSize -= 10;
 
-    var size = this.encodeSize(totalSize);
+    var size = encodeSize(totalSize);
 
     frames[0].writeUInt8(size[0], 6);
     frames[0].writeUInt8(size[1], 7);
@@ -92,6 +92,60 @@ NodeID3.prototype.write = function(tags, filepath) {
     }
 
     return true;
+}
+
+NodeID3.prototype.read = function(filebuffer) {
+    if(typeof filebuffer === "string" || filebuffer instanceof String)
+        filebuffer = fs.readFileSync(filebuffer);
+    var header = new Buffer(10);
+    filebuffer.copy(header, 0, getID3Start(filebuffer))
+    frameSize = getFrameSize(header);
+    var ID3Frame = new Buffer(frameSize + 1);
+    filebuffer.copy(ID3Frame, 0, getID3Start(filebuffer));
+
+    var tags = TIF;
+    var frames = Object.keys(tags);
+    for(var i = 0; i < frames.length; i++) {
+        var frameStart = ID3Frame.indexOf(tags[frames[i]]);
+        if(frameStart > -1) {
+            var frameSize = decodeSize(new Buffer([ID3Frame[frameStart + 4], ID3Frame[frameStart + 5], ID3Frame[frameStart + 6], ID3Frame[frameStart + 7]]));
+            var offset = 1;
+            if(ID3Frame[frameStart + 11] == 0xFF || ID3Frame[frameStart + 12] == 0xFE) {
+                offset = 3;
+            }
+            var frame = new Buffer(frameSize - offset);
+            ID3Frame.copy(frame, 0, frameStart + 10 + offset);
+
+            tags[frames[i]] = frame.toString('utf8').replace(/\0/g, "");
+        } else {
+            delete tags[frames[i]];
+        }
+    }
+
+    /*if(ID3Frame.indexOf("APIC")) {
+        var picture = {};
+        var APICFrameStart = ID3Frame.indexOf("APIC");
+        var APICFrameSize = decodeSize(new Buffer([ID3Frame[APICFrameStart + 4], ID3Frame[APICFrameStart + 5], ID3Frame[APICFrameStart + 6], ID3Frame[APICFrameStart + 7]]));
+        var APICFrame = new Buffer(APICFrameSize);
+        ID3Frame.copy(APICFrame, 0, frameStart + 10);
+        if(APICFrame.indexOf("image/jpeg")) picture.mime = "jpeg";
+        else if(APICFrame.indexOf("image/png")) picture.mime = "png";
+    }*/
+
+    return tags;
+}
+
+function getID3Start(buffer) {
+    var tagStart = buffer.indexOf("ID3");
+    var musicStart = buffer.indexOf("" + 0xFFFB30);
+    if(tagStart > musicStart)
+        return tagStart;
+    else
+        return -1;
+}
+
+function getFrameSize(buffer) {
+    return decodeSize(new Buffer([buffer[6], buffer[7], buffer[8], buffer[9]]));
 }
 
 NodeID3.prototype.removeTagsFromBuffer = function (data){
@@ -130,7 +184,7 @@ NodeID3.prototype.removeTags = function(filepath) {
     return true;
 }
 
-NodeID3.prototype.encodeSize = function(totalSize) {
+function encodeSize(totalSize) {
     byte_3 = totalSize & 0x7F;
     byte_2 = (totalSize >> 7) & 0x7F;
     byte_1 = (totalSize >> 14) & 0x7F;
@@ -138,8 +192,8 @@ NodeID3.prototype.encodeSize = function(totalSize) {
     return ([byte_0, byte_1, byte_2, byte_3]);
 }
 
-NodeID3.prototype.decodeSize = function(totalSize) {
-
+function decodeSize(hSize) {
+    return ((hSize[0] << 21) + (hSize[1] << 14) + (hSize[2] << 7) + (hSize[3]));
 }
 
 NodeID3.prototype.createTagHeader = function() {

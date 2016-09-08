@@ -10,4 +10,8 @@ var tags = {
 }
 
 var success = nodeID3.write(tags, "./example/music.mp3");	//Pass tags and filepath
-console.log(success);										//true or contains error
+console.log(success);
+
+//No image support atm
+var read = nodeID3.read("./example/music.mp3");
+console.log(read);
