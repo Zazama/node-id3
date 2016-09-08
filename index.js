@@ -84,7 +84,7 @@ NodeID3.prototype.write = function(tags, filepath) {
 
     try {
         var data = fs.readFileSync(filepath);
-        data = this.removeTagsFromBuffer(data);
+        data = this.removeTagsFromBuffer(data) || data;
         var rewriteFile = Buffer.concat([completeTag, data]);
         fs.writeFileSync(filepath, rewriteFile, 'binary');
     } catch(e) {
@@ -97,7 +97,7 @@ NodeID3.prototype.write = function(tags, filepath) {
 NodeID3.prototype.removeTagsFromBuffer = function (data){
   var ts = String.prototype.indexOf.call(data, (new Buffer("ID3")));
 
-  if(ts == -1 || ts > 20) return true;
+  if(ts == -1 || ts > 20) return false;
 
   var hSize = new Buffer([data[ts +6], data[ts +7], data[ts +8], data[ts +9]]);
 
