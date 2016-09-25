@@ -99,27 +99,25 @@ NodeID3.prototype.read = function(filebuffer) {
         filebuffer = fs.readFileSync(filebuffer);
     var header = new Buffer(10);
     filebuffer.copy(header, 0, getID3Start(filebuffer))
-    frameSize = getFrameSize(header);
+    var frameSize = getFrameSize(header);
     var ID3Frame = new Buffer(frameSize + 1);
     filebuffer.copy(ID3Frame, 0, getID3Start(filebuffer));
 
-    var tags = TIF;
-    var frames = Object.keys(tags);
+    var tags = {};
+    var frames = Object.keys(TIF);
     for(var i = 0; i < frames.length; i++) {
-        var frameStart = ID3Frame.indexOf(tags[frames[i]]);
-        if(frameStart > -1) {
-            var frameSize = decodeSize(new Buffer([ID3Frame[frameStart + 4], ID3Frame[frameStart + 5], ID3Frame[frameStart + 6], ID3Frame[frameStart + 7]]));
-            var offset = 1;
-            if(ID3Frame[frameStart + 11] == 0xFF || ID3Frame[frameStart + 12] == 0xFE) {
-                offset = 3;
-            }
-            var frame = new Buffer(frameSize - offset);
-            ID3Frame.copy(frame, 0, frameStart + 10 + offset);
-
-            tags[frames[i]] = frame.toString('utf8').replace(/\0/g, "");
-        } else {
-            delete tags[frames[i]];
+        var frameStart = ID3Frame.indexOf(TIF[frames[i]]);
+        if(frameStart == -1) continue;
+        
+        frameSize = decodeSize(new Buffer([ID3Frame[frameStart + 4], ID3Frame[frameStart + 5], ID3Frame[frameStart + 6], ID3Frame[frameStart + 7]]));
+        var offset = 1;
+        if(ID3Frame[frameStart + 11] == 0xFF || ID3Frame[frameStart + 12] == 0xFE) {
+            offset = 3;
         }
+        var frame = new Buffer(frameSize - offset);
+        ID3Frame.copy(frame, 0, frameStart + 10 + offset);
+
+        tags[frames[i]] = frame.toString('utf8').replace(/\0/g, "");
     }
 
     /*if(ID3Frame.indexOf("APIC")) {
