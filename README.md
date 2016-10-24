@@ -4,6 +4,8 @@ node-id3 is a ID3-Tag library written in JavaScript without other dependencies.
 
 #### Right now, there's only write, remove and partial read support (only ID3v2)
 
+#### Please update to v0.0.6 for better image tagging.
+
 ## Example:
 
 ```

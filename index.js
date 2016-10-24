@@ -232,6 +232,7 @@ NodeID3.prototype.createPictureFrame = function(filepath) {
 
         var bContent = new Buffer(mime_type.length + 4);
         bContent.fill(0);
+        bContent[mime_type.length + 2] = 0x03; //front cover for now
         bContent.write(mime_type, 1);
 
     	bHeader.writeUInt32BE(apicData.length + bContent.length, 4);     //Size of frame
