@@ -97,9 +97,10 @@ NodeID3.prototype.write = function(tags, filepath) {
 NodeID3.prototype.read = function(filebuffer) {
     if(typeof filebuffer === "string" || filebuffer instanceof String)
         filebuffer = fs.readFileSync(filebuffer);
+    if(getID3Start(filebuffer) == -1) return false;
     var header = new Buffer(10);
     filebuffer.copy(header, 0, getID3Start(filebuffer))
-    var frameSize = getFrameSize(header);
+    var frameSize = getFrameSize(header) + 10;
     var ID3Frame = new Buffer(frameSize + 1);
     filebuffer.copy(ID3Frame, 0, getID3Start(filebuffer));
 
@@ -117,7 +118,13 @@ NodeID3.prototype.read = function(filebuffer) {
         var frame = new Buffer(frameSize - offset);
         ID3Frame.copy(frame, 0, frameStart + 10 + offset);
 
-        tags[frames[i]] = frame.toString('utf8').replace(/\0/g, "");
+        tags[frames[i]] = "";
+        for(var k = 0; k < frame.length; k++) {
+            while(frame[k] == 0x00) {
+                k++;
+            }
+            tags[frames[i]] += encodeCharacter(new Buffer([frame[k], frame[++k]]));
+        }
     }
 
     /*if(ID3Frame.indexOf("APIC")) {
@@ -134,12 +141,9 @@ NodeID3.prototype.read = function(filebuffer) {
 }
 
 function getID3Start(buffer) {
-    var tagStart = buffer.indexOf("ID3");
-    var musicStart = buffer.indexOf("" + 0xFFFB30);
-    if(tagStart > musicStart)
-        return tagStart;
-    else
-        return -1;
+    var ts = String.prototype.indexOf.call(buffer, (new Buffer("ID3")));
+    if(ts == -1 || ts > 20) return -1;
+    else return ts;
 }
 
 function getFrameSize(buffer) {
@@ -192,6 +196,15 @@ function encodeSize(totalSize) {
 
 function decodeSize(hSize) {
     return ((hSize[0] << 21) + (hSize[1] << 14) + (hSize[2] << 7) + (hSize[3]));
+}
+
+function encodeCharacter(buf) {
+    buf = buf || new Buffer(2);
+    if(buf[1] == 0x01 || buf[1] == 0xFF || (buf[1] < 0x20 && buf[1] != 0x00) || (buf[0] < 0x20 && buf[1] != 0x00)) {
+        return buf.toString('ucs2');
+    } else {
+        return buf.toString('ascii').replace(/\0/g, "");
+    }
 }
 
 NodeID3.prototype.createTagHeader = function() {
