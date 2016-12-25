@@ -226,7 +226,7 @@ NodeID3.prototype.createTextFrame = function(specName, text) {
     var encBuffer = new Buffer(1);                  //Encoding (currently only ISO - 00)
     encBuffer.fill(0);
 
-    var contentBuffer = new Buffer(text, 'binary'); //Text -> Binary encoding for ISO
+    var contentBuffer = new Buffer(text.toString(), 'binary'); //Text -> Binary encoding for ISO
     return Buffer.concat([buffer, encBuffer, contentBuffer]);
 }
 
