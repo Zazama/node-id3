@@ -1,4 +1,5 @@
 var fs = require('fs');
+var iconv = require("iconv-lite");
 
 module.exports = new NodeID3;
 
@@ -109,7 +110,7 @@ NodeID3.prototype.read = function(filebuffer) {
     for(var i = 0; i < frames.length; i++) {
         var frameStart = ID3Frame.indexOf(TIF[frames[i]]);
         if(frameStart == -1) continue;
-        
+
         frameSize = decodeSize(new Buffer([ID3Frame[frameStart + 4], ID3Frame[frameStart + 5], ID3Frame[frameStart + 6], ID3Frame[frameStart + 7]]));
         var offset = 1;
         if(ID3Frame[frameStart + 11] == 0xFF || ID3Frame[frameStart + 12] == 0xFE) {
@@ -219,14 +220,16 @@ NodeID3.prototype.createTagHeader = function() {
 NodeID3.prototype.createTextFrame = function(specName, text) {
     if(!specName || !text) return null;
 
+    var encoded = iconv.encode(text,"utf16");
+
     var buffer = new Buffer(10);
     buffer.fill(0);
     buffer.write(specName, 0);
-    buffer.writeUInt32BE((text).length + 1, 4);     //Size of frame
-    var encBuffer = new Buffer(1);                  //Encoding (currently only ISO - 00)
-    encBuffer.fill(0);
+    buffer.writeUInt32BE((encoded).length + 1, 4);     //Size of frame
+    var encBuffer = new Buffer(1);                  //Encoding (now using UTF-16 encoded w/ BOM)
+    encBuffer.fill(1);
 
-    var contentBuffer = new Buffer(text.toString(), 'binary'); //Text -> Binary encoding for ISO
+    var contentBuffer = new Buffer(encoded, 'binary'); //Text -> Binary encoding for UTF-16 w/ BOM
     return Buffer.concat([buffer, encBuffer, contentBuffer]);
 }
 
