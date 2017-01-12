@@ -198,15 +198,6 @@ function decodeSize(hSize) {
     return ((hSize[0] << 21) + (hSize[1] << 14) + (hSize[2] << 7) + (hSize[3]));
 }
 
-function encodeCharacter(buf) {
-    buf = buf || new Buffer(2);
-    if(buf[1] == 0x01 || buf[1] == 0xFF || (buf[1] < 0x20 && buf[1] != 0x00) || (buf[0] < 0x20 && buf[1] != 0x00)) {
-        return buf.toString('ucs2');
-    } else {
-        return buf.toString('ascii').replace(/\0/g, "");
-    }
-}
-
 NodeID3.prototype.createTagHeader = function() {
     var header = new Buffer(10);
     header.fill(0);
