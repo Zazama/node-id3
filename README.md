@@ -56,7 +56,7 @@ console.log(read);
 nodeID3.removeTags("./example/music.mp3");  //Pass the path to the mp3 file
 ```
 
-###Supported tag keys (only pass strings)
+###Supported tag keys
 ```
 image:
 album:
@@ -97,4 +97,5 @@ size:
 ISRC:
 encodingTechnology:
 year:
+comment: { language: "eng", text: "mycomment"}
 ```
