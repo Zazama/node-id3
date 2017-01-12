@@ -44,6 +44,14 @@ var TIF = {                            //All text information frames
     year:               "TYER"
 }
 
+var SIF = {
+    comment: {
+        create: "createCommentFrame",
+        read: "readCommentFrame",
+        name: "COMM"
+    }
+}
+
 function NodeID3() {
 }
 
@@ -58,6 +66,9 @@ NodeID3.prototype.write = function(tags, filepath) {
         if(TIF[tagNames[i]]) {
             var specName = TIF[tagNames[i]];
             var frame = this.createTextFrame(specName, tags[tagNames[i]]);
+            if(frame instanceof Buffer) frames.push(frame);
+        } else if (SIF[tagNames[i]]) {
+            var frame = this[SIF[tagNames[i]].create]((tags[tagNames[i]]));
             if(frame instanceof Buffer) frames.push(frame);
         }
     }
@@ -107,6 +118,8 @@ NodeID3.prototype.read = function(filebuffer) {
 
     var tags = {};
     var frames = Object.keys(TIF);
+    var spFrames = Object.keys(SIF);
+
     for(var i = 0; i < frames.length; i++) {
         var frameStart = ID3Frame.indexOf(TIF[frames[i]]);
         if(frameStart == -1) continue;
@@ -125,6 +138,12 @@ NodeID3.prototype.read = function(filebuffer) {
         }
 
         tags[frames[i]] = decoded;
+    }
+
+    for(var i = 0; i < spFrames.length; i++) {
+        var frame = getFrame(ID3Frame, SIF[spFrames[i]].name);
+        if(!frame) continue;
+        tags[spFrames[i]] = this[SIF[spFrames[i]].read](frame);
     }
 
     /*if(ID3Frame.indexOf("APIC")) {
@@ -148,6 +167,16 @@ function getID3Start(buffer) {
 
 function getFrameSize(buffer) {
     return decodeSize(new Buffer([buffer[6], buffer[7], buffer[8], buffer[9]]));
+}
+
+function getFrame(buffer, frameName) {
+    var frameStart = buffer.indexOf(frameName);
+    if(frameStart == -1) return null;
+        
+    frameSize = decodeSize(new Buffer([buffer[frameStart + 4], buffer[frameStart + 5], buffer[frameStart + 6], buffer[frameStart + 7]]));
+    var frame = new Buffer(frameSize);
+    buffer.copy(frame, 0, frameStart + 10);
+    return frame;
 }
 
 NodeID3.prototype.removeTagsFromBuffer = function (data){
@@ -247,4 +276,53 @@ NodeID3.prototype.createPictureFrame = function(filepath) {
     } catch(e) {
         return e;
     }
+}
+
+NodeID3.prototype.createCommentFrame = function(comment) {
+    comment = comment || {};
+    if(!comment.text) return null;
+    var buffer = new Buffer(10);
+    buffer.fill(0);
+    buffer.write("COMM", 0);
+    var commentOptions = new Buffer(4);
+    commentOptions.fill(0);
+    commentOptions[0] = 0x01;
+    if(comment.language) {
+        commentOptions.write(comment.language, 1);
+    } else {
+        commentOptions.write("eng", 1);
+    }
+    var commentText = new Buffer(iconv.encode(comment.text, "utf16"));
+
+    comment.shortText = comment.shortText || "";
+    var commentShortText = iconv.encode(comment.shortText, "utf16");
+    commentShortText = Buffer.concat([commentShortText, (comment.shortText == "") ? new Buffer(2).fill(0) : new Buffer(1).fill(0)]);
+    buffer.writeUInt32BE(commentOptions.length + commentShortText.length + commentText.length, 4);     //Size of frame
+    return Buffer.concat([buffer, commentOptions, commentShortText, commentText]);
+}
+
+NodeID3.prototype.readCommentFrame = function(frame) {
+    var tags = {};
+    if(!frame) return tags;
+    if(frame[0] == 0x00) {
+        tags = {
+            language: frame.toString().substring(1, 4),
+            shortText: frame.toString().substring(4, frame.indexOf(0x00, 1)),
+            text: frame.toString().substring(frame.indexOf(0x00, 1) + 1)
+        }
+    } else if(frame[0] == 0x01) {
+        var buf16 = frame.toString('hex');
+        var doubleEscape = parseInt(buf16.indexOf("0000") / 2);
+        var shortText = new Buffer(doubleEscape - 4 + 1);
+        var text = new Buffer(frame.length - doubleEscape - 1);
+        frame.copy(shortText, 0, 4, doubleEscape + 1);
+        frame.copy(text, 0, doubleEscape + 2);
+        tags = {
+            language: frame.toString().substring(1, 4),
+            shortText: iconv.decode(shortText, "utf16"),
+            text: iconv.decode(text, "utf16")
+        }
+    }
+
+    return tags;
 }

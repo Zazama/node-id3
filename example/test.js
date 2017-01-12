@@ -6,11 +6,16 @@ var tags = {
   artist: "Luck Life",
   album: "Cheer Danshi!!",
   image: "./example/image.jpeg",
-  year: 2016
+  year: 2016,
+  comment: {
+    language: "eng",
+    shortText: "jadskdjdsd",
+    text: "asdasddassd"
+  }
 }
 
-var success = nodeID3.write(tags, "./example/musicbig.mp3");	//Pass tags and filepath
-console.log(success);
+//var success = nodeID3.write(tags, "./example/musicbig.mp3");	//Pass tags and filepath
+//console.log(success);
 
 //No image support atm
 var read = nodeID3.read("./example/musicbig.mp3");
