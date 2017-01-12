@@ -2,7 +2,7 @@ var nodeID3 = require('../index.js');
 
 //tags.image is the path to the image (only png/jpeg files allowed)
 var tags = {
-  title: "Hajime no Ippo",
+  title: "分島花音 Hajime no Ippo",
   artist: "Luck Life",
   album: "Cheer Danshi!!",
   image: "./example/image.jpeg",

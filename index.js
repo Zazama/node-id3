@@ -113,19 +113,18 @@ NodeID3.prototype.read = function(filebuffer) {
 
         frameSize = decodeSize(new Buffer([ID3Frame[frameStart + 4], ID3Frame[frameStart + 5], ID3Frame[frameStart + 6], ID3Frame[frameStart + 7]]));
         var offset = 1;
-        if(ID3Frame[frameStart + 11] == 0xFF || ID3Frame[frameStart + 12] == 0xFE) {
-            offset = 3;
-        }
         var frame = new Buffer(frameSize - offset);
         ID3Frame.copy(frame, 0, frameStart + 10 + offset);
 
-        tags[frames[i]] = "";
-        for(var k = 0; k < frame.length; k++) {
-            while(frame[k] == 0x00) {
-                k++;
-            }
-            tags[frames[i]] += encodeCharacter(new Buffer([frame[k], frame[++k]]));
+        var decoded = "";
+
+        if(ID3Frame[frameStart + 10] == 0x01) {
+            decoded = iconv.decode(frame, "utf16");
+        } else {
+            decoded = frame.toString('ascii').replace(/\0/g, "");
         }
+
+        tags[frames[i]] = decoded;
     }
 
     /*if(ID3Frame.indexOf("APIC")) {
