@@ -1,4 +1,5 @@
 var fs = require('fs');
+var iconv = require("iconv-lite");
 
 module.exports = new NodeID3;
 
@@ -109,22 +110,21 @@ NodeID3.prototype.read = function(filebuffer) {
     for(var i = 0; i < frames.length; i++) {
         var frameStart = ID3Frame.indexOf(TIF[frames[i]]);
         if(frameStart == -1) continue;
-        
+
         frameSize = decodeSize(new Buffer([ID3Frame[frameStart + 4], ID3Frame[frameStart + 5], ID3Frame[frameStart + 6], ID3Frame[frameStart + 7]]));
         var offset = 1;
-        if(ID3Frame[frameStart + 11] == 0xFF || ID3Frame[frameStart + 12] == 0xFE) {
-            offset = 3;
-        }
         var frame = new Buffer(frameSize - offset);
         ID3Frame.copy(frame, 0, frameStart + 10 + offset);
 
-        tags[frames[i]] = "";
-        for(var k = 0; k < frame.length; k++) {
-            while(frame[k] == 0x00) {
-                k++;
-            }
-            tags[frames[i]] += encodeCharacter(new Buffer([frame[k], frame[++k]]));
+        var decoded = "";
+
+        if(ID3Frame[frameStart + 10] == 0x01) {
+            decoded = iconv.decode(frame, "utf16");
+        } else {
+            decoded = frame.toString('ascii').replace(/\0/g, "");
         }
+
+        tags[frames[i]] = decoded;
     }
 
     /*if(ID3Frame.indexOf("APIC")) {
@@ -198,15 +198,6 @@ function decodeSize(hSize) {
     return ((hSize[0] << 21) + (hSize[1] << 14) + (hSize[2] << 7) + (hSize[3]));
 }
 
-function encodeCharacter(buf) {
-    buf = buf || new Buffer(2);
-    if(buf[1] == 0x01 || buf[1] == 0xFF || (buf[1] < 0x20 && buf[1] != 0x00) || (buf[0] < 0x20 && buf[1] != 0x00)) {
-        return buf.toString('ucs2');
-    } else {
-        return buf.toString('ascii').replace(/\0/g, "");
-    }
-}
-
 NodeID3.prototype.createTagHeader = function() {
     var header = new Buffer(10);
     header.fill(0);
@@ -219,14 +210,16 @@ NodeID3.prototype.createTagHeader = function() {
 NodeID3.prototype.createTextFrame = function(specName, text) {
     if(!specName || !text) return null;
 
+    var encoded = iconv.encode(text,"utf16");
+
     var buffer = new Buffer(10);
     buffer.fill(0);
     buffer.write(specName, 0);
-    buffer.writeUInt32BE((text).length + 1, 4);     //Size of frame
-    var encBuffer = new Buffer(1);                  //Encoding (currently only ISO - 00)
-    encBuffer.fill(0);
+    buffer.writeUInt32BE((encoded).length + 1, 4);     //Size of frame
+    var encBuffer = new Buffer(1);                  //Encoding (now using UTF-16 encoded w/ BOM)
+    encBuffer.fill(1);
 
-    var contentBuffer = new Buffer(text.toString(), 'binary'); //Text -> Binary encoding for ISO
+    var contentBuffer = new Buffer(encoded, 'binary'); //Text -> Binary encoding for UTF-16 w/ BOM
     return Buffer.concat([buffer, encBuffer, contentBuffer]);
 }
 
