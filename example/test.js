@@ -1,4 +1,5 @@
 var nodeID3 = require('../index.js');
+var fs = require('fs');
 
 //tags.image is the path to the image (only png/jpeg files allowed)
 var tags = {
@@ -18,5 +19,6 @@ var tags = {
 //console.log(success);
 
 //No image support atm
-var read = nodeID3.read("./example/musicbig.mp3");
+var read = nodeID3.read("./example/testimage.mp3");
+fs.writeFileSync('./testimage.' + read.image.mime, read.image.imageBuffer);
 console.log(read);

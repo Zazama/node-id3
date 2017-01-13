@@ -52,6 +52,30 @@ var SIF = {
     }
 }
 
+var APICTypes = [
+	"other",
+	"file icon",
+	"other file icon",
+	"front cover",
+	"back cover",
+	"leaflet page",
+	"media",
+	"lead artist",
+	"artist",
+	"conductor",
+	"band",
+	"composer",
+	"lyricist",
+	"recording location",
+	"during recording",
+	"during performance",
+	"video screen capture",
+	"a bright coloured fish",
+	"illustration",
+	"band logotype",
+	"publisher logotype"
+]
+
 function NodeID3() {
 }
 
@@ -124,7 +148,7 @@ NodeID3.prototype.read = function(filebuffer) {
         var frameStart = ID3Frame.indexOf(TIF[frames[i]]);
         if(frameStart == -1) continue;
 
-        frameSize = decodeSize(new Buffer([ID3Frame[frameStart + 4], ID3Frame[frameStart + 5], ID3Frame[frameStart + 6], ID3Frame[frameStart + 7]]));
+        frameSize = parseInt(ID3Frame.slice(frameStart + 4, frameStart + 8).toString('hex'), 16);
         var offset = 1;
         var frame = new Buffer(frameSize - offset);
         ID3Frame.copy(frame, 0, frameStart + 10 + offset);
@@ -146,15 +170,46 @@ NodeID3.prototype.read = function(filebuffer) {
         tags[spFrames[i]] = this[SIF[spFrames[i]].read](frame);
     }
 
-    /*if(ID3Frame.indexOf("APIC")) {
+    if(ID3Frame.indexOf("APIC")) {
         var picture = {};
         var APICFrameStart = ID3Frame.indexOf("APIC");
-        var APICFrameSize = decodeSize(new Buffer([ID3Frame[APICFrameStart + 4], ID3Frame[APICFrameStart + 5], ID3Frame[APICFrameStart + 6], ID3Frame[APICFrameStart + 7]]));
+        var APICFrameSize = parseInt(ID3Frame.slice(APICFrameStart + 4, APICFrameStart + 8).toString('hex'), 16);
         var APICFrame = new Buffer(APICFrameSize);
-        ID3Frame.copy(APICFrame, 0, frameStart + 10);
-        if(APICFrame.indexOf("image/jpeg")) picture.mime = "jpeg";
-        else if(APICFrame.indexOf("image/png")) picture.mime = "png";
-    }*/
+        ID3Frame.copy(APICFrame, 0, APICFrameStart + 10);
+        var APICMimeType = APICFrame.toString('ascii').substring(1, APICFrame.indexOf(0x00, 1));
+        if(APICMimeType == "image/jpeg") picture.mime = "jpeg";
+        else if(APICMimeType == "image/png") picture.mime = "png";
+        picture.type = {id: APICFrame[APICFrame.indexOf(0x00, 1) + 1], name: APICTypes[APICFrame[APICFrame.indexOf(0x00, 1) + 1]]}
+        var descEnd;
+        if(APICFrame[0] == 0x00) {
+        	picture.description = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)).toString('ascii') || undefined;
+        	descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2);
+        } else if (APICFrame[0] == 0x01) {
+        	var desc = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
+        	var descFound = false;
+
+        	for(var i = 0; i < APICFrame.length - 1; i++) {
+        		if(descStart[i] == 0x00 && descStart[i + 1] == 0x00) {
+        			descFound = i + 1;
+        			descEnd = APICFrame.indexOf(APICFrame.indexOf(0x00, 1) + 2 + i + 1);
+        			break;
+        		}
+        	}
+        	if(descFound) {
+        		picture.description = iconv.decode(desc.slide(0, descFound), 'utf16') || undefined;
+        	}
+        }
+        if(descEnd) {
+        	picture.imageBuffer = APICFrame.slice(descEnd + 1);
+        } else {
+        	picture.imageBuffer = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
+        }
+
+        console.log(APICFrame.length);
+        console.log(APICFrameSize);
+
+        tags.image = picture;
+    }
 
     return tags;
 }
@@ -177,6 +232,16 @@ function getFrame(buffer, frameName) {
     var frame = new Buffer(frameSize);
     buffer.copy(frame, 0, frameStart + 10);
     return frame;
+}
+
+function decodeBuffer(buffer, encodingbyte) {
+	if(encodingbyte == 0x00) {
+		return buffer.toString('ascii');
+	} else if(encodingbyte == 0x01) {
+		return iconv.decode(buffer, "utf16");
+	} else {
+		return buffer.toString();
+	}
 }
 
 NodeID3.prototype.removeTagsFromBuffer = function (data){
