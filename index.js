@@ -205,9 +205,6 @@ NodeID3.prototype.read = function(filebuffer) {
         	picture.imageBuffer = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
         }
 
-        console.log(APICFrame.length);
-        console.log(APICFrameSize);
-
         tags.image = picture;
     }
 

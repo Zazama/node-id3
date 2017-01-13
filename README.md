@@ -2,9 +2,7 @@
 
 node-id3 is a ID3-Tag library written in JavaScript without other dependencies.
 
-#### Right now, there's only write, remove and partial read support (only ID3v2)
-
-#### Please update to +v0.0.6 for better image tagging.
+#### Right now, there's only write, remove and read support (only ID3v2)
 
 ## Example:
 
@@ -98,4 +96,10 @@ ISRC:
 encodingTechnology:
 year:
 comment: { language: "eng", text: "mycomment"}
+image: { 
+	mime: "png/jpeg"/undefined, 
+	type: { id: 3, name: "front cover"}, //See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
+	description: "image description", 
+	imageBuffer: (file buffer)
+}
 ```
