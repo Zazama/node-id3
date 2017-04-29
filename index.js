@@ -189,14 +189,14 @@ NodeID3.prototype.read = function(filebuffer) {
         	var descFound = false;
 
         	for(var i = 0; i < APICFrame.length - 1; i++) {
-        		if(descStart[i] == 0x00 && descStart[i + 1] == 0x00) {
+        		if(desc[i] == 0x00 && desc[i + 1] == 0x00) {
         			descFound = i + 1;
         			descEnd = APICFrame.indexOf(APICFrame.indexOf(0x00, 1) + 2 + i + 1);
         			break;
         		}
         	}
         	if(descFound) {
-        		picture.description = iconv.decode(desc.slide(0, descFound), 'utf16') || undefined;
+        		picture.description = iconv.decode(desc.slice(0, descFound), 'utf16') || undefined;
         	}
         }
         if(descEnd) {
