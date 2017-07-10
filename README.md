@@ -33,7 +33,7 @@ var read = nodeID3.read("./example/music.mp3");
 console.log(read);
 ```
 
-###Write ID3v2-Tags
+### Write ID3v2-Tags
 ```
 //Pass tags and filepath
 var success = nodeID3.write(tags, "./example/music.mp3");
@@ -41,7 +41,7 @@ var success = nodeID3.write(tags, "./example/music.mp3");
 console.log(success);
 ```
 
-###Read ID3v2-Tags (currently no support for images)
+### Read ID3v2-Tags (currently no support for images)
 ```
 //Pass filepath/buffer
 var read = nodeID3.read("./example/music.mp3");
@@ -49,12 +49,12 @@ var read = nodeID3.read("./example/music.mp3");
 console.log(read);
 ```
 
-###Remove ID3v2-Tags
+### Remove ID3v2-Tags
 ```
 nodeID3.removeTags("./example/music.mp3");  //Pass the path to the mp3 file
 ```
 
-###Supported tag keys
+### Supported tag keys
 ```
 image:
 album:
