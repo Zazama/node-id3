@@ -53,27 +53,27 @@ var SIF = {
 }
 
 var APICTypes = [
-"other",
-"file icon",
-"other file icon",
-"front cover",
-"back cover",
-"leaflet page",
-"media",
-"lead artist",
-"artist",
-"conductor",
-"band",
-"composer",
-"lyricist",
-"recording location",
-"during recording",
-"during performance",
-"video screen capture",
-"a bright coloured fish",
-"illustration",
-"band logotype",
-"publisher logotype"
+	"other",
+	"file icon",
+	"other file icon",
+	"front cover",
+	"back cover",
+	"leaflet page",
+	"media",
+	"lead artist",
+	"artist",
+	"conductor",
+	"band",
+	"composer",
+	"lyricist",
+	"recording location",
+	"during recording",
+	"during performance",
+	"video screen capture",
+	"a bright coloured fish",
+	"illustration",
+	"band logotype",
+	"publisher logotype"
 ]
 
 function NodeID3() {
@@ -97,7 +97,7 @@ NodeID3.prototype.write = function(tags, filepath) {
         }
     }
 
-    if (tags.image) {
+    if(tags.image) {
         var frame = this.createPictureFrame(tags.image);
         if(frame instanceof Buffer) frames.push(frame);
     }
@@ -182,27 +182,27 @@ NodeID3.prototype.read = function(filebuffer) {
         picture.type = {id: APICFrame[APICFrame.indexOf(0x00, 1) + 1], name: APICTypes[APICFrame[APICFrame.indexOf(0x00, 1) + 1]]}
         var descEnd;
         if(APICFrame[0] == 0x00) {
-            picture.description = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)).toString('ascii') || undefined;
-            descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2);
+        	picture.description = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)).toString('ascii') || undefined;
+        	descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2);
         } else if (APICFrame[0] == 0x01) {
-            var desc = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
-            var descFound = false;
+        	var desc = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
+        	var descFound = false;
 
-            for(var i = 0; i < APICFrame.length - 1; i++) {
-                if(descStart[i] == 0x00 && descStart[i + 1] == 0x00) {
-                    descFound = i + 1;
-                    descEnd = APICFrame.indexOf(APICFrame.indexOf(0x00, 1) + 2 + i + 1);
-                    break;
-                }
-            }
-            if(descFound) {
-                picture.description = iconv.decode(desc.slide(0, descFound), 'utf16') || undefined;
-            }
+        	for(var i = 0; i < APICFrame.length - 1; i++) {
+        		if(desc[i] == 0x00 && desc[i + 1] == 0x00) {
+        			descFound = i + 1;
+        			descEnd = APICFrame.indexOf(APICFrame.indexOf(0x00, 1) + 2 + i + 1);
+        			break;
+        		}
+        	}
+        	if(descFound) {
+        		picture.description = iconv.decode(desc.slice(0, descFound), 'utf16') || undefined;
+        	}
         }
         if(descEnd) {
-            picture.imageBuffer = APICFrame.slice(descEnd + 1);
+        	picture.imageBuffer = APICFrame.slice(descEnd + 1);
         } else {
-            picture.imageBuffer = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
+        	picture.imageBuffer = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
         }
 
         tags.image = picture;
@@ -224,7 +224,7 @@ function getFrameSize(buffer) {
 function getFrame(buffer, frameName) {
     var frameStart = buffer.indexOf(frameName);
     if(frameStart == -1) return null;
-
+        
     frameSize = decodeSize(new Buffer([buffer[frameStart + 4], buffer[frameStart + 5], buffer[frameStart + 6], buffer[frameStart + 7]]));
     var frame = new Buffer(frameSize);
     buffer.copy(frame, 0, frameStart + 10);
@@ -232,23 +232,23 @@ function getFrame(buffer, frameName) {
 }
 
 function decodeBuffer(buffer, encodingbyte) {
-    if(encodingbyte == 0x00) {
-        return buffer.toString('ascii');
-    } else if(encodingbyte == 0x01) {
-        return iconv.decode(buffer, "utf16");
-    } else {
-        return buffer.toString();
-    }
+	if(encodingbyte == 0x00) {
+		return buffer.toString('ascii');
+	} else if(encodingbyte == 0x01) {
+		return iconv.decode(buffer, "utf16");
+	} else {
+		return buffer.toString();
+	}
 }
 
 NodeID3.prototype.removeTagsFromBuffer = function (data){
-    var ts = String.prototype.indexOf.call(data, (new Buffer("ID3")));
+  var ts = String.prototype.indexOf.call(data, (new Buffer("ID3")));
 
-    if(ts == -1 || ts > 20) return false;
+  if(ts == -1 || ts > 20) return false;
 
-    var hSize = new Buffer([data[ts +6], data[ts +7], data[ts +8], data[ts +9]]);
+  var hSize = new Buffer([data[ts +6], data[ts +7], data[ts +8], data[ts +9]]);
 
-    if ((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80) {
+  if ((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80) {
       //INVALID TAG SIZE
       return false;
   }
@@ -321,7 +321,7 @@ NodeID3.prototype.createPictureFrame = function(data) {
         bHeader.fill(0);
         bHeader.write("APIC", 0);
 
-        var mime_type = "image/png";
+    	var mime_type = "image/png";
 
         if(apicData[0] == 0xff && apicData[1] == 0xd8 && apicData[2] == 0xff) {
             mime_type = "image/jpeg";
@@ -332,9 +332,7 @@ NodeID3.prototype.createPictureFrame = function(data) {
         bContent[mime_type.length + 2] = 0x03; //front cover for now
         bContent.write(mime_type, 1);
 
-        bHeader.writeUInt32BE(apicData.length + bContent.length, 4);     //Size of frame
-
-        console.log(bHeader);
+    	bHeader.writeUInt32BE(apicData.length + bContent.length, 4);     //Size of frame
 
         return Buffer.concat([bHeader, bContent, apicData]);
     } catch(e) {
