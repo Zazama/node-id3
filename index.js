@@ -329,9 +329,9 @@ NodeID3.prototype.createTextFrame = function(specName, text) {
     return Buffer.concat([buffer, encBuffer, contentBuffer]);
 }
 
-NodeID3.prototype.createPictureFrame = function(filepath) {
+NodeID3.prototype.createPictureFrame = function(data) {
     try {
-        var apicData = new Buffer(fs.readFileSync(filepath, 'binary'), 'binary');
+        var apicData = (data instanceof Buffer == true) ? new Buffer(data) : new Buffer(fs.readFileSync(data, 'binary'), 'binary');
         var bHeader = new Buffer(10);
         bHeader.fill(0);
         bHeader.write("APIC", 0);
