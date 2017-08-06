@@ -1,3 +1,4 @@
 *.mp3
 *.jpeg
+*.jpg
 node_modules

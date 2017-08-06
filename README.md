@@ -49,6 +49,14 @@ var read = nodeID3.read("./example/music.mp3");
 console.log(read);
 ```
 
+### Read raw tags
+```javascript
+var read = nodeID3.read("./example/music.mp3", {rawTags: true});
+//returns tags
+console.log(read.raw["APIC"]); // returns image buffer
+console.log(read.raw["TALB"]); // returns album
+```
+
 ### Remove ID3v2-Tags
 ```javascript
 nodeID3.removeTags("./example/music.mp3");  //Pass the path to the mp3 file
@@ -102,4 +110,47 @@ image: {
 	description: "image description", 
 	imageBuffer: (file buffer)
 }
+```
+
+### using raw tags
+You can also use the currently supported raw tags like TALB instead of album etc.
+```
+album:              "TALB"
+bpm:                "TBPM"
+composer:           "TCOM"
+genre:              "TCON"
+copyright:          "TCOP"
+date:               "TDAT"
+playlistDelay:      "TDLY"
+encodedBy:          "TENC"
+textWriter:         "TEXT"
+fileType:           "TFLT"
+time:               "TIME"
+contentGroup:       "TIT1"
+title:              "TIT2"
+subtitle:           "TIT3"
+initialKey:         "TKEY"
+language:           "TLAN"
+length:             "TLEN"
+mediaType:          "TMED"
+originalTitle:      "TOAL"
+originalFilename:   "TOFN"
+originalTextwriter: "TOLY"
+originalArtist:     "TOPE"
+originalYear:       "TORY"
+fileOwner:          "TOWN"
+artist:             "TPE1"
+performerInfo:      "TPE2"
+conductor:          "TPE3"
+remixArtist:        "TPE4"
+partOfSet:          "TPOS"
+publisher:          "TPUB"
+trackNumber:        "TRCK"
+recordingDates:     "TRDA"
+internetRadioName:  "TRSN"
+internetRadioOwner: "TRSO"
+size:               "TSIZ"
+ISRC:               "TSRC"
+encodingTechnology: "TSSE"
+year:               "TYER"
 ```

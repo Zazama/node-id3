@@ -84,11 +84,15 @@ NodeID3.prototype.write = function(tags, filepath) {
     frames.push(this.createTagHeader());
 
     var tagNames = Object.keys(tags);
+    console.log(tagNames);
+    var validRawTags = Object.keys(TIF).map(function(e) {
+		return TIF[e]
+	})
 
     for(var i = 0; i < tagNames.length; i++) {
         //Check if TextFrame
-        if(TIF[tagNames[i]]) {
-            var specName = TIF[tagNames[i]];
+        if(TIF[tagNames[i]] || validRawTags.indexOf(tagNames[i]) != -1) {
+            var specName = TIF[tagNames[i]] || tagNames[i];
             var frame = this.createTextFrame(specName, tags[tagNames[i]]);
             if(frame instanceof Buffer) frames.push(frame);
         } else if (SIF[tagNames[i]]) {
@@ -130,7 +134,8 @@ NodeID3.prototype.write = function(tags, filepath) {
     return true;
 }
 
-NodeID3.prototype.read = function(filebuffer) {
+NodeID3.prototype.read = function(filebuffer, options) {
+	options = options || {};
     if(typeof filebuffer === "string" || filebuffer instanceof String)
         filebuffer = fs.readFileSync(filebuffer);
     if(getID3Start(filebuffer) == -1) return false;
@@ -143,6 +148,7 @@ NodeID3.prototype.read = function(filebuffer) {
     var tags = {};
     var frames = Object.keys(TIF);
     var spFrames = Object.keys(SIF);
+    if(options.rawTags) tags.raw = {};
 
     for(var i = 0; i < frames.length; i++) {
         var frameStart = ID3Frame.indexOf(TIF[frames[i]]);
@@ -162,12 +168,18 @@ NodeID3.prototype.read = function(filebuffer) {
         }
 
         tags[frames[i]] = decoded;
+        if(options.rawTags) {
+        	tags.raw[TIF[frames[i]]] = tags[frames[i]];
+        }
     }
 
     for(var i = 0; i < spFrames.length; i++) {
         var frame = getFrame(ID3Frame, SIF[spFrames[i]].name);
         if(!frame) continue;
         tags[spFrames[i]] = this[SIF[spFrames[i]].read](frame);
+        if(options.rawTags) {
+        	tags.raw[SIF[spFrames[i]].name] = tags[spFrames[i]];
+        }
     }
 
     if(ID3Frame.indexOf("APIC")) {
@@ -206,6 +218,7 @@ NodeID3.prototype.read = function(filebuffer) {
         }
 
         tags.image = picture;
+        if(options.rawTags) tags.raw["APIC"] = tags.image;
     }
 
     return tags;
