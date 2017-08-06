@@ -167,6 +167,8 @@ NodeID3.prototype.read = function(filebuffer, options) {
             decoded = frame.toString('ascii').replace(/\0/g, "");
         }
 
+        decoded = decoded.replace(/\0/g, "");
+
         tags[frames[i]] = decoded;
         if(options.rawTags) {
         	tags.raw[TIF[frames[i]]] = tags[frames[i]];
@@ -382,8 +384,8 @@ NodeID3.prototype.readCommentFrame = function(frame) {
     if(frame[0] == 0x00) {
         tags = {
             language: frame.toString().substring(1, 4),
-            shortText: frame.toString().substring(4, frame.indexOf(0x00, 1)),
-            text: frame.toString().substring(frame.indexOf(0x00, 1) + 1)
+            shortText: frame.toString().substring(4, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
+            text: frame.toString().substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
         }
     } else if(frame[0] == 0x01) {
         var buf16 = frame.toString('hex');
@@ -394,8 +396,8 @@ NodeID3.prototype.readCommentFrame = function(frame) {
         frame.copy(text, 0, doubleEscape + 2);
         tags = {
             language: frame.toString().substring(1, 4),
-            shortText: iconv.decode(shortText, "utf16"),
-            text: iconv.decode(text, "utf16")
+            shortText: iconv.decode(shortText, "utf16").replace(/\0/g, ""),
+            text: iconv.decode(text, "utf16").replace(/\0/g, "")
         }
     }
 
