@@ -8,11 +8,10 @@ var tags = {
   album: "Ori and the Blind Forest (Original Soundtrack)",
   image: "./example/oriscreen.jpg",
   year: 2015,
-  /*comment: {
+  comment: {
     language: "eng",
-    shortText: "best",
     text: "game of the year"
-  },*/ // comment tag still broken
+  }, // comment tag still broken when using short desc.
   TRCK: "17"  //trackNumber 17 set with its raw tag
 }
 
@@ -21,6 +20,5 @@ console.log(tags);
 var success = nodeID3.write(tags, "./example/17. Restoring the Light, Facing the Dark.mp3");	//Pass tags and filepath
 console.log(success);
 
-No image support atm
 var read = nodeID3.read("./example/17. Restoring the Light, Facing the Dark.mp3", {rawTags: true});
 console.log(read);
