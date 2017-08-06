@@ -9,7 +9,7 @@ node-id3 is a ID3-Tag library written in JavaScript without other dependencies.
 ```javascript
 var nodeID3 = require('node-id3');
 
-//tags.image is the path to the image (only png/jpeg files allowed)
+//tags.image is the path to the image (only png/jpeg files allowed) or a buffer containing an image
 var tags = {
   title: "Soshite Bokura wa",
   artist: "Ray",
