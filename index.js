@@ -84,7 +84,6 @@ NodeID3.prototype.write = function(tags, filepath) {
     frames.push(this.createTagHeader());
 
     var tagNames = Object.keys(tags);
-    console.log(tagNames);
     var validRawTags = Object.keys(TIF).map(function(e) {
 		return TIF[e]
 	})
