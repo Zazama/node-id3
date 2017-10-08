@@ -17,3 +17,9 @@ const tags = {
 
 let success = nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3");
 console.log(success);
+
+//async
+
+nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3", function(err) {
+  console.log(err)
+})

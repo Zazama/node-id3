@@ -1,7 +1,7 @@
 const fs = require('fs')
 const iconv = require("iconv-lite")
 
-module.exports = new NodeID3;
+module.exports = new NodeID3
 
 /*  
 **  Used specification: http://id3.org/id3v2.3.0
@@ -158,12 +158,13 @@ NodeID3.prototype.write = function(tags, filepath, fn) {
 
     if(fn && typeof fn === 'function') {
         try {
-            let data = fs.readFile(filepath, function(err, data) {
+            let self = this;
+            fs.readFile(filepath, (err, data) => {
                 if(err) {
                     fn(err)
                     return
                 }
-                data = this.removeTagsFromBuffer(data) || data
+                data = self.removeTagsFromBuffer(data) || data
                 rewriteFile = Buffer.concat([completeTag, data])
                 fs.writeFile(filepath, rewriteFile, 'binary', (err) => {
                     fn(err)
@@ -174,9 +175,9 @@ NodeID3.prototype.write = function(tags, filepath, fn) {
         }
     } else {
         try {
-            var data = fs.readFileSync(filepath)
+            let data = fs.readFileSync(filepath)
             data = this.removeTagsFromBuffer(data) || data
-            var rewriteFile = Buffer.concat([completeTag, data])
+            let rewriteFile = Buffer.concat([completeTag, data])
             fs.writeFileSync(filepath, rewriteFile, 'binary')
             return true
         } catch(err) {
