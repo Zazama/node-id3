@@ -158,18 +158,17 @@ NodeID3.prototype.write = function(tags, filepath, fn) {
 
     if(fn && typeof fn === 'function') {
         try {
-            let self = this;
-            fs.readFile(filepath, (err, data) => {
+            fs.readFile(filepath, function(err, data) {
                 if(err) {
                     fn(err)
                     return
                 }
-                data = self.removeTagsFromBuffer(data) || data
+                data = this.removeTagsFromBuffer(data) || data
                 rewriteFile = Buffer.concat([completeTag, data])
                 fs.writeFile(filepath, rewriteFile, 'binary', (err) => {
                     fn(err)
                 })
-            })
+            }.bind(this))
         } catch(err) {
             fn(err)
         }
