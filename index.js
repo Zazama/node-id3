@@ -226,7 +226,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     if(framePosition === -1) {
         return false
     }
-    let frameSize = this.getFrameSize(filebuffer.toString('hex', framePosition, framePosition + 10), true) + 10
+    let frameSize = this.getFrameSize(new Buffer(filebuffer.toString('hex', framePosition, framePosition + 10), "hex"), true) + 10
     let ID3Frame = new Buffer(frameSize + 1)
     let ID3FrameBody = new Buffer(frameSize - 10 + 1)
     filebuffer.copy(ID3Frame, 0, framePosition)

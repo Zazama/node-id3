@@ -1,13 +1,13 @@
 const nodeID3 = require('../index.js')
 const fs = require('fs')
 
-/*
+
 //tags.image is the path to the image (only png/jpeg files allowed)
 const tags = {
   title: "Tomorrow",
   artist: "Kevin Penkin",
   album: "TVアニメ「メイドインアビス」オリジナルサウンドトラック",
-  image: "./example/mia_cover.jpg",
+  APIC: "./example/mia_cover.jpg",
   year: 2017,
   comment: {
     language: "eng",
@@ -16,12 +16,14 @@ const tags = {
   TRCK: "27"
 }
 
-let success = nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3");
-console.log(success);
+//let success = nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3");
+//console.log(success);
+
+console.log(nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3"))
 
 //async
 
-nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3", function(err) {
+/*nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3", function(err) {
   console.log(err)
 })
 */
@@ -29,7 +31,7 @@ nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3", function(err) {
 //console.log(nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3"))
 
 
-console.log("READING\n\n")
+/*console.log("READING\n\n")
 nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3", function(err, tags) {
   console.log(err)
   console.log(tags)
@@ -44,3 +46,4 @@ nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3", function(err, tags) {
   })
   
 })
+*/
