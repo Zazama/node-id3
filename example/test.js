@@ -28,7 +28,19 @@ nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3", function(err) {
 
 //console.log(nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3"))
 
+
+console.log("READING\n\n")
 nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3", function(err, tags) {
   console.log(err)
   console.log(tags)
+
+  console.log("REMOVING\n\n")
+  nodeID3.removeTags("./example/Kevin Penkin - Tomorrow.mp3", function(err) {
+    console.log("READING\n\n")
+    nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3", function(err, tags) {
+      console.log(err)
+      console.log(tags)
+    })
+  })
+  
 })

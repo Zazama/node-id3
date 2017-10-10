@@ -236,7 +236,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     let frames = []
     let tags = { raw: {} }
     let currentPosition = 0
-    while(currentPosition < frameSize - 10) {
+    while(currentPosition < frameSize - 10 && ID3FrameBody[currentPosition] !== 0x00) {
         let bodyFrameHeader = new Buffer(10)
         ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
         let bodyFrameSize = this.getFrameSize(bodyFrameHeader).readUIntBE(0, 4)
@@ -256,7 +256,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
             //  Decode body
             let decoded
             if(frame.body[0] === 0x01) {
-                decoded = iconv.decode(frame.body.slice(1), "utf16")
+                decoded = iconv.decode(frame.body.slice(1), "utf16").replace(/\0/g, "")
             } else {
                 decoded = frame.body.slice(1).toString('ascii').replace(/\0/g, "")
             }
@@ -308,27 +308,6 @@ NodeID3.prototype.getFrameSize = function(buffer, decode) {
 }
 
 /*
-function getFrame(buffer, frameName) {
-    var frameStart = buffer.indexOf(frameName);
-    if(frameStart == -1) return null;
-        
-    frameSize = decodeSize(new Buffer([buffer[frameStart + 4], buffer[frameStart + 5], buffer[frameStart + 6], buffer[frameStart + 7]]));
-    var frame = new Buffer(frameSize);
-    buffer.copy(frame, 0, frameStart + 10);
-    return frame;
-}
-
-function decodeBuffer(buffer, encodingbyte) {
-	if(encodingbyte == 0x00) {
-		return buffer.toString('ascii');
-	} else if(encodingbyte == 0x01) {
-		return iconv.decode(buffer, "utf16");
-	} else {
-		return buffer.toString();
-	}
-}
-
-/*
 **  Checks and removes already written ID3-Frames from a buffer
 **  data => buffer
 */
@@ -346,23 +325,51 @@ NodeID3.prototype.removeTagsFromBuffer = function(data) {
 }
 
 /*
-NodeID3.prototype.removeTags = function(filepath) {
-    try {
-        var data = fs.readFileSync(filepath);
-    } catch(e) {
-        return e;
+**  Checks and removes already written ID3-Frames from a file
+**  data => buffer
+*/
+NodeID3.prototype.removeTags = function(filepath, fn) {
+    if(!fn || typeof fn !== 'function') {
+        let data;
+        try {
+            data = fs.readFileSync(filepath)
+        } catch(e) {
+            return e
+        }
+    
+        let newData = this.removeTagsFromBuffer(data)
+        if(!newData) { 
+            return false
+        }
+    
+        try {
+            fs.writeFileSync(filepath, newData, 'binary')
+        } catch(e) {
+            return e
+        }
+
+        return true
+    } else {
+        fs.readFile(filepath, function(err, data) {
+            if(err) {
+                fn(err)
+            }
+            
+            let newData = this.removeTagsFromBuffer(data)
+            if(!newData) {
+                fn(err)
+                return
+            }
+
+            fs.writeFile(filepath, newData, 'binary', function(err) {
+                if(err) {
+                    fn(err)
+                } else {
+                    fn(false)
+                }
+            })
+        }.bind(this))
     }
-
-    var newData = this.removeTagsFromBuffer(data);
-    if(!newData) return false;
-
-    try {
-        fs.writeFileSync(filepath, newData, 'binary');
-    } catch(e) {
-        return e;
-    }
-
-    return true;
 }
 
 /*
