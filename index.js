@@ -542,9 +542,13 @@ NodeID3.prototype.createCommentFrame = function(comment) {
 }
 
 /*
+**  frame   => Buffer
+*/
 NodeID3.prototype.readCommentFrame = function(frame) {
-    var tags = {};
-    if(!frame) return tags;
+    let tags = {}
+    if(!frame) {
+        return tags
+    }
     if(frame[0] == 0x00) {
         tags = {
             language: frame.toString().substring(1, 4),
@@ -552,12 +556,12 @@ NodeID3.prototype.readCommentFrame = function(frame) {
             text: frame.toString().substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
         }
     } else if(frame[0] == 0x01) {
-        var buf16 = frame.toString('hex');
-        var doubleEscape = parseInt(buf16.indexOf("0000") / 2);
-        var shortText = new Buffer(doubleEscape - 4 + 1);
-        var text = new Buffer(frame.length - doubleEscape - 1);
-        frame.copy(shortText, 0, 4, doubleEscape + 1);
-        frame.copy(text, 0, doubleEscape + 2);
+        let buf16 = frame.toString('hex')
+        let doubleEscape = parseInt(buf16.indexOf("0000") / 2)
+        let shortText = new Buffer(doubleEscape - 4 + 1)
+        let text = new Buffer(frame.length - doubleEscape - 1)
+        frame.copy(shortText, 0, 4, doubleEscape + 1)
+        frame.copy(text, 0, doubleEscape + 2)
         tags = {
             language: frame.toString().substring(1, 4),
             shortText: iconv.decode(shortText, "utf16").replace(/\0/g, ""),
@@ -565,6 +569,5 @@ NodeID3.prototype.readCommentFrame = function(frame) {
         }
     }
 
-    return tags;
+    return tags
 }
-*/
