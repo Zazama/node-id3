@@ -217,6 +217,58 @@ NodeID3.prototype.read = function(filebuffer, options, fn) {
 }
 
 /*
+**  Update ID3-Tags from passed buffer/filepath
+**  filebuffer  => Buffer || String
+**  tags        => Object
+**  fn          => function (for asynchronous usage)
+*/
+NodeID3.prototype.update = function(tags, filebuffer, fn) {
+    let rawTags = {}
+    Object.keys(tags).map(function(tagKey) {
+        //  if js name passed (TF)
+        if(TFrames[tagKey]) {
+            rawTags[TFrames[tagKey]] = tags[tagKey]
+
+        //  if js name passed (SF)
+        } else if(SFrames[tagKey]) {
+            rawTags[SFrames[tagKey].name] = tags[tagKey]
+
+        //  if raw name passed (TF)
+        } else if(Object.keys(TFrames).map(i => TFrames[i]).indexOf(tagKey) !== -1) {
+            rawTags[tagKey] = tags[tagKey]
+
+        //  if raw name passed (SF)
+        } else if(Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tagKey) !== -1) {
+            rawTags[tagKey] = tags[tagKey]
+        }
+    })
+    if(!fn || typeof fn !== 'function') {
+        let currentTags = this.read(filebuffer)
+        currentTags = currentTags.raw
+        //  update current tags with new or keep them
+        Object.keys(rawTags).map(function(tag) {
+            currentTags[tag] = rawTags[tag]
+        })
+        return this.write(currentTags, filebuffer)
+    } else {
+        this.read(filebuffer, function(err, currentTags) {
+            if(err) {
+                fn(err)
+                return
+            }
+            currentTags = currentTags.raw
+            //  update current tags with new or keep them
+            Object.keys(currentTags).map(function(tag) {
+                if(rawTags[tag]) {
+                    currentTags[tag] = rawTags[tag]
+                }
+            })
+            this.write(currentTags, filebuffer, fn)
+        }.bind(this))
+    }
+}
+
+/*
 **  Read ID3-Tags from passed buffer
 **  filebuffer  => Buffer
 **  options     => Object
