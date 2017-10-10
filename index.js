@@ -185,108 +185,129 @@ NodeID3.prototype.write = function(tags, filepath, fn) {
     }
 }
 
-/*NodeID3.prototype.read = function(filebuffer, options) {
-	options = options || {};
-    if(typeof filebuffer === "string" || filebuffer instanceof String)
-        filebuffer = fs.readFileSync(filebuffer);
-    if(getID3Start(filebuffer) == -1) return false;
-    var header = new Buffer(10);
-    filebuffer.copy(header, 0, getID3Start(filebuffer))
-    var frameSize = getFrameSize(header) + 10;
-    var ID3Frame = new Buffer(frameSize + 1);
-    filebuffer.copy(ID3Frame, 0, getID3Start(filebuffer));
+/*
+**  Read ID3-Tags from passed buffer/filepath
+**  filebuffer  => Buffer || String
+**  options     => Object
+**  fn          => function (for asynchronous usage)
+*/
+NodeID3.prototype.read = function(filebuffer, options, fn) {
+    if(!options || typeof options === 'function') {
+        fn = fn || options
+        options = {}
+    }
+    if(!fn || typeof fn !== 'function') {
+        if(typeof filebuffer === "string" || filebuffer instanceof String) {
+            filebuffer = fs.readFileSync(filebuffer)
+        }
+        let tags = this.getTagsFromBuffer(filebuffer, options)
+        return tags
+    } else {
+        if(typeof filebuffer === "string" || filebuffer instanceof String) {
+            fs.readFile(filebuffer, function(err, data) {
+                if(err) {
+                    fn(err, tags)
+                } else {
+                    let tags = this.getTagsFromBuffer(data, options)
+                    fn(null, tags)
+                }
+            }.bind(this))
+        }
+    }
+}
 
-    var tags = {};
-    var frames = Object.keys(TIF);
-    var spFrames = Object.keys(SIF);
-    if(options.rawTags) tags.raw = {};
+/*
+**  Read ID3-Tags from passed buffer
+**  filebuffer  => Buffer
+**  options     => Object
+*/
+NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
+    let framePosition = this.getFramePosition(filebuffer)
+    if(framePosition === -1) {
+        return false
+    }
+    let frameSize = this.getFrameSize(filebuffer.toString('hex', framePosition, framePosition + 10), true) + 10
+    let ID3Frame = new Buffer(frameSize + 1)
+    let ID3FrameBody = new Buffer(frameSize - 10 + 1)
+    filebuffer.copy(ID3Frame, 0, framePosition)
+    filebuffer.copy(ID3FrameBody, 0, framePosition + 10)
 
-    for(var i = 0; i < frames.length; i++) {
-        var frameStart = ID3Frame.indexOf(TIF[frames[i]]);
-        if(frameStart == -1) continue;
+    //  Now, get frame for frame by given size instead of finding already known tags to support TXXX etc.
+    let frames = []
+    let tags = { raw: {} }
+    let currentPosition = 0
+    while(currentPosition < frameSize - 10) {
+        let bodyFrameHeader = new Buffer(10)
+        ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
+        let bodyFrameSize = this.getFrameSize(bodyFrameHeader).readUIntBE(0, 4)
+        let bodyFrameBuffer = new Buffer(bodyFrameSize)
+        ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + 10)
+        //  Size of sub frame + its header
+        currentPosition += bodyFrameSize + 10
+        frames.push({
+            name: bodyFrameHeader.toString('utf8', 0, 4),
+            body: bodyFrameBuffer
+        })
+    }
 
-        frameSize = parseInt(ID3Frame.slice(frameStart + 4, frameStart + 8).toString('hex'), 16);
-        var offset = 1;
-        var frame = new Buffer(frameSize - offset);
-        ID3Frame.copy(frame, 0, frameStart + 10 + offset);
-
-        var decoded = "";
-
-        if(ID3Frame[frameStart + 10] == 0x01) {
-            decoded = iconv.decode(frame, "utf16");
+    frames.forEach(function(frame, index) {
+        //  Check first character if frame is text frame
+        if(frame.name[0] === "T" && frame.name !== "TXXX") {
+            //  Decode body
+            let decoded
+            if(frame.body[0] === 0x01) {
+                decoded = iconv.decode(frame.body.slice(1), "utf16")
+            } else {
+                decoded = frame.body.slice(1).toString('ascii').replace(/\0/g, "")
+            }
+            tags.raw[frame.name] = decoded
+            Object.keys(TFrames).map(function(key) {
+                if(TFrames[key] === frame.name) {
+                    tags[key] = decoded
+                }
+            })
         } else {
-            decoded = frame.toString('ascii').replace(/\0/g, "");
+            //  Check if non-text frame is supported
+            Object.keys(SFrames).map(function(key) {
+                if(SFrames[key].name === frame.name) {
+                    let decoded = this[SFrames[key].read](frame.body)
+                    tags.raw[frame.name] = decoded
+                    tags[key] = decoded
+                }
+            }.bind(this))
         }
+    }.bind(this))
 
-        decoded = decoded.replace(/\0/g, "");
-
-        tags[frames[i]] = decoded;
-        if(options.rawTags) {
-        	tags.raw[TIF[frames[i]]] = tags[frames[i]];
-        }
-    }
-
-    for(var i = 0; i < spFrames.length; i++) {
-        var frame = getFrame(ID3Frame, SIF[spFrames[i]].name);
-        if(!frame) continue;
-        tags[spFrames[i]] = this[SIF[spFrames[i]].read](frame);
-        if(options.rawTags) {
-        	tags.raw[SIF[spFrames[i]].name] = tags[spFrames[i]];
-        }
-    }
-
-    if(ID3Frame.indexOf("APIC")) {
-        var picture = {};
-        var APICFrameStart = ID3Frame.indexOf("APIC");
-        var APICFrameSize = parseInt(ID3Frame.slice(APICFrameStart + 4, APICFrameStart + 8).toString('hex'), 16);
-        var APICFrame = new Buffer(APICFrameSize);
-        ID3Frame.copy(APICFrame, 0, APICFrameStart + 10);
-        var APICMimeType = APICFrame.toString('ascii').substring(1, APICFrame.indexOf(0x00, 1));
-        if(APICMimeType == "image/jpeg") picture.mime = "jpeg";
-        else if(APICMimeType == "image/png") picture.mime = "png";
-        picture.type = {id: APICFrame[APICFrame.indexOf(0x00, 1) + 1], name: APICTypes[APICFrame[APICFrame.indexOf(0x00, 1) + 1]]}
-        var descEnd;
-        if(APICFrame[0] == 0x00) {
-        	picture.description = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)).toString('ascii') || undefined;
-        	descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2);
-        } else if (APICFrame[0] == 0x01) {
-        	var desc = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
-        	var descFound = false;
-
-        	for(var i = 0; i < APICFrame.length - 1; i++) {
-        		if(desc[i] == 0x00 && desc[i + 1] == 0x00) {
-        			descFound = i + 1;
-        			descEnd = APICFrame.indexOf(APICFrame.indexOf(0x00, 1) + 2 + i + 1);
-        			break;
-        		}
-        	}
-        	if(descFound) {
-        		picture.description = iconv.decode(desc.slice(0, descFound), 'utf16') || undefined;
-        	}
-        }
-        if(descEnd) {
-        	picture.imageBuffer = APICFrame.slice(descEnd + 1);
-        } else {
-        	picture.imageBuffer = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
-        }
-
-        tags.image = picture;
-        if(options.rawTags) tags.raw["APIC"] = tags.image;
-    }
-
-    return tags;
+    return tags
 }
 
-function getID3Start(buffer) {
-    var ts = String.prototype.indexOf.call(buffer, (new Buffer("ID3")));
-    if(ts == -1 || ts > 20) return -1;
-    else return ts;
+/*
+**  Get position of ID3-Frame, returns -1 if not found
+**  buffer  => Buffer
+*/
+NodeID3.prototype.getFramePosition = function(buffer) {
+    let framePosition = String.prototype.indexOf.call(buffer, (new Buffer("ID3")));
+    if(framePosition == -1 || framePosition > 20) {
+        return -1;
+    } else {
+        return framePosition;
+    }
 }
 
-function getFrameSize(buffer) {
-    return decodeSize(new Buffer([buffer[6], buffer[7], buffer[8], buffer[9]]));
+/*
+**  Get size of frame from header
+**  buffer  => Buffer/Array (header)
+**  decode  => Boolean
+*/
+NodeID3.prototype.getFrameSize = function(buffer, decode) {
+    if(decode) {
+        return this.decodeSize(new Buffer([buffer[6], buffer[7], buffer[8], buffer[9]]))
+    } else {
+        return new Buffer([buffer[4], buffer[5], buffer[6], buffer[7]])
+    }
 }
 
+/*
 function getFrame(buffer, frameName) {
     var frameStart = buffer.indexOf(frameName);
     if(frameStart == -1) return null;
@@ -311,11 +332,8 @@ function decodeBuffer(buffer, encodingbyte) {
 **  Checks and removes already written ID3-Frames from a buffer
 **  data => buffer
 */
-NodeID3.prototype.removeTagsFromBuffer = function(data, fn) {    
-    let framePosition = String.prototype.indexOf.call(data, (new Buffer("ID3")))      //  Check for frame
-
-    if(framePosition == -1 || framePosition > 20) return false                        // This implementation is a bit dirty but ensures that it doesn't use "ID3" from within an MP3 stream    
-
+NodeID3.prototype.removeTagsFromBuffer = function(data) {    
+    let framePosition = this.getFramePosition(data)
     let hSize = new Buffer([data[framePosition + 6], data[framePosition + 7], data[framePosition + 8], data[framePosition + 9]])
 
     if ((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80) {
@@ -433,6 +451,49 @@ NodeID3.prototype.createPictureFrame = function(data) {
     } catch(e) {
         return e
     }
+}
+
+/*
+**  data => buffer
+*/
+NodeID3.prototype.readPictureFrame = function(APICFrame) {
+    let picture = {}
+    let APICMimeType = APICFrame.toString('ascii').substring(1, APICFrame.indexOf(0x00, 1))
+    if(APICMimeType == "image/jpeg") {
+        picture.mime = "jpeg"
+    } else if(APICMimeType == "image/png") {
+        picture.mime = "png"
+    }
+    picture.type = {
+        id: APICFrame[APICFrame.indexOf(0x00, 1) + 1],
+        name: APICTypes[APICFrame[APICFrame.indexOf(0x00, 1) + 1]]
+    }
+    let descEnd;
+    if(APICFrame[0] == 0x00) {
+        picture.description = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)).toString('ascii') || undefined;
+        descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2);
+    } else if (APICFrame[0] == 0x01) {
+        var desc = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
+        var descFound = false;
+
+        for(var i = 0; i < APICFrame.length - 1; i++) {
+            if(desc[i] == 0x00 && desc[i + 1] == 0x00) {
+                descFound = i + 1;
+                descEnd = APICFrame.indexOf(APICFrame.indexOf(0x00, 1) + 2 + i + 1);
+                break;
+            }
+        }
+        if(descFound) {
+            picture.description = iconv.decode(desc.slice(0, descFound), 'utf16') || undefined;
+        }
+    }
+    if(descEnd) {
+        picture.imageBuffer = APICFrame.slice(descEnd + 1);
+    } else {
+        picture.imageBuffer = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
+    }
+
+    return picture
 }
 
 /*
