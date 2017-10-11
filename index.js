@@ -9,7 +9,7 @@ module.exports = new NodeID3
 
 /*
 **  List of official text information frames
-**  LibraryName: "TXXX"
+**  LibraryName: "T***"
 **  Value is the ID of the text frame specified in the link above, the object's keys are just for simplicity, you can also use the ID directly.
 */
 const TFrames = {
@@ -284,7 +284,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     filebuffer.copy(ID3Frame, 0, framePosition)
     filebuffer.copy(ID3FrameBody, 0, framePosition + 10)
 
-    //  Now, get frame for frame by given size instead of finding already known tags to support TXXX etc.
+    //  Now, get frame for frame by given size to support unkown tags etc.
     let frames = []
     let tags = { raw: {} }
     let currentPosition = 0
