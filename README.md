@@ -2,69 +2,90 @@
 
 node-id3 is a ID3-Tag library written in JavaScript without other dependencies.
 
-#### Right now, there's only write, remove and read support (only ID3v2)
+## Installation
+```
+npm install node-id3
+```
 
-## Example:
+## Usage
 
 ```javascript
-var nodeID3 = require('node-id3');
+const NodeID3 = require('node-id3')
 
-//tags.image is the path to the image (only png/jpeg files allowed) or a buffer containing an image
-var tags = {
-  title: "Soshite Bokura wa",
-  artist: "Ray",
-  album: "Nagi no Asukara",
-  composer: "Nakazawa Tomoyuki",
-  image: "./example/image.jpeg"
+/* Variables found in the following usage examples */
+
+//  file can be a buffer or string with the path to a file
+let file = './path/to/(mp3)file' || new Buffer("Some Buffer of a (mp3) file")
+let filebuffer = new Buffer("Some Buffer of a (mp3) file")
+let filepath = './path/to/(mp3)file'
+```
+
+### Creating/Writing tags
+
+```javascript
+//  Define the tags for your file using the ID (e.g. APIC) or the alias (see at bottom)
+let tags = {
+  title: "Tomorrow",
+  artist: "Kevin Penkin",
+  album: "TVアニメ「メイドインアビス」オリジナルサウンドトラック",
+  APIC: "./example/mia_cover.jpg",
+  TRCK: "27"
 }
 
-nodeID3.removeTags("./example/music.mp3")
+//  Create a ID3-Frame buffer from passed tags
+//  Synchronous
+let ID3FrameBuffer = NodeID3.create(tags)   //  Returns ID3-Frame buffer
+//  Asynchronous
+NodeID3.create(tags, function(frame) {  })
 
-//Pass tags and filepath
-var success = nodeID3.write(tags, "./example/music.mp3");
+//  Write ID3-Frame into (.mp3) file
+let success = NodeID3.write(tags, file) //  Returns true/false
+NodeID3.write(tags, file, function(err) {  })
 
-//returns true if written correctly
-console.log(success);
-
-//Pass filepath/buffer
-var read = nodeID3.read("./example/music.mp3");
-
-//returns tags
-console.log(read);
+//  Update existing ID3-Frame with new/edited tags
+let success = NodeID3.update(tags, file) //  Returns true/false
+NodeID3.update(tags, file, function(err) {  })
 ```
 
-### Write ID3v2-Tags
+### Reading ID3-Tags
+
 ```javascript
-//Pass tags and filepath
-var success = nodeID3.write(tags, "./example/music.mp3");
-//returns true if written correctly
-console.log(success);
+let tags = NodeID3.read(file)
+NodeID3.read(file, function(tags) {
+  /*
+  {
+    title: "Tomorrow",
+    artist: "Kevin Penkin",
+    image: {
+      mime: "jpeg",
+      type: {
+        id: 3,
+        name: "front cover"
+      },
+      description: String, 
+      imageBuffer: Buffer
+    },
+    raw: {
+      TIT2: "Tomorrow",
+      TPE1: "Kevin Penkin",
+      APIC: Object (See above)
+    }
+  }
+  */
+})
 ```
 
-### Read ID3v2-Tags (currently no support for images)
+### Removing ID3-Tags from file/buffer
+
 ```javascript
-//Pass filepath/buffer
-var read = nodeID3.read("./example/music.mp3");
-//returns tags
-console.log(read);
+let success = nodeID3.removeTags(filepath)  //  returns true/false
+nodeID3.removeTags(filepath, function(err) {  })
+
+let bufferWithoutID3Frame = nodeID3.removeTagsFromBuffer(filebuffer)  //  Returns Buffer
 ```
 
-### Read raw tags
-```javascript
-var read = nodeID3.read("./example/music.mp3", {rawTags: true});
-//returns tags
-console.log(read.raw["APIC"]); // returns image buffer
-console.log(read.raw["TALB"]); // returns album
+## Supported aliases
 ```
-
-### Remove ID3v2-Tags
-```javascript
-nodeID3.removeTags("./example/music.mp3");  //Pass the path to the mp3 file
-```
-
-### Supported tag keys
-```
-image:
 album:
 bpm:
 composer:
@@ -103,16 +124,22 @@ size:
 ISRC:
 encodingTechnology:
 year:
-comment: { language: "eng", text: "mycomment"}
+comment: {
+  language: "eng",
+  text: "mycomment"
+}
 image: { 
-	mime: "png/jpeg"/undefined, 
-	type: { id: 3, name: "front cover"}, //See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
-	description: "image description", 
-	imageBuffer: (file buffer)
+  mime: "png/jpeg"/undefined, 
+  type: { 
+    id: 3,
+    name: "front cover
+  }, //See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
+  description: "image description", 
+  imageBuffer: (file buffer)
 }
 ```
 
-### using raw tags
+### Supported raw IDs
 You can also use the currently supported raw tags like TALB instead of album etc.
 ```
 album:              "TALB"
@@ -153,4 +180,6 @@ size:               "TSIZ"
 ISRC:               "TSRC"
 encodingTechnology: "TSSE"
 year:               "TYER"
+comment:            "COMM"
+image:              "APIC"
 ```
