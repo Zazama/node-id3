@@ -78,10 +78,10 @@ NodeID3.read(file, function(tags) {
 ### Removing ID3-Tags from file/buffer
 
 ```javascript
-let success = nodeID3.removeTags(filepath)  //  returns true/false
-nodeID3.removeTags(filepath, function(err) {  })
+let success = NodeID3.removeTags(filepath)  //  returns true/false
+NodeID3.removeTags(filepath, function(err) {  })
 
-let bufferWithoutID3Frame = nodeID3.removeTagsFromBuffer(filebuffer)  //  Returns Buffer
+let bufferWithoutID3Frame = NodeID3.removeTagsFromBuffer(filebuffer)  //  Returns Buffer
 ```
 
 ## Supported aliases
