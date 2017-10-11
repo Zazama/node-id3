@@ -1,24 +1,66 @@
-var nodeID3 = require('../index.js');
-var fs = require('fs');
+const nodeID3 = require('../index.js')
+const fs = require('fs')
+
 
 //tags.image is the path to the image (only png/jpeg files allowed)
-var tags = {
-  title: "Restoring the Light, Facing the Dark",
-  artist: "Gareth Coker",
-  album: "Ori and the Blind Forest (Original Soundtrack)",
-  image: "./example/oriscreen.jpg",
-  year: 2015,
+const tags = {
+  title: "Tomorrow",
+  artist: "Kevin Penkin",
+  album: "TVアニメ「メイドインアビス」オリジナルサウンドトラック",
+  APIC: "./example/mia_cover.jpg",
+  year: 2017,
   comment: {
     language: "eng",
-    text: "game of the year"
-  }, // comment tag still broken when using short desc.
-  TRCK: "17"  //trackNumber 17 set with its raw tag
+    text: "some text"
+  },
+  TRCK: "27"
 }
 
-console.log(tags);
-
-var success = nodeID3.write(tags, "./example/17. Restoring the Light, Facing the Dark.mp3");	//Pass tags and filepath
+let success = nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3");
 console.log(success);
 
-var read = nodeID3.read("./example/17. Restoring the Light, Facing the Dark.mp3", {rawTags: true});
-console.log(read);
+console.log(nodeID3.create(tags))
+
+nodeID3.create(tags, function(frame) {
+  console.log(frame)
+})
+
+//console.log(nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3"))
+
+//async
+
+/*nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3", function(err) {
+  console.log(err)
+})
+*/
+
+//console.log(nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3"))
+
+
+/*console.log("READING\n\n")
+nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3", function(err, tags) {
+  console.log(err)
+  console.log(tags)
+
+  console.log("REMOVING\n\n")
+  nodeID3.removeTags("./example/Kevin Penkin - Tomorrow.mp3", function(err) {
+    console.log("READING\n\n")
+    nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3", function(err, tags) {
+      console.log(err)
+      console.log(tags)
+    })
+  })
+  
+})
+*/
+
+/*console.log(nodeID3.update({
+  title: "TomorrowUP",
+  TRCK: "28",
+  image: "./example/mia_cover.jpg",
+  COMM: {
+    language: "eng",
+    text: "some text2"
+  },
+  genre: "testUP"
+}, "./example/Kevin Penkin - Tomorrow.mp3"));*/
