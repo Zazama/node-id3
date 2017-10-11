@@ -109,52 +109,7 @@ function NodeID3() {
 **  fn          => Function (for asynchronous usage)
 */
 NodeID3.prototype.write = function(tags, filepath, fn) {
-    let frames = []
-
-    //  Push a header for the ID3-Frame
-    frames.push(this.createTagHeader())
-
-    let tagNames = Object.keys(tags)
-
-    tagNames.forEach(function(tag, index) {
-        //  Check if passed tag is text frame (Alias or ID)
-        let frame;
-        if(TFrames[tag] || Object.keys(TFrames).map(i => TFrames[i]).indexOf(tag) != -1) {
-            let specName = TFrames[tag] || tag
-            frame = this.createTextFrame(specName, tags[tag])
-        } else if (SFrames[tag]) {  //  Check if Alias of special frame
-            let createFrameFunction = SFrames[tag].create
-            frame = this[createFrameFunction](tags[tag])
-        } else if (Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag) != -1) {  //  Check if ID of special frame
-            //  get create function from special frames where tag ID is found at SFrame[index].name
-            let createFrameFunction = SFrames[Object.keys(SFrames)[Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag)]].create
-            frame = this[createFrameFunction](tags[tag])
-        }
-
-        if(frame instanceof Buffer) {
-            frames.push(frame)
-        }
-    }.bind(this))
-
-    //  Calculate frame size of ID3 body to insert into header
-
-    let totalSize = 0
-    frames.forEach((frame) => {
-        totalSize += frame.length
-    })
-
-    //  Don't count ID3 header itself
-    totalSize -= 10
-    //  ID3 header size uses only 7 bits of a byte, bit shift is needed
-    let size = this.encodeSize(totalSize)
-
-    //  Write bytes to ID3 frame header, which is the first frame
-    frames[0].writeUInt8(size[0], 6)
-    frames[0].writeUInt8(size[1], 7)
-    frames[0].writeUInt8(size[2], 8)
-    frames[0].writeUInt8(size[3], 9)
-
-    var completeTag = Buffer.concat(frames)
+    let completeTag = this.create(tags)
 
     if(fn && typeof fn === 'function') {
         try {
@@ -182,6 +137,59 @@ NodeID3.prototype.write = function(tags, filepath, fn) {
         } catch(err) {
             return err
         }
+    }
+}
+
+NodeID3.prototype.create = function(tags, fn) {
+    let frames = []
+
+    //  Push a header for the ID3-Frame
+    frames.push(this.createTagHeader())
+
+    let tagNames = Object.keys(tags)
+
+    tagNames.forEach(function (tag, index) {
+        //  Check if passed tag is text frame (Alias or ID)
+        let frame;
+        if (TFrames[tag] || Object.keys(TFrames).map(i => TFrames[i]).indexOf(tag) != -1) {
+            let specName = TFrames[tag] || tag
+            frame = this.createTextFrame(specName, tags[tag])
+        } else if (SFrames[tag]) {  //  Check if Alias of special frame
+            let createFrameFunction = SFrames[tag].create
+            frame = this[createFrameFunction](tags[tag])
+        } else if (Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag) != -1) {  //  Check if ID of special frame
+            //  get create function from special frames where tag ID is found at SFrame[index].name
+            let createFrameFunction = SFrames[Object.keys(SFrames)[Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag)]].create
+            frame = this[createFrameFunction](tags[tag])
+        }
+
+        if (frame instanceof Buffer) {
+            frames.push(frame)
+        }
+    }.bind(this))
+
+    //  Calculate frame size of ID3 body to insert into header
+
+    let totalSize = 0
+    frames.forEach((frame) => {
+        totalSize += frame.length
+    })
+
+    //  Don't count ID3 header itself
+    totalSize -= 10
+    //  ID3 header size uses only 7 bits of a byte, bit shift is needed
+    let size = this.encodeSize(totalSize)
+
+    //  Write bytes to ID3 frame header, which is the first frame
+    frames[0].writeUInt8(size[0], 6)
+    frames[0].writeUInt8(size[1], 7)
+    frames[0].writeUInt8(size[2], 8)
+    frames[0].writeUInt8(size[3], 9)
+
+    if(fn && typeof fn === 'function') {
+        fn(Buffer.concat(frames))
+    } else {
+        return Buffer.concat(frames)
     }
 }
 
