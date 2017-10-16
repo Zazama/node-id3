@@ -31,7 +31,7 @@ let file = fs.readFileSync("./example/Kevin Penkin - Tomorrow.mp3")
   console.log(buffer)
 })*/
 
-console.log(nodeID3.update(tags, file))
+fs.writeFileSync("./example/Kevin Penkin - Tomorrow.mp3", nodeID3.update(tags, file))
 
 //console.log(nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3"))
 

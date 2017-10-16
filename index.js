@@ -262,7 +262,7 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
     })
     if(!fn || typeof fn !== 'function') {
         let currentTags = this.read(filebuffer)
-        currentTags = currentTags.raw
+        currentTags = currentTags.raw || {}
         //  update current tags with new or keep them
         Object.keys(rawTags).map(function(tag) {
             currentTags[tag] = rawTags[tag]
@@ -274,7 +274,7 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
                 fn(err)
                 return
             }
-            currentTags = currentTags.raw
+            currentTags = currentTags.raw || {}
             //  update current tags with new or keep them
             Object.keys(currentTags).map(function(tag) {
                 if(rawTags[tag]) {
