@@ -103,24 +103,34 @@ function NodeID3() {
 }
 
 /*
-**  Write passed tags to a file @ filepath
+**  Write passed tags to a file/buffer @ filebuffer
 **  tags        => Object
-**  filepath    => String
+**  filebuffer  => String || Buffer
 **  fn          => Function (for asynchronous usage)
 */
-NodeID3.prototype.write = function(tags, filepath, fn) {
+NodeID3.prototype.write = function(tags, filebuffer, fn) {
     let completeTag = this.create(tags)
+    if(filebuffer instanceof Buffer) {
+        filebuffer = this.removeTagsFromBuffer(filebuffer) || filebuffer
+        let completeBuffer = Buffer.concat([completeTag, filebuffer])
+        if(fn && typeof fn === 'function') {
+            fn(null, completeBuffer)
+            return
+        } else {
+            return completeBuffer
+        }
+    }
 
     if(fn && typeof fn === 'function') {
         try {
-            fs.readFile(filepath, function(err, data) {
+            fs.readFile(filebuffer, function(err, data) {
                 if(err) {
                     fn(err)
                     return
                 }
                 data = this.removeTagsFromBuffer(data) || data
                 rewriteFile = Buffer.concat([completeTag, data])
-                fs.writeFile(filepath, rewriteFile, 'binary', (err) => {
+                fs.writeFile(filebuffer, rewriteFile, 'binary', (err) => {
                     fn(err)
                 })
             }.bind(this))
@@ -129,10 +139,10 @@ NodeID3.prototype.write = function(tags, filepath, fn) {
         }
     } else {
         try {
-            let data = fs.readFileSync(filepath)
+            let data = fs.readFileSync(filebuffer)
             data = this.removeTagsFromBuffer(data) || data
             let rewriteFile = Buffer.concat([completeTag, data])
-            fs.writeFileSync(filepath, rewriteFile, 'binary')
+            fs.writeFileSync(filebuffer, rewriteFile, 'binary')
             return true
         } catch(err) {
             return err

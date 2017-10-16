@@ -39,12 +39,12 @@ let ID3FrameBuffer = NodeID3.create(tags)   //  Returns ID3-Frame buffer
 NodeID3.create(tags, function(frame) {  })
 
 //  Write ID3-Frame into (.mp3) file
-let success = NodeID3.write(tags, file) //  Returns true/false
-NodeID3.write(tags, file, function(err) {  })
+let success = NodeID3.write(tags, file) //  Returns true/false or, if buffer passed as file, the tagged buffer
+NodeID3.write(tags, file, function(err, buffer) {  }) //  Buffer is only returned if a buffer was passed as file
 
 //  Update existing ID3-Frame with new/edited tags
-let success = NodeID3.update(tags, file) //  Returns true/false
-NodeID3.update(tags, file, function(err) {  })
+let success = NodeID3.update(tags, file) //  Returns true/false or, if buffer passed as file, the tagged buffer
+NodeID3.update(tags, file, function(err, buffer) {  })  //  Buffer is only returned if a buffer was passed as file
 ```
 
 ### Reading ID3-Tags

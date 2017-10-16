@@ -16,14 +16,22 @@ const tags = {
   TRCK: "27"
 }
 
-let success = nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3");
+/*let success = nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3");
 console.log(success);
 
 console.log(nodeID3.create(tags))
 
 nodeID3.create(tags, function(frame) {
   console.log(frame)
-})
+})*/
+
+let file = fs.readFileSync("./example/Kevin Penkin - Tomorrow.mp3")
+/*nodeID3.update(tags, file, function(err, buffer) {
+  console.log(err)
+  console.log(buffer)
+})*/
+
+console.log(nodeID3.update(tags, file))
 
 //console.log(nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3"))
 
