@@ -3,7 +3,7 @@ const iconv = require("iconv-lite")
 
 module.exports = new NodeID3
 
-/*  
+/*
 **  Used specification: http://id3.org/id3v2.3.0
 */
 
@@ -224,7 +224,7 @@ NodeID3.prototype.read = function(filebuffer, options, fn) {
         if(typeof filebuffer === "string" || filebuffer instanceof String) {
             fs.readFile(filebuffer, function(err, data) {
                 if(err) {
-                    fn(err, tags)
+                    fn(err, null)
                 } else {
                     let tags = this.getTagsFromBuffer(data, options)
                     fn(null, tags)
@@ -381,7 +381,7 @@ NodeID3.prototype.getFrameSize = function(buffer, decode) {
 **  Checks and removes already written ID3-Frames from a buffer
 **  data => buffer
 */
-NodeID3.prototype.removeTagsFromBuffer = function(data) {    
+NodeID3.prototype.removeTagsFromBuffer = function(data) {
     let framePosition = this.getFramePosition(data)
     let hSize = new Buffer([data[framePosition + 6], data[framePosition + 7], data[framePosition + 8], data[framePosition + 9]])
 
@@ -406,12 +406,12 @@ NodeID3.prototype.removeTags = function(filepath, fn) {
         } catch(e) {
             return e
         }
-    
+
         let newData = this.removeTagsFromBuffer(data)
-        if(!newData) { 
+        if(!newData) {
             return false
         }
-    
+
         try {
             fs.writeFileSync(filepath, newData, 'binary')
         } catch(e) {
@@ -424,7 +424,7 @@ NodeID3.prototype.removeTags = function(filepath, fn) {
             if(err) {
                 fn(err)
             }
-            
+
             let newData = this.removeTagsFromBuffer(data)
             if(!newData) {
                 fn(err)
@@ -601,7 +601,7 @@ NodeID3.prototype.createCommentFrame = function(comment) {
     } else {
         commentOptions.write("eng", 1)
     }
-    
+
     let commentText = new Buffer(iconv.encode(comment.text, "utf16"))
 
     comment.shortText = comment.shortText || ""
@@ -616,6 +616,7 @@ NodeID3.prototype.createCommentFrame = function(comment) {
 */
 NodeID3.prototype.readCommentFrame = function(frame) {
     let tags = {}
+
     if(!frame) {
         return tags
     }
