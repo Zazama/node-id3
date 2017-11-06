@@ -615,28 +615,39 @@ NodeID3.prototype.createCommentFrame = function(comment) {
 **  frame   => Buffer
 */
 NodeID3.prototype.readCommentFrame = function(frame) {
-    let tags = {}
+    var tags = {}
 
     if(!frame) {
         return tags
     }
-    if(frame[0] == 0x00) {
-        tags = {
-            language: frame.toString().substring(1, 4),
-            shortText: frame.toString().substring(4, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
-            text: frame.toString().substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
+
+    let encoding = false
+    let start = 1
+
+    if(frame[0] == 0) {
+        encoding = 'ascii'
+    } else if(frame[0] == 1) {
+        bytes1to5 = frame.slice(1,6).toString('hex')
+        if(bytes1to5 == '0000000000') {
+            if(frame[6]==255 && frame[7]== 254) {
+                encoding = 'utf16le'
+                start = 8
+            }
         }
-    } else if(frame[0] == 0x01) {
-        let buf16 = frame.toString('hex')
-        let doubleEscape = parseInt(buf16.indexOf("0000") / 2)
-        let shortText = new Buffer(doubleEscape - 4 + 1)
-        let text = new Buffer(frame.length - doubleEscape - 1)
-        frame.copy(shortText, 0, 4, doubleEscape + 1)
-        frame.copy(text, 0, doubleEscape + 2)
-        tags = {
-            language: frame.toString().substring(1, 4),
-            shortText: iconv.decode(shortText, "utf16").replace(/\0/g, ""),
-            text: iconv.decode(text, "utf16").replace(/\0/g, "")
+    }
+
+    if(encoding) {
+        let arr = frame.slice(start).toString(encoding).split('\0')
+        if(arr.length == 1) {
+            tags = {
+                text: arr[0]
+            }
+        } else {
+            tags = {
+                language: arr[0].substr(0, 3),
+                shortText: arr[0].substr(3),
+                text: arr[1]
+            }
         }
     }
 
