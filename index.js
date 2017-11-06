@@ -615,27 +615,23 @@ NodeID3.prototype.createCommentFrame = function(comment) {
 **  frame   => Buffer
 */
 NodeID3.prototype.readCommentFrame = function(frame) {
-    var tags = {}
-
+    let tags = {}
     if(!frame) {
         return tags
     }
-
     let encoding = false
     let start = 1
-
-    if(frame[0] == 0) {
+    if(frame[0] == 0x00) {
         encoding = 'ascii'
-    } else if(frame[0] == 1) {
-        bytes1to5 = frame.slice(1,6).toString('hex')
+    } else if(frame[0] == 0x01) {
+        let bytes1to5 = frame.slice(1, 6).toString('hex')
         if(bytes1to5 == '0000000000') {
-            if(frame[6]==255 && frame[7]== 254) {
+            if(frame[6] == 0xFF && frame[7] == 0xFE) {
                 encoding = 'utf16le'
                 start = 8
             }
         }
     }
-
     if(encoding) {
         let arr = frame.slice(start).toString(encoding).split('\0')
         if(arr.length == 1) {
@@ -650,6 +646,5 @@ NodeID3.prototype.readCommentFrame = function(frame) {
             }
         }
     }
-
     return tags
 }
