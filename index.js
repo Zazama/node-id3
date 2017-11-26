@@ -276,7 +276,7 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
             }
             currentTags = currentTags.raw || {}
             //  update current tags with new or keep them
-            Object.keys(currentTags).map(function(tag) {
+            Object.keys(rawTags).map(function(tag) {
                 if(rawTags[tag]) {
                     currentTags[tag] = rawTags[tag]
                 }
