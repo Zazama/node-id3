@@ -629,6 +629,9 @@ NodeID3.prototype.readCommentFrame = function(frame) {
     } else if(frame[0] == 0x01) {
         let buf16 = frame.toString('hex')
         let doubleEscape = parseInt(buf16.indexOf("0000") / 2)
+        if(doubleEscape < 3) {
+            return tags
+        }
         let shortText = new Buffer(doubleEscape - 4 + 1)
         let text = new Buffer(frame.length - doubleEscape - 1)
         frame.copy(shortText, 0, 4, doubleEscape + 1)
