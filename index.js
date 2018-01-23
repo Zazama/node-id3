@@ -328,7 +328,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
             if(frame.body[0] === 0x01) {
                 decoded = iconv.decode(frame.body.slice(1), "utf16").replace(/\0/g, "")
             } else {
-                decoded = frame.body.slice(1).toString('ascii').replace(/\0/g, "")
+                decoded = iconv.decode(frame.body.slice(1), "ISO-8859-1").replace(/\0/g, "")
             }
             tags.raw[frame.name] = decoded
             Object.keys(TFrames).map(function(key) {
@@ -547,7 +547,7 @@ NodeID3.prototype.readPictureFrame = function(APICFrame) {
     }
     let descEnd;
     if(APICFrame[0] == 0x00) {
-        picture.description = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)).toString('ascii') || undefined;
+        picture.description = iconv.decode(APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)), "ISO-8859-1") || undefined;
         descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2);
     } else if (APICFrame[0] == 0x01) {
         var desc = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
@@ -622,9 +622,9 @@ NodeID3.prototype.readCommentFrame = function(frame) {
     }
     if(frame[0] == 0x00) {
         tags = {
-            language: frame.toString().substring(1, 4),
-            shortText: frame.toString().substring(4, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
-            text: frame.toString().substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
+            language: iconv.decode(frame, "ISO-8859-1").substring(1, 4).replace(/\0/g, ""),
+            shortText: iconv.decode(frame, "ISO-8859-1").substring(4, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
+            text: iconv.decode(frame, "ISO-8859-1").substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
         }
     } else if(frame[0] == 0x01) {
         let buf16 = frame.toString('hex')
