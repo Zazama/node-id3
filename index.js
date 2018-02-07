@@ -70,9 +70,9 @@ const SFrames = {
         read: "readPictureFrame",
         name: "APIC"
     },
-    unsychronisedLyrics: {
-        create: "createUnsychronisedLyricsFrame",
-        read: "readUnsychronisedLyricsFrame",
+    unsynchronisedLyrics: {
+        create: "createUnsynchronisedLyricsFrame",
+        read: "readUnsynchronisedLyricsFrame",
         name: "USLT"
     }
 }
@@ -703,20 +703,20 @@ NodeID3.prototype.readCommentFrame = function(frame) {
 }
 
 /*
-**  unsychronisedLyrics => object {
+**  unsynchronisedLyrics => object {
 **      language:   string (3 characters),
 **      text:       string
 **      shortText:  string
 **  }
 **/
-NodeID3.prototype.createUnsychronisedLyricsFrame = function(unsychronisedLyrics) {
-    unsychronisedLyrics = unsychronisedLyrics || {}
-    if(typeof unsychronisedLyrics === 'string' || unsychronisedLyrics instanceof String) {
-        unsychronisedLyrics = {
-            text: unsychronisedLyrics
+NodeID3.prototype.createUnsynchronisedLyricsFrame = function(unsynchronisedLyrics) {
+    unsynchronisedLyrics = unsynchronisedLyrics || {}
+    if(typeof unsynchronisedLyrics === 'string' || unsynchronisedLyrics instanceof String) {
+        unsynchronisedLyrics = {
+            text: unsynchronisedLyrics
         }
     }
-    if(!unsychronisedLyrics.text) {
+    if(!unsynchronisedLyrics.text) {
         return null
     }
 
@@ -726,9 +726,9 @@ NodeID3.prototype.createUnsychronisedLyricsFrame = function(unsychronisedLyrics)
     buffer.write("USLT", 0)                 //  Write header ID
 
     let encodingBuffer = this.createTextEncoding(0x01)
-    let languageBuffer = this.createLanguage(unsychronisedLyrics.language)
-    let descriptorBuffer = this.createContentDescriptor(unsychronisedLyrics.shortText, 0x01, true)
-    let textBuffer = this.createText(unsychronisedLyrics.text, 0x01, false)
+    let languageBuffer = this.createLanguage(unsynchronisedLyrics.language)
+    let descriptorBuffer = this.createContentDescriptor(unsynchronisedLyrics.shortText, 0x01, true)
+    let textBuffer = this.createText(unsynchronisedLyrics.text, 0x01, false)
 
     buffer.writeUInt32BE(encodingBuffer.length + languageBuffer.length + descriptorBuffer.length + textBuffer.length, 4)
     return Buffer.concat([buffer, encodingBuffer, languageBuffer, descriptorBuffer, textBuffer])
@@ -737,7 +737,7 @@ NodeID3.prototype.createUnsychronisedLyricsFrame = function(unsychronisedLyrics)
 /*
 **  frame   => Buffer
 */
-NodeID3.prototype.readUnsychronisedLyricsFrame = function(frame) {
+NodeID3.prototype.readUnsynchronisedLyricsFrame = function(frame) {
     let tags = {}
 
     if(!frame) {
