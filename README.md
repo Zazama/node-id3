@@ -51,9 +51,9 @@ NodeID3.update(tags, file, function(err, buffer) {  })  //  Buffer is only retur
 
 ```javascript
 let tags = NodeID3.read(file)
-NodeID3.read(file, function(tags) {
+NodeID3.read(file, function(err, tags) {
   /*
-  {
+  tags: {
     title: "Tomorrow",
     artist: "Kevin Penkin",
     image: {
@@ -62,7 +62,7 @@ NodeID3.read(file, function(tags) {
         id: 3,
         name: "front cover"
       },
-      description: String, 
+      description: String,
       imageBuffer: Buffer
     },
     raw: {
