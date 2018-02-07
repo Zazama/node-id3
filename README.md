@@ -128,13 +128,17 @@ comment: {
   language: "eng",
   text: "mycomment"
 }
-image: { 
-  mime: "png/jpeg"/undefined, 
-  type: { 
+unsychronisedLyrics: {
+  language: "eng",
+  text: "lyrics"
+}
+image: {
+  mime: "png/jpeg"/undefined,
+  type: {
     id: 3,
     name: "front cover
   }, //See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
-  description: "image description", 
+  description: "image description",
   imageBuffer: (file buffer)
 }
 ```
@@ -182,4 +186,5 @@ encodingTechnology: "TSSE"
 year:               "TYER"
 comment:            "COMM"
 image:              "APIC"
+unsychronisedLyrics "USLT"
 ```

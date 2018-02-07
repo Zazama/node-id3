@@ -69,6 +69,11 @@ const SFrames = {
         create: "createPictureFrame",
         read: "readPictureFrame",
         name: "APIC"
+    },
+    unsychronisedLyrics: {
+        create: "createUnsychronisedLyricsFrame",
+        read: "readUnsychronisedLyricsFrame",
+        name: "USLT"
     }
 }
 
@@ -488,7 +493,7 @@ NodeID3.prototype.createTextFrame = function(specName, text) {
         return null
     }
 
-    let encoded = iconv.encode(text,"utf16")
+    let encoded = iconv.encode(text, "utf16")
 
     let buffer = new Buffer(10)
     buffer.fill(0)
@@ -547,30 +552,91 @@ NodeID3.prototype.readPictureFrame = function(APICFrame) {
     }
     let descEnd;
     if(APICFrame[0] == 0x00) {
-        picture.description = iconv.decode(APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)), "ISO-8859-1") || undefined;
-        descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2);
+        picture.description = iconv.decode(APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)), "ISO-8859-1") || undefined
+        descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)
     } else if (APICFrame[0] == 0x01) {
-        var desc = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
+        var desc = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2)
         var descFound = false;
 
         for(var i = 0; i < APICFrame.length - 1; i++) {
             if(desc[i] == 0x00 && desc[i + 1] == 0x00) {
-                descFound = i + 1;
-                descEnd = APICFrame.indexOf(APICFrame.indexOf(0x00, 1) + 2 + i + 1);
-                break;
+                descFound = i + 1
+                descEnd = APICFrame.indexOf(APICFrame.indexOf(0x00, 1) + 2 + i + 1)
+                break
             }
         }
         if(descFound) {
-            picture.description = iconv.decode(desc.slice(0, descFound), 'utf16') || undefined;
+            picture.description = iconv.decode(desc.slice(0, descFound), 'utf16') || undefined
         }
     }
     if(descEnd) {
-        picture.imageBuffer = APICFrame.slice(descEnd + 1);
+        picture.imageBuffer = APICFrame.slice(descEnd + 1)
     } else {
-        picture.imageBuffer = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2);
+        picture.imageBuffer = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2)
     }
 
     return picture
+}
+
+NodeID3.prototype.getEncodingByte = function(encoding) {
+    if(!encoding || encoding === 0x00 || encoding === "ISO-8859-1") {
+        return 0x00
+    } else {
+        return 0x01
+    }
+}
+
+NodeID3.prototype.getEncodingName = function(encoding) {
+    if(this.getEncodingByte(encoding) === 0x00) {
+        return "ISO-8859-1"
+    } else {
+        return "utf16"
+    }
+}
+
+NodeID3.prototype.getTerminationCount = function(encoding) {
+    if(encoding === 0x00) {
+        return 1
+    } else {
+        return 2
+    }
+}
+
+NodeID3.prototype.createTextEncoding = function(encoding) {
+    let buffer = new Buffer(1)
+    buffer[0] = this.getEncodingByte(encoding)
+    return buffer
+}
+
+NodeID3.prototype.createLanguage = function(language) {
+    if(!language) {
+        language = "eng"
+    } else if(language.length > 3) {
+        language = language.substring(0, 3)
+    }
+
+    return (new Buffer(language))
+}
+
+NodeID3.prototype.createContentDescriptor = function(description, encoding, terminated) {
+    if(!description) {
+        description = terminated ? iconv.encode("\0", this.getEncodingName(encoding)) : new Buffer(0)
+        return description
+    }
+
+    description = iconv.encode(description, this.getEncodingName(encoding))
+
+    return terminated ? Buffer.concat([description, (new Buffer(this.getTerminationCount(encoding))).fill(0x00)]) : description
+}
+
+NodeID3.prototype.createText = function(text, encoding, terminated) {
+    if(!text) {
+        text = ""
+    }
+
+    text = iconv.encode(text, this.getEncodingName(encoding))
+
+    return terminated ? Buffer.concat([text, (new Buffer(this.getTerminationCount(encoding))).fill(0x00)]) : text
 }
 
 /*
@@ -591,24 +657,13 @@ NodeID3.prototype.createCommentFrame = function(comment) {
     buffer.fill(0)
     buffer.write("COMM", 0)                 //  Write header ID
 
-    let commentOptions = new Buffer(4)
-    commentOptions.fill(0)
-    commentOptions[0] = 0x01                // Encoding bit => UTF-16
+    let encodingBuffer = this.createTextEncoding(0x01)
+    let languageBuffer = this.createLanguage(comment.language)
+    let descriptorBuffer = this.createContentDescriptor(comment.shortText, 0x01, true)
+    let textBuffer = this.createText(comment.text, 0x01, false)
 
-    //  Make default language eng (english)
-    if(comment.language) {
-        commentOptions.write(comment.language, 1)
-    } else {
-        commentOptions.write("eng", 1)
-    }
-
-    let commentText = new Buffer(iconv.encode(comment.text, "utf16"))
-
-    comment.shortText = comment.shortText || ""
-    var commentShortText = iconv.encode(comment.shortText, "utf16")
-    commentShortText = Buffer.concat([commentShortText, (comment.shortText == "") ? new Buffer(2).fill(0) : new Buffer(1).fill(0)])
-    buffer.writeUInt32BE(commentOptions.length + commentShortText.length + commentText.length, 4)           //  Size of frame
-    return Buffer.concat([buffer, commentOptions, commentShortText, commentText])
+    buffer.writeUInt32BE(encodingBuffer.length + languageBuffer.length + descriptorBuffer.length + textBuffer.length, 4)
+    return Buffer.concat([buffer, encodingBuffer, languageBuffer, descriptorBuffer, textBuffer])
 }
 
 /*
@@ -627,17 +682,86 @@ NodeID3.prototype.readCommentFrame = function(frame) {
             text: iconv.decode(frame, "ISO-8859-1").substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
         }
     } else if(frame[0] == 0x01) {
-        let buf16 = frame.toString('hex')
-        let doubleEscape = parseInt(buf16.indexOf("0000") / 2)
-        if(doubleEscape < 3) {
+        let descriptorEscape = 0
+        while(frame[descriptorEscape] !== undefined && frame[descriptorEscape] !== 0x00 || frame[descriptorEscape + 1] !== 0x00 || frame[descriptorEscape + 2] === 0x00) {
+            descriptorEscape++
+        }
+        if(frame[descriptorEscape] === undefined) {
             return tags
         }
-        let shortText = new Buffer(doubleEscape - 4 + 1)
-        let text = new Buffer(frame.length - doubleEscape - 1)
-        frame.copy(shortText, 0, 4, doubleEscape + 1)
-        frame.copy(text, 0, doubleEscape + 2)
+        let shortText = frame.slice(4, descriptorEscape)
+        let text = frame.slice(descriptorEscape + 2)
+
         tags = {
-            language: frame.toString().substring(1, 4),
+            language: frame.toString().substring(1, 4).replace(/\0/g, ""),
+            shortText: iconv.decode(shortText, "utf16").replace(/\0/g, ""),
+            text: iconv.decode(text, "utf16").replace(/\0/g, "")
+        }
+    }
+
+    return tags
+}
+
+/*
+**  unsychronisedLyrics => object {
+**      language:   string (3 characters),
+**      text:       string
+**      shortText:  string
+**  }
+**/
+NodeID3.prototype.createUnsychronisedLyricsFrame = function(unsychronisedLyrics) {
+    unsychronisedLyrics = unsychronisedLyrics || {}
+    if(typeof unsychronisedLyrics === 'string' || unsychronisedLyrics instanceof String) {
+        unsychronisedLyrics = {
+            text: unsychronisedLyrics
+        }
+    }
+    if(!unsychronisedLyrics.text) {
+        return null
+    }
+
+    // Create frame header
+    let buffer = new Buffer(10)
+    buffer.fill(0)
+    buffer.write("USLT", 0)                 //  Write header ID
+
+    let encodingBuffer = this.createTextEncoding(0x01)
+    let languageBuffer = this.createLanguage(unsychronisedLyrics.language)
+    let descriptorBuffer = this.createContentDescriptor(unsychronisedLyrics.shortText, 0x01, true)
+    let textBuffer = this.createText(unsychronisedLyrics.text, 0x01, false)
+
+    buffer.writeUInt32BE(encodingBuffer.length + languageBuffer.length + descriptorBuffer.length + textBuffer.length, 4)
+    return Buffer.concat([buffer, encodingBuffer, languageBuffer, descriptorBuffer, textBuffer])
+}
+
+/*
+**  frame   => Buffer
+*/
+NodeID3.prototype.readUnsychronisedLyricsFrame = function(frame) {
+    let tags = {}
+
+    if(!frame) {
+        return tags
+    }
+    if(frame[0] == 0x00) {
+        tags = {
+            language: iconv.decode(frame, "ISO-8859-1").substring(1, 4).replace(/\0/g, ""),
+            shortText: iconv.decode(frame, "ISO-8859-1").substring(4, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
+            text: iconv.decode(frame, "ISO-8859-1").substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
+        }
+    } else if(frame[0] == 0x01) {
+        let descriptorEscape = 0
+        while(frame[descriptorEscape] !== undefined && frame[descriptorEscape] !== 0x00 || frame[descriptorEscape + 1] !== 0x00 || frame[descriptorEscape + 2] === 0x00) {
+            descriptorEscape++
+        }
+        if(frame[descriptorEscape] === undefined) {
+            return tags
+        }
+        let shortText = frame.slice(4, descriptorEscape)
+        let text = frame.slice(descriptorEscape + 2)
+
+        tags = {
+            language: frame.toString().substring(1, 4).replace(/\0/g, ""),
             shortText: iconv.decode(shortText, "utf16").replace(/\0/g, ""),
             text: iconv.decode(text, "utf16").replace(/\0/g, "")
         }
