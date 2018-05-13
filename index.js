@@ -511,6 +511,9 @@ NodeID3.prototype.createTextFrame = function(specName, text) {
 */
 NodeID3.prototype.createPictureFrame = function(data) {
     try {
+        if(data && data.imageBuffer && data.imageBuffer instanceof Buffer === true) {
+            data = data.imageBuffer
+        }
         let apicData = (data instanceof Buffer == true) ? new Buffer(data) : new Buffer(fs.readFileSync(data, 'binary'), 'binary')
         let bHeader = new Buffer(10)
         bHeader.fill(0)
