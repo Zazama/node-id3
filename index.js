@@ -301,11 +301,14 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     if(framePosition === -1) {
         return false
     }
-    let frameSize = this.getFrameSize(new Buffer(filebuffer.toString('hex', framePosition, framePosition + 10), "hex"), true) + 10
+    let frameSize = this.getTagSize(new Buffer(filebuffer.toString('hex', framePosition, framePosition + 10), "hex")) + 10
     let ID3Frame = new Buffer(frameSize + 1)
     let ID3FrameBody = new Buffer(frameSize - 10 + 1)
     filebuffer.copy(ID3Frame, 0, framePosition)
     filebuffer.copy(ID3FrameBody, 0, framePosition + 10)
+
+    //ID3 version e.g. 3 if ID3v2.3.0
+    let ID3Version = ID3Frame[3]
 
     //  Now, get frame for frame by given size to support unkown tags etc.
     let frames = []
@@ -314,7 +317,12 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     while(currentPosition < frameSize - 10 && ID3FrameBody[currentPosition] !== 0x00) {
         let bodyFrameHeader = new Buffer(10)
         ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
-        let bodyFrameSize = this.getFrameSize(bodyFrameHeader).readUIntBE(0, 4)
+
+        let decodeSize = false
+        if(ID3Version == 4) {
+            decodeSize = true
+        }
+        let bodyFrameSize = this.getFrameSize(bodyFrameHeader, decodeSize)
         let bodyFrameBuffer = new Buffer(bodyFrameSize)
         ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + 10)
         //  Size of sub frame + its header
@@ -370,15 +378,23 @@ NodeID3.prototype.getFramePosition = function(buffer) {
 }
 
 /*
+**  Get size of tag from header
+**  buffer  => Buffer/Array (header)
+*/
+NodeID3.prototype.getTagSize = function(buffer) {
+    return this.decodeSize(new Buffer([buffer[6], buffer[7], buffer[8], buffer[9]]))
+}
+
+/*
 **  Get size of frame from header
 **  buffer  => Buffer/Array (header)
 **  decode  => Boolean
 */
 NodeID3.prototype.getFrameSize = function(buffer, decode) {
     if(decode) {
-        return this.decodeSize(new Buffer([buffer[6], buffer[7], buffer[8], buffer[9]]))
+        return this.decodeSize(new Buffer([buffer[4], buffer[5], buffer[6], buffer[7]]))
     } else {
-        return new Buffer([buffer[4], buffer[5], buffer[6], buffer[7]])
+        return (new Buffer([buffer[4], buffer[5], buffer[6], buffer[7]])).readUIntBE(0, 4)
     }
 }
 
