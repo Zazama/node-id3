@@ -579,18 +579,13 @@ NodeID3.prototype.readPictureFrame = function(APICFrame) {
         picture.description = iconv.decode(APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)), "ISO-8859-1") || undefined
         descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)
     } else if (APICFrame[0] == 0x01) {
-        var desc = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2)
-        var descFound = false;
+        let descOffset = APICFrame.indexOf(0x00, 1) + 2
+        let desc = APICFrame.slice(descOffset)
+        let descFound = desc.indexOf("0000", 0, 'hex')
+        descEnd = descOffset + descFound + 2
 
-        for(var i = 0; i < APICFrame.length - 1; i++) {
-            if(desc[i] == 0x00 && desc[i + 1] == 0x00) {
-                descFound = i + 1
-                descEnd = APICFrame.indexOf(APICFrame.indexOf(0x00, 1) + 2 + i + 1)
-                break
-            }
-        }
-        if(descFound) {
-            picture.description = iconv.decode(desc.slice(0, descFound), 'utf16') || undefined
+        if(descFound != -1) {
+            picture.description = iconv.decode(desc.slice(0, descFound + 2), 'utf16') || undefined
         }
     }
     if(descEnd) {
