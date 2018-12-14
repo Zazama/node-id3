@@ -338,11 +338,19 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
         if(frame.name[0] === "T" && frame.name !== "TXXX") {
             //  Decode body
             let decoded
-            if(frame.body[0] === 0x01) {
-                decoded = iconv.decode(frame.body.slice(1), "utf16").replace(/\0/g, "")
-            } else {
-                decoded = iconv.decode(frame.body.slice(1), "ISO-8859-1").replace(/\0/g, "")
+
+            switch (frame.body[0]) {
+                case 0x01:
+                    decoded = iconv.decode(frame.body.slice(1), "utf16").replace(/\0/g, "")
+                break
+                case 0x03:
+                    decoded = iconv.decode(frame.body.slice(1), "utf8").replace(/\0/g, "")
+                break
+                default:
+                    decoded = iconv.decode(frame.body.slice(1), "ISO-8859-1").replace(/\0/g, "")
+                break
             }
+
             tags.raw[frame.name] = decoded
             Object.keys(TFrames).map(function(key) {
                 if(TFrames[key] === frame.name) {
