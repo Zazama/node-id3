@@ -369,11 +369,11 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
 **  buffer  => Buffer
 */
 NodeID3.prototype.getFramePosition = function(buffer) {
-    let framePosition = String.prototype.indexOf.call(buffer, (new Buffer("ID3")));
+    let framePosition = buffer.indexOf("ID3")
     if(framePosition == -1 || framePosition > 20) {
-        return -1;
+        return -1
     } else {
-        return framePosition;
+        return framePosition
     }
 }
 
