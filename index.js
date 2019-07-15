@@ -134,7 +134,7 @@ NodeID3.prototype.write = function(tags, filebuffer, fn) {
                     return
                 }
                 data = this.removeTagsFromBuffer(data) || data
-                rewriteFile = Buffer.concat([completeTag, data])
+                let rewriteFile = Buffer.concat([completeTag, data])
                 fs.writeFile(filebuffer, rewriteFile, 'binary', (err) => {
                     fn(err)
                 })
@@ -473,10 +473,10 @@ NodeID3.prototype.removeTags = function(filepath, fn) {
 **  totalSize => int
 */
 NodeID3.prototype.encodeSize = function(totalSize) {
-    byte_3 = totalSize & 0x7F
-    byte_2 = (totalSize >> 7) & 0x7F
-    byte_1 = (totalSize >> 14) & 0x7F
-    byte_0 = (totalSize >> 21) & 0x7F
+    let byte_3 = totalSize & 0x7F
+    let byte_2 = (totalSize >> 7) & 0x7F
+    let byte_1 = (totalSize >> 14) & 0x7F
+    let byte_0 = (totalSize >> 21) & 0x7F
     return ([byte_0, byte_1, byte_2, byte_3])
 }
 
