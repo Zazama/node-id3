@@ -74,6 +74,13 @@ const SFrames = {
         create: "createUnsynchronisedLyricsFrame",
         read: "readUnsynchronisedLyricsFrame",
         name: "USLT"
+    },
+    userDefinedText: {
+        create: "createUserDefinedText",
+        read: "readUserDefinedText",
+        name: "TXXX",
+        multiple: true,
+        updateCompareKey: "description"
     }
 }
 
@@ -247,6 +254,10 @@ NodeID3.prototype.read = function(filebuffer, options, fn) {
 */
 NodeID3.prototype.update = function(tags, filebuffer, fn) {
     let rawTags = {}
+    let SRawToNameMap = {}
+    Object.keys(SFrames).map((key, index) => {
+        SRawToNameMap[SFrames[key].name] = key
+    })
     Object.keys(tags).map(function(tagKey) {
         //  if js name passed (TF)
         if(TFrames[tagKey]) {
@@ -270,7 +281,23 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
         currentTags = currentTags.raw || {}
         //  update current tags with new or keep them
         Object.keys(rawTags).map(function(tag) {
-            currentTags[tag] = rawTags[tag]
+            if(SFrames[SRawToNameMap[tag]].multiple && currentTags[tag] && rawTags[tag]) {
+                cCompare = {}
+                currentTags[tag].forEach((cTag, index) => {
+                    cCompare[cTag[SFrames[SRawToNameMap[tag]].updateCompareKey]] = index
+                })
+                if(!(rawTags[tag] instanceof Array)) rawTags[tag] = [rawTags[tag]]
+                rawTags[tag].forEach((rTag, index) => {
+                    let comparison = cCompare[rTag[SFrames[SRawToNameMap[tag]].updateCompareKey]]
+                    if(comparison) {
+                        currentTags[tag][comparison] = rTag
+                    } else {
+                        currentTags[tag].push(rTag)
+                    }
+                })
+            } else {
+                currentTags[tag] = rawTags[tag]
+            }
         })
         return this.write(currentTags, filebuffer)
     } else {
@@ -282,7 +309,21 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
             currentTags = currentTags.raw || {}
             //  update current tags with new or keep them
             Object.keys(rawTags).map(function(tag) {
-                if(rawTags[tag]) {
+                if(SFrames[SRawToNameMap[tag]].multiple && currentTags[tag] && rawTags[tag]) {
+                    cCompare = {}
+                    currentTags[tag].forEach((cTag, index) => {
+                        cCompare[cTag[SFrames[SRawToNameMap[tag]].updateCompareKey]] = index
+                    })
+                    if(!(rawTags[tag] instanceof Array)) rawTags[tag] = [rawTags[tag]]
+                    rawTags[tag].forEach((rTag, index) => {
+                        let comparison = cCompare[rTag[SFrames[SRawToNameMap[tag]].updateCompareKey]]
+                        if(comparison) {
+                            currentTags[tag][comparison] = rTag
+                        } else {
+                            currentTags[tag].push(rTag)
+                        }
+                    })
+                } else {
                     currentTags[tag] = rawTags[tag]
                 }
             })
@@ -354,8 +395,15 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
             Object.keys(SFrames).map(function(key) {
                 if(SFrames[key].name === frame.name) {
                     let decoded = this[SFrames[key].read](frame.body)
-                    tags.raw[frame.name] = decoded
-                    tags[key] = decoded
+                    if(SFrames[key].multiple) {
+                        if(!tags[key]) tags[key] = []
+                        if(!tags.raw[frame.name]) tags.raw[frame.name] = []
+                        tags.raw[frame.name].push(decoded)
+                        tags[key].push(decoded)
+                    } else {
+                        tags.raw[frame.name] = decoded
+                        tags[key] = decoded
+                    }
                 }
             }.bind(this))
         }
@@ -783,6 +831,89 @@ NodeID3.prototype.readUnsynchronisedLyricsFrame = function(frame) {
             language: frame.toString().substring(1, 4).replace(/\0/g, ""),
             shortText: iconv.decode(shortText, "utf16").replace(/\0/g, ""),
             text: iconv.decode(text, "utf16").replace(/\0/g, "")
+        }
+    }
+
+    return tags
+}
+
+/*
+**  comment => object / array of objects {
+**      description:    string
+**      value:          string
+**  }
+**/
+NodeID3.prototype.createUserDefinedText = function(userDefinedText, recursiveBuffer) {
+    udt = userDefinedText || {}
+    if(udt instanceof Array && udt.length > 0) {
+        if(!recursiveBuffer) {
+            // Don't alter passed array value!
+            userDefinedText = userDefinedText.slice(0)
+        }
+        udt = userDefinedText.pop()
+    }
+
+    if(udt && udt.description) {
+        // Create frame header
+        let buffer = new Buffer(10)
+        buffer.fill(0)
+        buffer.write("TXXX", 0)                 //  Write header ID
+
+        let encodingBuffer = this.createTextEncoding(0x01)
+        let descriptorBuffer = this.createContentDescriptor(udt.description, 0x01, true)
+        let valueBuffer = this.createText(udt.value, 0x01, false)
+
+        buffer.writeUInt32BE(encodingBuffer.length + descriptorBuffer.length + valueBuffer.length, 4)
+        if(!recursiveBuffer) {
+            recursiveBuffer = Buffer.concat([buffer, encodingBuffer, descriptorBuffer, valueBuffer])
+        } else {
+            recursiveBuffer = Buffer.concat([recursiveBuffer, buffer, encodingBuffer, descriptorBuffer, valueBuffer])
+        }
+    }
+    if(userDefinedText instanceof Array && userDefinedText.length > 0) {
+        return this.createUserDefinedText(userDefinedText, recursiveBuffer)
+    } else {
+        return recursiveBuffer
+    }
+    /*if(userDefinedText instanceof Array) {
+        if(userDefinedText.length > 0) {
+            let newBuffer = this.createUserDefinedText(userDefinedText, recursiveBuffer)
+            if(newBuffer) {
+                recursiveBuffer = Buffer.concat([recursiveBuffer, newBuffer])
+            }
+        }
+    }
+    return recursiveBuffer*/
+}
+
+/*
+**  frame   => Buffer
+*/
+NodeID3.prototype.readUserDefinedText = function(frame) {
+    let tags = {}
+
+    if(!frame) {
+        return tags
+    }
+    if(frame[0] == 0x00) {
+        tags = {
+            description: iconv.decode(frame, "ISO-8859-1").substring(1, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
+            value: iconv.decode(frame, "ISO-8859-1").substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
+        }
+    } else if(frame[0] == 0x01) {
+        let descriptorEscape = 0
+        while(frame[descriptorEscape] !== undefined && frame[descriptorEscape] !== 0x00 || frame[descriptorEscape + 1] !== 0x00 || frame[descriptorEscape + 2] === 0x00) {
+            descriptorEscape++
+        }
+        if(frame[descriptorEscape] === undefined) {
+            return tags
+        }
+        let description = frame.slice(1, descriptorEscape)
+        let value = frame.slice(descriptorEscape + 2)
+
+        tags = {
+            description: iconv.decode(description, "utf16").replace(/\0/g, ""),
+            value: iconv.decode(value, "utf16").replace(/\0/g, "")
         }
     }
 

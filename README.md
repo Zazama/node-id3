@@ -132,12 +132,19 @@ unsynchronisedLyrics: {
   language: "eng",
   text: "lyrics"
 }
+userDefinedText: [{
+  description: "txxx name",
+  value: "TXXX value text"
+}, {
+  description: "txxx name 2",
+  value: "TXXX value text 2"
+}] // Care, update doesn't delete non-passed array items!
 image: {
   mime: "png/jpeg"/undefined,
   type: {
     id: 3,
     name: "front cover
-  }, //See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
+  }, // See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
   description: "image description",
   imageBuffer: (file buffer)
 }
@@ -187,4 +194,5 @@ year:                 "TYER"
 comment:              "COMM"
 image:                "APIC"
 unsynchronisedLyrics  "USLT"
+userDefinedText       "TXXX"
 ```

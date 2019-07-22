@@ -13,27 +13,37 @@ const tags = {
     language: "eng",
     text: "some text"
   },
-  TRCK: "27"
+  TRCK: "27",
+  TXXX: [{
+    description: "testtt.",
+    value: "ja moin."
+  }, {
+    description: "testtt2.",
+    value: "ja moin2."
+  }, {
+    description: "testtt3.",
+    value: "ja moin3."
+  }]
 }
 
-/*let success = nodeID3.write(tags, "./example/Kevin Penkin - Tomorrow.mp3");
+let success = nodeID3.write(tags, "./example/example.mp3");
 console.log(success);
 
-console.log(nodeID3.create(tags))
+/*console.log(nodeID3.create(tags))
 
 nodeID3.create(tags, function(frame) {
   console.log(frame)
 })*/
 
-let file = fs.readFileSync("./example/Kevin Penkin - Tomorrow.mp3")
+//let file = fs.readFileSync("./example/Kevin Penkin - Tomorrow.mp3")
 /*nodeID3.update(tags, file, function(err, buffer) {
   console.log(err)
   console.log(buffer)
 })*/
 
-fs.writeFileSync("./example/Kevin Penkin - Tomorrow.mp3", nodeID3.update(tags, file))
+//fs.writeFileSync("./example/Kevin Penkin - Tomorrow.mp3", nodeID3.update(tags, file))
 
-//console.log(nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3"))
+//console.log(nodeID3.read("./example/example.mp3"))
 
 //async
 
@@ -58,17 +68,30 @@ nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3", function(err, tags) {
       console.log(tags)
     })
   })
-  
+
 })
 */
 
+nodeID3.update({
+  TXXX: [{
+    description: "testtt.",
+    value: "value4."
+  }, {
+    description: "testtt2.",
+    value: "value6."
+  },]
+}, "./example/example.mp3", (err) => {
+  console.log(nodeID3.read("./example/example.mp3"))
+})
+
 /*console.log(nodeID3.update({
-  title: "TomorrowUP",
-  TRCK: "28",
-  image: "./example/mia_cover.jpg",
-  COMM: {
-    language: "eng",
-    text: "some text2"
-  },
-  genre: "testUP"
-}, "./example/Kevin Penkin - Tomorrow.mp3"));*/
+  TXXX: [{
+    description: "testtt.",
+    value: "value4."
+  }, {
+    description: "testtt2.",
+    value: "value6."
+  },]
+}, "./example/example.mp3"));
+
+console.log(nodeID3.read("./example/example.mp3"))*/
