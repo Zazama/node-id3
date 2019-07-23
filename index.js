@@ -342,9 +342,9 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     if(framePosition === -1) {
         return false
     }
-    let frameSize = this.getTagSize(new Buffer(filebuffer.toString('hex', framePosition, framePosition + 10), "hex")) + 10
-    let ID3Frame = new Buffer(frameSize + 1)
-    let ID3FrameBody = new Buffer(frameSize - 10 + 1)
+    let frameSize = this.getTagSize(Buffer.from(filebuffer.toString('hex', framePosition, framePosition + 10), "hex")) + 10
+    let ID3Frame = Buffer.alloc(frameSize + 1)
+    let ID3FrameBody = Buffer.alloc(frameSize - 10 + 1)
     filebuffer.copy(ID3Frame, 0, framePosition)
     filebuffer.copy(ID3FrameBody, 0, framePosition + 10)
 
@@ -356,7 +356,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     let tags = { raw: {} }
     let currentPosition = 0
     while(currentPosition < frameSize - 10 && ID3FrameBody[currentPosition] !== 0x00) {
-        let bodyFrameHeader = new Buffer(10)
+        let bodyFrameHeader = Buffer.alloc(10)
         ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
 
         let decodeSize = false
@@ -364,7 +364,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
             decodeSize = true
         }
         let bodyFrameSize = this.getFrameSize(bodyFrameHeader, decodeSize)
-        let bodyFrameBuffer = new Buffer(bodyFrameSize)
+        let bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
         ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + 10)
         //  Size of sub frame + its header
         currentPosition += bodyFrameSize + 10
@@ -430,7 +430,7 @@ NodeID3.prototype.getFramePosition = function(buffer) {
 **  buffer  => Buffer/Array (header)
 */
 NodeID3.prototype.getTagSize = function(buffer) {
-    return this.decodeSize(new Buffer([buffer[6], buffer[7], buffer[8], buffer[9]]))
+    return this.decodeSize(Buffer.from([buffer[6], buffer[7], buffer[8], buffer[9]]))
 }
 
 /*
@@ -440,9 +440,9 @@ NodeID3.prototype.getTagSize = function(buffer) {
 */
 NodeID3.prototype.getFrameSize = function(buffer, decode) {
     if(decode) {
-        return this.decodeSize(new Buffer([buffer[4], buffer[5], buffer[6], buffer[7]]))
+        return this.decodeSize(Buffer.from([buffer[4], buffer[5], buffer[6], buffer[7]]))
     } else {
-        return (new Buffer([buffer[4], buffer[5], buffer[6], buffer[7]])).readUIntBE(0, 4)
+        return Buffer.from([buffer[4], buffer[5], buffer[6], buffer[7]]).readUIntBE(0, 4)
     }
 }
 
@@ -457,7 +457,7 @@ NodeID3.prototype.removeTagsFromBuffer = function(data) {
         return data
     }
 
-    let hSize = new Buffer([data[framePosition + 6], data[framePosition + 7], data[framePosition + 8], data[framePosition + 9]])
+    let hSize = Buffer.from([data[framePosition + 6], data[framePosition + 7], data[framePosition + 8], data[framePosition + 9]])
 
     if ((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80) {
         //  Invalid tag size (msb not 0)
@@ -541,7 +541,7 @@ NodeID3.prototype.decodeSize = function(hSize) {
 **  Create header for ID3-Frame v2.3.0
 */
 NodeID3.prototype.createTagHeader = function() {
-    let header = new Buffer(10)
+    let header = Buffer.alloc(10)
     header.fill(0)
     header.write("ID3", 0)              //File identifier
     header.writeUInt16BE(0x0300, 3)     //Version 2.3.0  --  03 00
@@ -564,14 +564,14 @@ NodeID3.prototype.createTextFrame = function(specName, text) {
 
     let encoded = iconv.encode(text, "utf16")
 
-    let buffer = new Buffer(10)
+    let buffer = Buffer.alloc(10)
     buffer.fill(0)
     buffer.write(specName, 0)                           //  ID of the specified frame
     buffer.writeUInt32BE((encoded).length + 1, 4)       //  Size of frame (string length + encoding byte)
-    let encBuffer = new Buffer(1)                       //  Encoding (now using UTF-16 encoded w/ BOM)
+    let encBuffer = Buffer.alloc(1)                       //  Encoding (now using UTF-16 encoded w/ BOM)
     encBuffer.fill(1)                                   //  UTF-16
 
-    var contentBuffer = new Buffer(encoded, 'binary')   //  Text -> Binary encoding for UTF-16 w/ BOM
+    var contentBuffer = Buffer.from(encoded, 'binary')   //  Text -> Binary encoding for UTF-16 w/ BOM
     return Buffer.concat([buffer, encBuffer, contentBuffer])
 }
 
@@ -583,8 +583,8 @@ NodeID3.prototype.createPictureFrame = function(data) {
         if(data && data.imageBuffer && data.imageBuffer instanceof Buffer === true) {
             data = data.imageBuffer
         }
-        let apicData = (data instanceof Buffer == true) ? new Buffer(data) : new Buffer(fs.readFileSync(data, 'binary'), 'binary')
-        let bHeader = new Buffer(10)
+        let apicData = (data instanceof Buffer == true) ? Buffer.from(data) : Buffer.from(fs.readFileSync(data, 'binary'), 'binary')
+        let bHeader = Buffer.alloc(10)
         bHeader.fill(0)
         bHeader.write("APIC", 0)
 
@@ -594,7 +594,7 @@ NodeID3.prototype.createPictureFrame = function(data) {
             mime_type = "image/jpeg"
         }
 
-        let bContent = new Buffer(mime_type.length + 4)
+        let bContent = Buffer.alloc(mime_type.length + 4)
         bContent.fill(0)
         bContent[mime_type.length + 2] = 0x03                           //  Front cover
         bContent.write(mime_type, 1)
@@ -670,7 +670,7 @@ NodeID3.prototype.getTerminationCount = function(encoding) {
 }
 
 NodeID3.prototype.createTextEncoding = function(encoding) {
-    let buffer = new Buffer(1)
+    let buffer = Buffer.alloc(1)
     buffer[0] = this.getEncodingByte(encoding)
     return buffer
 }
@@ -682,18 +682,18 @@ NodeID3.prototype.createLanguage = function(language) {
         language = language.substring(0, 3)
     }
 
-    return (new Buffer(language))
+    return Buffer.from(language)
 }
 
 NodeID3.prototype.createContentDescriptor = function(description, encoding, terminated) {
     if(!description) {
-        description = terminated ? iconv.encode("\0", this.getEncodingName(encoding)) : new Buffer(0)
+        description = terminated ? iconv.encode("\0", this.getEncodingName(encoding)) : Buffer.alloc(0)
         return description
     }
 
     description = iconv.encode(description, this.getEncodingName(encoding))
 
-    return terminated ? Buffer.concat([description, (new Buffer(this.getTerminationCount(encoding))).fill(0x00)]) : description
+    return terminated ? Buffer.concat([description, Buffer.alloc(this.getTerminationCount(encoding)).fill(0x00)]) : description
 }
 
 NodeID3.prototype.createText = function(text, encoding, terminated) {
@@ -703,7 +703,7 @@ NodeID3.prototype.createText = function(text, encoding, terminated) {
 
     text = iconv.encode(text, this.getEncodingName(encoding))
 
-    return terminated ? Buffer.concat([text, (new Buffer(this.getTerminationCount(encoding))).fill(0x00)]) : text
+    return terminated ? Buffer.concat([text, Buffer.from(this.getTerminationCount(encoding)).fill(0x00)]) : text
 }
 
 /*
@@ -720,7 +720,7 @@ NodeID3.prototype.createCommentFrame = function(comment) {
     }
 
     // Create frame header
-    let buffer = new Buffer(10)
+    let buffer = Buffer.alloc(10)
     buffer.fill(0)
     buffer.write("COMM", 0)                 //  Write header ID
 
@@ -788,7 +788,7 @@ NodeID3.prototype.createUnsynchronisedLyricsFrame = function(unsynchronisedLyric
     }
 
     // Create frame header
-    let buffer = new Buffer(10)
+    let buffer = Buffer.alloc(10)
     buffer.fill(0)
     buffer.write("USLT", 0)                 //  Write header ID
 
@@ -855,7 +855,7 @@ NodeID3.prototype.createUserDefinedText = function(userDefinedText, recursiveBuf
 
     if(udt && udt.description) {
         // Create frame header
-        let buffer = new Buffer(10)
+        let buffer = Buffer.alloc(10)
         buffer.fill(0)
         buffer.write("TXXX", 0)                 //  Write header ID
 
@@ -875,15 +875,6 @@ NodeID3.prototype.createUserDefinedText = function(userDefinedText, recursiveBuf
     } else {
         return recursiveBuffer
     }
-    /*if(userDefinedText instanceof Array) {
-        if(userDefinedText.length > 0) {
-            let newBuffer = this.createUserDefinedText(userDefinedText, recursiveBuffer)
-            if(newBuffer) {
-                recursiveBuffer = Buffer.concat([recursiveBuffer, newBuffer])
-            }
-        }
-    }
-    return recursiveBuffer*/
 }
 
 /*
