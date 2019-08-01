@@ -281,7 +281,7 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
         currentTags = currentTags.raw || {}
         //  update current tags with new or keep them
         Object.keys(rawTags).map(function(tag) {
-            if(SFrames[SRawToNameMap[tag]].multiple && currentTags[tag] && rawTags[tag]) {
+            if(SFrames[SRawToNameMap[tag]] && SFrames[SRawToNameMap[tag]].multiple && currentTags[tag] && rawTags[tag]) {
                 cCompare = {}
                 currentTags[tag].forEach((cTag, index) => {
                     cCompare[cTag[SFrames[SRawToNameMap[tag]].updateCompareKey]] = index
