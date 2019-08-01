@@ -289,7 +289,7 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
                 if(!(rawTags[tag] instanceof Array)) rawTags[tag] = [rawTags[tag]]
                 rawTags[tag].forEach((rTag, index) => {
                     let comparison = cCompare[rTag[SFrames[SRawToNameMap[tag]].updateCompareKey]]
-                    if(comparison) {
+                    if(comparison !== undefined) {
                         currentTags[tag][comparison] = rTag
                     } else {
                         currentTags[tag].push(rTag)
@@ -317,7 +317,7 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
                     if(!(rawTags[tag] instanceof Array)) rawTags[tag] = [rawTags[tag]]
                     rawTags[tag].forEach((rTag, index) => {
                         let comparison = cCompare[rTag[SFrames[SRawToNameMap[tag]].updateCompareKey]]
-                        if(comparison) {
+                        if(comparison !== undefined) {
                             currentTags[tag][comparison] = rTag
                         } else {
                             currentTags[tag].push(rTag)
