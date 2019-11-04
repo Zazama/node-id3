@@ -53,6 +53,44 @@ const TFrames = {
     year:               "TYER"
 }
 
+const TFramesV220 =  {
+    album:              "TAL",
+    bpm:                "TBP",
+    composer:           "TCM",
+    genre:              "TCN",
+    copyright:          "TCR",
+    date:               "TDA",
+    playlistDelay:      "TDY",
+    encodedBy:          "TEN",
+    textWriter:         "TEXT",
+    fileType:           "TFT",
+    time:               "TIM",
+    contentGroup:       "TT1",
+    title:              "TT2",
+    subtitle:           "TT3",
+    initialKey:         "TKE",
+    language:           "TLA",
+    length:             "TLE",
+    mediaType:          "TMT",
+    originalTitle:      "TOT",
+    originalFilename:   "TOF",
+    originalTextwriter: "TOL",
+    originalArtist:     "TOA",
+    originalYear:       "TOR",
+    artist:             "TP1",
+    performerInfo:      "TP2",
+    conductor:          "TP3",
+    remixArtist:        "TP4",
+    partOfSet:          "TPA",
+    publisher:          "TPB",
+    trackNumber:        "TRC",
+    recordingDates:     "TRD",
+    size:               "TSI",
+    ISRC:               "TRC",
+    encodingTechnology: "TSS",
+    year:               "TYE"
+}
+
 /*
 **  List of non-text frames which follow their specific specification
 **  name    => Frame ID
@@ -79,6 +117,31 @@ const SFrames = {
         create: "createUserDefinedText",
         read: "readUserDefinedText",
         name: "TXXX",
+        multiple: true,
+        updateCompareKey: "description"
+    }
+}
+
+const SFramesV220 = {
+    comment: {
+        create: "createCommentFrame",
+        read: "readCommentFrame",
+        name: "COM"
+    },
+    image: {
+        create: "createPictureFrame",
+        read: "readPictureFrame",
+        name: "PIC"
+    },
+    unsynchronisedLyrics: {
+        create: "createUnsynchronisedLyricsFrame",
+        read: "readUnsynchronisedLyricsFrame",
+        name: "ULT"
+    },
+    userDefinedText: {
+        create: "createUserDefinedText",
+        read: "readUserDefinedText",
+        name: "TXX",
         multiple: true,
         updateCompareKey: "description"
     }
