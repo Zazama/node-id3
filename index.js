@@ -57,7 +57,7 @@ const TFramesV220 =  {
     album:              "TAL",
     bpm:                "TBP",
     composer:           "TCM",
-    genre:              "TCN",
+    genre:              "TCO",
     copyright:          "TCR",
     date:               "TDA",
     playlistDelay:      "TDY",
@@ -83,7 +83,7 @@ const TFramesV220 =  {
     remixArtist:        "TP4",
     partOfSet:          "TPA",
     publisher:          "TPB",
-    trackNumber:        "TRC",
+    trackNumber:        "TRK",
     recordingDates:     "TRD",
     size:               "TSI",
     ISRC:               "TRC",
@@ -123,27 +123,10 @@ const SFrames = {
 }
 
 const SFramesV220 = {
-    comment: {
-        create: "createCommentFrame",
-        read: "readCommentFrame",
-        name: "COM"
-    },
     image: {
         create: "createPictureFrame",
         read: "readPictureFrame",
         name: "PIC"
-    },
-    unsynchronisedLyrics: {
-        create: "createUnsynchronisedLyricsFrame",
-        read: "readUnsynchronisedLyricsFrame",
-        name: "ULT"
-    },
-    userDefinedText: {
-        create: "createUserDefinedText",
-        read: "readUserDefinedText",
-        name: "TXX",
-        multiple: true,
-        updateCompareKey: "description"
     }
 }
 
@@ -235,7 +218,7 @@ NodeID3.prototype.create = function(tags, fn) {
 
     tagNames.forEach(function (tag, index) {
         //  Check if passed tag is text frame (Alias or ID)
-        let frame;
+        let frame
         if (TFrames[tag] || Object.keys(TFrames).map(i => TFrames[i]).indexOf(tag) != -1) {
             let specName = TFrames[tag] || tag
             frame = this.createTextFrame(specName, tags[tag])
@@ -413,26 +396,32 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
 
     //ID3 version e.g. 3 if ID3v2.3.0
     let ID3Version = ID3Frame[3]
+    let identifierSize = 4
+    let textframeHeaderSize = 10
+    if(ID3Version == 2) {
+        identifierSize = 3
+        textframeHeaderSize = 6
+    }
 
     //  Now, get frame for frame by given size to support unkown tags etc.
     let frames = []
     let tags = { raw: {} }
     let currentPosition = 0
     while(currentPosition < frameSize - 10 && ID3FrameBody[currentPosition] !== 0x00) {
-        let bodyFrameHeader = Buffer.alloc(10)
+        let bodyFrameHeader = Buffer.alloc(textframeHeaderSize)
         ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
 
         let decodeSize = false
         if(ID3Version == 4) {
             decodeSize = true
         }
-        let bodyFrameSize = this.getFrameSize(bodyFrameHeader, decodeSize)
+        let bodyFrameSize = this.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
         let bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
-        ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + 10)
+        ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + textframeHeaderSize)
         //  Size of sub frame + its header
-        currentPosition += bodyFrameSize + 10
+        currentPosition += bodyFrameSize + textframeHeaderSize
         frames.push({
-            name: bodyFrameHeader.toString('utf8', 0, 4),
+            name: bodyFrameHeader.toString('utf8', 0, identifierSize),
             body: bodyFrameBuffer
         })
     }
@@ -448,17 +437,25 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
                 decoded = iconv.decode(frame.body.slice(1), "ISO-8859-1").replace(/\0/g, "")
             }
             tags.raw[frame.name] = decoded
-            Object.keys(TFrames).map(function(key) {
-                if(TFrames[key] === frame.name) {
+            let versionFrames = TFrames
+            if(ID3Version == 2) {
+                versionFrames = TFramesV220
+            }
+            Object.keys(versionFrames).map(function(key) {
+                if(versionFrames[key] === frame.name) {
                     tags[key] = decoded
                 }
             })
         } else {
+            let versionFrames = SFrames
+            if(ID3Version == 2) {
+                versionFrames = SFramesV220
+            }
             //  Check if non-text frame is supported
-            Object.keys(SFrames).map(function(key) {
-                if(SFrames[key].name === frame.name) {
-                    let decoded = this[SFrames[key].read](frame.body)
-                    if(SFrames[key].multiple) {
+            Object.keys(versionFrames).map(function(key) {
+                if(versionFrames[key].name === frame.name) {
+                    let decoded = this[versionFrames[key].read](frame.body, ID3Version)
+                    if(versionFrames[key].multiple) {
                         if(!tags[key]) tags[key] = []
                         if(!tags.raw[frame.name]) tags.raw[frame.name] = []
                         tags.raw[frame.name].push(decoded)
@@ -501,11 +498,17 @@ NodeID3.prototype.getTagSize = function(buffer) {
 **  buffer  => Buffer/Array (header)
 **  decode  => Boolean
 */
-NodeID3.prototype.getFrameSize = function(buffer, decode) {
-    if(decode) {
-        return this.decodeSize(Buffer.from([buffer[4], buffer[5], buffer[6], buffer[7]]))
+NodeID3.prototype.getFrameSize = function(buffer, decode, ID3Version) {
+    let decodeBytes
+    if(ID3Version > 2) {
+        decodeBytes = [buffer[4], buffer[5], buffer[6], buffer[7]]
     } else {
-        return Buffer.from([buffer[4], buffer[5], buffer[6], buffer[7]]).readUIntBE(0, 4)
+        decodeBytes = [buffer[3], buffer[4], buffer[5]]
+    }
+    if(decode) {
+        return this.decodeSize(Buffer.from(decodeBytes))
+    } else {
+        return Buffer.from(decodeBytes).readUIntBE(0, decodeBytes.length)
     }
 }
 
@@ -524,11 +527,11 @@ NodeID3.prototype.removeTagsFromBuffer = function(data) {
 
     if ((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80) {
         //  Invalid tag size (msb not 0)
-        return false;
+        return false
     }
 
     let size = this.decodeSize(hSize)
-    return data.slice(framePosition + size + 10);
+    return data.slice(framePosition + size + 10)
 }
 
 /*
@@ -537,7 +540,7 @@ NodeID3.prototype.removeTagsFromBuffer = function(data) {
 */
 NodeID3.prototype.removeTags = function(filepath, fn) {
     if(!fn || typeof fn !== 'function') {
-        let data;
+        let data
         try {
             data = fs.readFileSync(filepath)
         } catch(e) {
@@ -612,7 +615,7 @@ NodeID3.prototype.createTagHeader = function() {
 
     //Last 4 bytes are used for header size, but have to be inserted later, because at this point, its size is not clear.
 
-    return header;
+    return header
 }
 
 /*
@@ -673,36 +676,71 @@ NodeID3.prototype.createPictureFrame = function(data) {
 /*
 **  data => buffer
 */
-NodeID3.prototype.readPictureFrame = function(APICFrame) {
+NodeID3.prototype.readPictureFrame = function(APICFrame, ID3Version) {
     let picture = {}
-    let APICMimeType = APICFrame.toString('ascii').substring(1, APICFrame.indexOf(0x00, 1))
+
+    let APICMimeType
+    if(ID3Version == 2) {
+        APICMimeType = APICFrame.toString('ascii').substring(1, 4)
+    } else {
+        APICMimeType = APICFrame.toString('ascii').substring(1, APICFrame.indexOf(0x00, 1))
+    }
+
     if(APICMimeType == "image/jpeg") {
         picture.mime = "jpeg"
     } else if(APICMimeType == "image/png") {
         picture.mime = "png"
+    } else {
+        picture.mime = APICMimeType
     }
-    picture.type = {
-        id: APICFrame[APICFrame.indexOf(0x00, 1) + 1],
-        name: APICTypes[APICFrame[APICFrame.indexOf(0x00, 1) + 1]]
-    }
-    let descEnd;
-    if(APICFrame[0] == 0x00) {
-        picture.description = iconv.decode(APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)), "ISO-8859-1") || undefined
-        descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)
-    } else if (APICFrame[0] == 0x01) {
-        let descOffset = APICFrame.indexOf(0x00, 1) + 2
-        let desc = APICFrame.slice(descOffset)
-        let descFound = desc.indexOf("0000", 0, 'hex')
-        descEnd = descOffset + descFound + 2
 
-        if(descFound != -1) {
-            picture.description = iconv.decode(desc.slice(0, descFound + 2), 'utf16') || undefined
+    picture.type = {}
+    if(ID3Version == 2 && APICTypes.length < APICFrame[4]) {
+        picture.type = {
+            id: APICFrame[4],
+            name: APICTypes[APICFrame[4]]
+        }
+    } else {
+        picture.type = {
+            id: APICFrame[APICFrame.indexOf(0x00, 1) + 1],
+            name: APICTypes[APICFrame[APICFrame.indexOf(0x00, 1) + 1]]
+        }
+    }
+
+    let descEnd
+    if(APICFrame[0] == 0x00) {
+        if(ID3Version == 2) {
+            picture.description = iconv.decode(APICFrame.slice(5, APICFrame.indexOf(0x00, 5)), "ISO-8859-1") || undefined
+            descEnd = APICFrame.indexOf(0x00, 5)
+        } else {
+            picture.description = iconv.decode(APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)), "ISO-8859-1") || undefined
+            descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)
+        }
+    } else if (APICFrame[0] == 0x01) {
+        if(ID3Version == 2) {
+            let descOffset = 5
+            let desc = APICFrame.slice(descOffset)
+            let descFound = desc.indexOf("0000", 0, 'hex')
+            descEnd = descOffset + descFound + 2
+
+            if(descFound != -1) {
+                picture.description = iconv.decode(desc.slice(0, descFound + 2), 'utf16') || undefined
+            }
+        } else {
+            let descOffset = APICFrame.indexOf(0x00, 1) + 2
+            let desc = APICFrame.slice(descOffset)
+            let descFound = desc.indexOf("0000", 0, 'hex')
+            descEnd = descOffset + descFound + 2
+
+            if(descFound != -1) {
+                picture.description = iconv.decode(desc.slice(0, descFound + 2), 'utf16') || undefined
+            }
         }
     }
     if(descEnd) {
         picture.imageBuffer = APICFrame.slice(descEnd + 1)
     } else {
-        picture.imageBuffer = APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2)
+        picture.imageBuffer = APICFrame.slice(5)
     }
 
     return picture
