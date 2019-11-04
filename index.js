@@ -416,6 +416,9 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
             decodeSize = true
         }
         let bodyFrameSize = this.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
+        if(bodyFrameSize > (frameSize - currentPosition)) {
+            break
+        }
         let bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
         ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + textframeHeaderSize)
         //  Size of sub frame + its header
