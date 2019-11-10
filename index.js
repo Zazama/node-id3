@@ -119,6 +119,11 @@ const SFrames = {
         name: "TXXX",
         multiple: true,
         updateCompareKey: "description"
+    },
+    popularimeter: {
+        create: "createPopularimeterFrame",
+        read: "readPopularimeterFrame",
+        name: "POPM"
     }
 }
 
@@ -1012,5 +1017,67 @@ NodeID3.prototype.readUserDefinedText = function(frame) {
         }
     }
 
+    return tags
+}
+
+/*
+**  popularimeter => object {
+**      email:    string,
+**      rating:   int
+**      counter:  int
+**  }
+**/
+NodeID3.prototype.createPopularimeterFrame = function(popularimeter) {
+    popularimeter = popularimeter || {}
+    let email = popularimeter.email
+    let rating = Math.trunc(popularimeter.rating)
+    let counter = Math.trunc(popularimeter.counter)
+    if(!email) {
+        return null
+    }
+    if(isNaN(rating) || rating < 0 || rating > 255) {
+        rating = 0
+    }
+    if(isNaN(counter) || counter < 0) {
+        counter = 0
+    }
+
+    // Create frame header
+    let buffer = Buffer.alloc(10, 0)
+    buffer.write("POPM", 0)                 //  Write header ID
+
+    let emailBuffer = this.createText(email, 0x01, false)
+    emailBuffer = Buffer.from(email + '\0', 'utf8')
+    let ratingBuffer = Buffer.alloc(1, rating)
+    let counterBuffer = Buffer.alloc(4, 0)
+    counterBuffer.writeUInt32BE(counter, 0)
+    
+    buffer.writeUInt32BE(emailBuffer.length + ratingBuffer.length + counterBuffer.length, 4)
+    var frame = Buffer.concat([buffer, emailBuffer, ratingBuffer, counterBuffer])
+    return frame
+}
+
+/*
+**  frame   => Buffer
+*/
+NodeID3.prototype.readPopularimeterFrame = function(frame) {
+    let tags = {}
+
+    if(!frame) {
+        return tags
+    }
+    let endEmailIndex = frame.indexOf(0x00, 1)
+    if(endEmailIndex > -1) {
+        tags.email = iconv.decode(frame.slice(0, endEmailIndex), "ISO-8859-1")
+        let ratingIndex = endEmailIndex + 1
+        if(ratingIndex < frame.length) {
+            tags.rating = frame[ratingIndex]
+            let counterIndex = ratingIndex + 1
+            if(counterIndex < frame.length) {
+                let value = frame.slice(counterIndex, frame.length)
+                tags.counter = value.readUInt32BE()
+            }
+        }
+    }
     return tags
 }
