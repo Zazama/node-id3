@@ -147,6 +147,11 @@ image: {
   }, // See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
   description: "image description",
   imageBuffer: (file buffer)
+},
+popularimeter: {
+  email: "mail@example.com",
+  rating: 192,  // 1-255
+  counter: 12
 }
 ```
 
@@ -195,4 +200,5 @@ comment:              "COMM"
 image:                "APIC"
 unsynchronisedLyrics  "USLT"
 userDefinedText       "TXXX"
+popularimeter         "POPM"
 ```
