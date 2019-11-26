@@ -436,7 +436,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
 
     frames.forEach(function(frame, index) {
         //  Check first character if frame is text frame
-        if(frame.name[0] === "T" && frame.name !== "TXXX") {
+        if((frame.name[0] === "T" && frame.name !== "TXXX") || frame.name === "COMM") {
             //  Decode body
             let decoded
             if(frame.body[0] === 0x01) {
