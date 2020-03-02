@@ -124,6 +124,12 @@ const SFrames = {
         create: "createPopularimeterFrame",
         read: "readPopularimeterFrame",
         name: "POPM"
+    },
+    private: {
+        create: "createPrivateFrame",
+        read: "readPrivateFrame",
+        name: "PRIV",
+        multiple: true
     }
 }
 
@@ -1051,7 +1057,7 @@ NodeID3.prototype.createPopularimeterFrame = function(popularimeter) {
     let ratingBuffer = Buffer.alloc(1, rating)
     let counterBuffer = Buffer.alloc(4, 0)
     counterBuffer.writeUInt32BE(counter, 0)
-    
+
     buffer.writeUInt32BE(emailBuffer.length + ratingBuffer.length + counterBuffer.length, 4)
     var frame = Buffer.concat([buffer, emailBuffer, ratingBuffer, counterBuffer])
     return frame
@@ -1079,5 +1085,70 @@ NodeID3.prototype.readPopularimeterFrame = function(frame) {
             }
         }
     }
+    return tags
+}
+
+/*
+**  private => object|array {
+**      ownerIdentifier:    string,
+**      data:   buffer|string
+**  }
+**/
+NodeID3.prototype.createPrivateFrame = function(private) {
+    if(private instanceof Array && private.length > 0) {
+        let frames = []
+        private.forEach(tag => {
+            let frame = createPrivateFrameHelper(tag)
+            if(frame) {
+                frames.push(frame)
+            }
+        })
+        return frames.length ? Buffer.concat(frames) : null
+    } else {
+        return createPrivateFrameHelper(private)
+    }
+}
+
+function createPrivateFrameHelper(private) {
+    if(!private || !private.ownerIdentifier || !private.data) {
+        return null;
+    }
+    let header = Buffer.alloc(10, 0)
+    header.write("PRIV")
+    let ownerIdentifier = Buffer.from(private.ownerIdentifier + "\0", "utf8")
+    let data
+    if(typeof(private.data) == "string") {
+        data = Buffer.from(private.data, "utf8")
+    } else {
+        data = private.data
+    }
+
+    header.writeUInt32BE(ownerIdentifier.length + data.length, 4)
+    return Buffer.concat([header, ownerIdentifier, data])
+}
+
+/*
+**  frame   => Buffer
+*/
+NodeID3.prototype.readPrivateFrame = function(frame) {
+    let tags = {}
+
+    if(!frame) {
+        return tags
+    }
+
+    let endOfOwnerIdentification = frame.indexOf(0x00)
+    if(endOfOwnerIdentification == -1) {
+        return tags
+    }
+
+    tags.ownerIdentifier = iconv.decode(frame.slice(0, endOfOwnerIdentification), "ISO-8859-1")
+
+    if(frame.length <= endOfOwnerIdentification + 1) {
+        return tags
+    }
+
+    tags.data = frame.slice(endOfOwnerIdentification + 1)
+
     return tags
 }

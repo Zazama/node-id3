@@ -23,10 +23,17 @@ const tags = {
   }, {
     description: "testtt3.",
     value: "ja moin3."
+  }],
+  private: [{
+    ownerIdentifier: "AbC",
+    data: "asdoahwdiohawdaw"
+  }, {
+    ownerIdentifier: "AbCSSS",
+    data: Buffer.from([0x01, 0x02, 0x05])
   }]
 }
 
-let success = nodeID3.write(tags, "./example/example.mp3");
+let success = nodeID3.write(tags, "./example/test.mp3");
 console.log(success);
 
 /*console.log(nodeID3.create(tags))
@@ -72,7 +79,7 @@ nodeID3.read("./example/Kevin Penkin - Tomorrow.mp3", function(err, tags) {
 })
 */
 
-nodeID3.update({
+/*nodeID3.update({
   TXXX: [{
     description: "testtt.",
     value: "value4."
@@ -82,7 +89,7 @@ nodeID3.update({
   },]
 }, "./example/example.mp3", (err) => {
   console.log(nodeID3.read("./example/example.mp3"))
-})
+})*/
 
 /*console.log(nodeID3.update({
   TXXX: [{
