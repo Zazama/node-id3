@@ -152,7 +152,14 @@ popularimeter: {
   email: "mail@example.com",
   rating: 192,  // 1-255
   counter: 12
-}
+},
+private: [{
+  ownerIdentifier: "AbC",
+  data: "asdoahwdiohawdaw"
+}, {
+  ownerIdentifier: "AbCSSS",
+  data: Buffer.from([0x01, 0x02, 0x05])
+}]
 ```
 
 ### Supported raw IDs
@@ -201,4 +208,5 @@ image:                "APIC"
 unsynchronisedLyrics  "USLT"
 userDefinedText       "TXXX"
 popularimeter         "POPM"
+private               "PRIV"
 ```

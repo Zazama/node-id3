@@ -279,7 +279,11 @@ declare module "node-id3" {
              */
             rating: number,
             counter: number,
-         }
+         },
+         private?: [{
+            ownerIdentifier: string,
+            data: string
+         }]
       }
       export function write(tags: Tags, filebuffer: Buffer): Buffer
       export function write(tags: Tags, filebuffer: Buffer, fun: (err: null, buffer: Buffer) => void): void
