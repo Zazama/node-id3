@@ -1081,7 +1081,9 @@ NodeID3.prototype.readPopularimeterFrame = function(frame) {
             let counterIndex = ratingIndex + 1
             if(counterIndex < frame.length) {
                 let value = frame.slice(counterIndex, frame.length)
-                tags.counter = value.readUInt32BE()
+                if(value.length >= 4) {
+                    tags.counter = value.readUInt32BE()
+                }
             }
         }
     }
