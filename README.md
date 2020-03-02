@@ -164,7 +164,9 @@ chapter: [{
   elementID: "Hey!", //THIS MUST BE UNIQUE!
   startTimeMs: 5000,
   endTimeMs: 8000,
-  tags: {
+  startOffsetBytes: 123, // OPTIONAL!
+  endOffsetBytes: 456,   // OPTIONAL!
+  tags: {                // OPTIONAL
     title: "abcdef",
     artist: "akshdas"
   }
