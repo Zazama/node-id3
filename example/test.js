@@ -6,7 +6,7 @@ const fs = require('fs')
 const tags = {
   title: "Tomorrow",
   artist: "Kevin Penkin",
-  album: "TVアニメ「メイドインアビス」オリジナルサウンドトラック",
+  album: "asdfd",
   APIC: "./example/mia_cover.jpg",
   year: 2017,
   comment: {
@@ -30,15 +30,31 @@ const tags = {
   }, {
     ownerIdentifier: "AbCSSS",
     data: Buffer.from([0x01, 0x02, 0x05])
+  }],
+  chapter: [{
+    elementID: "Hey!",
+    startTimeMs: 5000,
+    endTimeMs: 8000,
+    tags: {
+      title: "abcdef",
+      artist: "akshdas"
+    }
+  }, {
+    elementID: "Hey2!",
+    startTimeMs: 225000,
+    endTimeMs: 8465000,
+    tags: {
+      artist: "abcdef222"
+    }
   }]
 }
 
 let success = nodeID3.write(tags, "./example/test.mp3");
 console.log(success);
 
-/*console.log(nodeID3.create(tags))
+console.log(nodeID3.read("./example/test.mp3").chapter[0].tags)
 
-nodeID3.create(tags, function(frame) {
+/*nodeID3.create(tags, function(frame) {
   console.log(frame)
 })*/
 

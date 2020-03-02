@@ -130,6 +130,12 @@ const SFrames = {
         read: "readPrivateFrame",
         name: "PRIV",
         multiple: true
+    },
+    chapter: {
+        create: "createChapterFrame",
+        read: "readChapterFrame",
+        name: "CHAP",
+        multiple: true
     }
 }
 
@@ -225,27 +231,7 @@ NodeID3.prototype.create = function(tags, fn) {
     //  Push a header for the ID3-Frame
     frames.push(this.createTagHeader())
 
-    let tagNames = Object.keys(tags)
-
-    tagNames.forEach(function (tag, index) {
-        //  Check if passed tag is text frame (Alias or ID)
-        let frame
-        if (TFrames[tag] || Object.keys(TFrames).map(i => TFrames[i]).indexOf(tag) != -1) {
-            let specName = TFrames[tag] || tag
-            frame = this.createTextFrame(specName, tags[tag])
-        } else if (SFrames[tag]) {  //  Check if Alias of special frame
-            let createFrameFunction = SFrames[tag].create
-            frame = this[createFrameFunction](tags[tag])
-        } else if (Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag) != -1) {  //  Check if ID of special frame
-            //  get create function from special frames where tag ID is found at SFrame[index].name
-            let createFrameFunction = SFrames[Object.keys(SFrames)[Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag)]].create
-            frame = this[createFrameFunction](tags[tag])
-        }
-
-        if (frame instanceof Buffer) {
-            frames.push(frame)
-        }
-    }.bind(this))
+    frames = frames.concat(this.createBuffersFromTags(tags))
 
     //  Calculate frame size of ID3 body to insert into header
 
@@ -270,6 +256,33 @@ NodeID3.prototype.create = function(tags, fn) {
     } else {
         return Buffer.concat(frames)
     }
+}
+
+NodeID3.prototype.createBuffersFromTags = function(tags) {
+    let frames = []
+    let tagNames = Object.keys(tags)
+
+    tagNames.forEach(function (tag, index) {
+        //  Check if passed tag is text frame (Alias or ID)
+        let frame
+        if (TFrames[tag] || Object.keys(TFrames).map(i => TFrames[i]).indexOf(tag) != -1) {
+            let specName = TFrames[tag] || tag
+            frame = this.createTextFrame(specName, tags[tag])
+        } else if (SFrames[tag]) {  //  Check if Alias of special frame
+            let createFrameFunction = SFrames[tag].create
+            frame = this[createFrameFunction](tags[tag])
+        } else if (Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag) != -1) {  //  Check if ID of special frame
+            //  get create function from special frames where tag ID is found at SFrame[index].name
+            let createFrameFunction = SFrames[Object.keys(SFrames)[Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag)]].create
+            frame = this[createFrameFunction](tags[tag])
+        }
+
+        if (frame instanceof Buffer) {
+            frames.push(frame)
+        }
+    }.bind(this))
+
+    return frames
 }
 
 /*
@@ -414,11 +427,15 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
         textframeHeaderSize = 6
     }
 
-    //  Now, get frame for frame by given size to support unkown tags etc.
-    let frames = []
-    let tags = { raw: {} }
+    let frames = this.getFramesFromID3Body(ID3FrameBody, ID3Version, identifierSize, textframeHeaderSize)
+
+    return this.getTagsFromFrames(frames, ID3Version)
+}
+
+NodeID3.prototype.getFramesFromID3Body = function(ID3FrameBody, ID3Version, identifierSize, textframeHeaderSize) {
     let currentPosition = 0
-    while(currentPosition < frameSize - 10 && ID3FrameBody[currentPosition] !== 0x00) {
+    let frames = []
+    while(currentPosition < ID3FrameBody.length && ID3FrameBody[currentPosition] !== 0x00) {
         let bodyFrameHeader = Buffer.alloc(textframeHeaderSize)
         ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
 
@@ -427,7 +444,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
             decodeSize = true
         }
         let bodyFrameSize = this.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
-        if(bodyFrameSize > (frameSize - currentPosition)) {
+        if(bodyFrameSize > (ID3FrameBody.length - currentPosition)) {
             break
         }
         let bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
@@ -439,6 +456,12 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
             body: bodyFrameBuffer
         })
     }
+
+    return frames
+}
+
+NodeID3.prototype.getTagsFromFrames = function(frames, ID3Version) {
+    let tags = { raw: {} }
 
     frames.forEach(function(frame, index) {
         //  Check first character if frame is text frame
@@ -1100,18 +1123,18 @@ NodeID3.prototype.createPrivateFrame = function(private) {
     if(private instanceof Array && private.length > 0) {
         let frames = []
         private.forEach(tag => {
-            let frame = createPrivateFrameHelper(tag)
+            let frame = this.createPrivateFrameHelper(tag)
             if(frame) {
                 frames.push(frame)
             }
         })
         return frames.length ? Buffer.concat(frames) : null
     } else {
-        return createPrivateFrameHelper(private)
+        return this.createPrivateFrameHelper(private)
     }
 }
 
-function createPrivateFrameHelper(private) {
+NodeID3.prototype.createPrivateFrameHelper = function(private) {
     if(!private || !private.ownerIdentifier || !private.data) {
         return null;
     }
@@ -1151,6 +1174,96 @@ NodeID3.prototype.readPrivateFrame = function(frame) {
     }
 
     tags.data = frame.slice(endOfOwnerIdentification + 1)
+
+    return tags
+}
+
+
+/*
+**  chapter => object|array {
+**      startTimeMs:    number,
+**      endTimeMs:   number,
+**      startOffsetBytes: number,
+**      endOffsetBytes: number,
+**      tags: object
+**  }
+**/
+NodeID3.prototype.createChapterFrame = function(chapter) {
+    if(chapter instanceof Array && chapter.length > 0) {
+        let frames = []
+        chapter.forEach((tag, index) => {
+            let frame = this.createChapterFrameHelper(tag, index + 1)
+            if(frame) {
+                frames.push(frame)
+            }
+        })
+        return frames.length ? Buffer.concat(frames) : null
+    } else {
+        return this.createChapterFrameHelper(chapter, 1)
+    }
+}
+
+NodeID3.prototype.createChapterFrameHelper = function(chapter, id) {
+    if(!chapter || !chapter.elementID || !chapter.startTimeMs || !chapter.endTimeMs) {
+        return null
+    }
+
+    let header = Buffer.alloc(10, 0)
+    header.write("CHAP")
+
+    let elementIDBuffer = Buffer.from(chapter.elementID + "\0")
+    let startTimeBuffer = Buffer.alloc(4)
+    startTimeBuffer.writeUInt32BE(chapter.startTimeMs)
+    let endTimeBuffer = Buffer.alloc(4)
+    endTimeBuffer.writeUInt32BE(chapter.endTimeMs)
+    let startOffsetBytesBuffer = Buffer.alloc(4, 0xFF)
+    if(chapter.startOffsetBytes) {
+        startOffsetBytesBuffer.writeUInt32BE(chapter.startOffsetBytes)
+    }
+    let endOffsetBytesBuffer = Buffer.alloc(4, 0xFF)
+    if(chapter.endOffsetBytes) {
+        endOffsetBytesBuffer.writeUInt32BE(chapter.endOffsetBytes)
+    }
+
+    let frames
+    if(chapter.tags) {
+        frames = this.createBuffersFromTags(chapter.tags)
+    }
+    framesBuffer = frames ? Buffer.concat(frames) : Buffer.alloc(0)
+
+    header.writeUInt32BE(elementIDBuffer.length + 16 + framesBuffer.length, 4)
+    return Buffer.concat([header, elementIDBuffer, startTimeBuffer, endTimeBuffer, startOffsetBytesBuffer, endOffsetBytesBuffer, framesBuffer])
+}
+
+/*
+**  frame   => Buffer
+*/
+NodeID3.prototype.readChapterFrame = function(frame) {
+    let tags = {}
+
+    if(!frame) {
+        return tags
+    }
+
+    let endOfElementIDString = frame.indexOf(0x00)
+    if(endOfElementIDString == -1 || frame.length - endOfElementIDString - 1 < 16) {
+        return tags
+    }
+
+    tags.elementID = iconv.decode(frame.slice(0, endOfElementIDString), "ISO-8859-1")
+    tags.startTimeMs = frame.readUInt32BE(endOfElementIDString + 1)
+    tags.endTimeMs = frame.readUInt32BE(endOfElementIDString + 5)
+    if(frame.readUInt32BE(endOfElementIDString + 9) != Buffer.alloc(4, 0xff).readUInt32BE()) {
+        tags.startOffsetBytes = frame.readUInt32BE(endOfElementIDString + 9)
+    }
+    if(frame.readUInt32BE(endOfElementIDString + 13) != Buffer.alloc(4, 0xff).readUInt32BE()) {
+        tags.endOffsetBytes = frame.readUInt32BE(endOfElementIDString + 13)
+    }
+
+    if(frame.length - endOfElementIDString - 17 > 0) {
+        let framesBuffer = frame.slice(endOfElementIDString + 17)
+        tags.tags = this.getTagsFromFrames(this.getFramesFromID3Body(framesBuffer, 3, 4, 10), 3)
+    }
 
     return tags
 }

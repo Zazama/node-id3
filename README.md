@@ -159,6 +159,15 @@ private: [{
 }, {
   ownerIdentifier: "AbCSSS",
   data: Buffer.from([0x01, 0x02, 0x05])
+}],
+chapter: [{
+  elementID: "Hey!", //THIS MUST BE UNIQUE!
+  startTimeMs: 5000,
+  endTimeMs: 8000,
+  tags: {
+    title: "abcdef",
+    artist: "akshdas"
+  }
 }]
 ```
 
@@ -209,4 +218,5 @@ unsynchronisedLyrics  "USLT"
 userDefinedText       "TXXX"
 popularimeter         "POPM"
 private               "PRIV"
+chapter               "CHAP"
 ```
