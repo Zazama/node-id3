@@ -1114,15 +1114,15 @@ NodeID3.prototype.readPopularimeterFrame = function(frame) {
 }
 
 /*
-**  private => object|array {
+**  _private => object|array {
 **      ownerIdentifier:    string,
 **      data:   buffer|string
 **  }
 **/
-NodeID3.prototype.createPrivateFrame = function(private) {
-    if(private instanceof Array && private.length > 0) {
+NodeID3.prototype.createPrivateFrame = function(_private) {
+    if(_private instanceof Array && _private.length > 0) {
         let frames = []
-        private.forEach(tag => {
+        _private.forEach(tag => {
             let frame = this.createPrivateFrameHelper(tag)
             if(frame) {
                 frames.push(frame)
@@ -1130,22 +1130,22 @@ NodeID3.prototype.createPrivateFrame = function(private) {
         })
         return frames.length ? Buffer.concat(frames) : null
     } else {
-        return this.createPrivateFrameHelper(private)
+        return this.createPrivateFrameHelper(_private)
     }
 }
 
-NodeID3.prototype.createPrivateFrameHelper = function(private) {
-    if(!private || !private.ownerIdentifier || !private.data) {
+NodeID3.prototype.createPrivateFrameHelper = function(_private) {
+    if(!_private || !_private.ownerIdentifier || !_private.data) {
         return null;
     }
     let header = Buffer.alloc(10, 0)
     header.write("PRIV")
-    let ownerIdentifier = Buffer.from(private.ownerIdentifier + "\0", "utf8")
+    let ownerIdentifier = Buffer.from(_private.ownerIdentifier + "\0", "utf8")
     let data
-    if(typeof(private.data) == "string") {
-        data = Buffer.from(private.data, "utf8")
+    if(typeof(_private.data) == "string") {
+        data = Buffer.from(_private.data, "utf8")
     } else {
-        data = private.data
+        data = _private.data
     }
 
     header.writeUInt32BE(ownerIdentifier.length + data.length, 4)
