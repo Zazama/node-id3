@@ -1215,16 +1215,16 @@ NodeID3.prototype.createChapterFrameHelper = function (chapter, id) {
 
     let elementIDBuffer = Buffer.from(chapter.elementID + "\0")
     let startTimeBuffer = Buffer.alloc(4)
-    startTimeBuffer.writeUInt32BE(chapter.startTimeMs)
+    startTimeBuffer.writeUInt32BE(chapter.startTimeMs, 0)
     let endTimeBuffer = Buffer.alloc(4)
-    endTimeBuffer.writeUInt32BE(chapter.endTimeMs)
+    endTimeBuffer.writeUInt32BE(chapter.endTimeMs, 0)
     let startOffsetBytesBuffer = Buffer.alloc(4, 0xFF)
     if (chapter.startOffsetBytes) {
-        startOffsetBytesBuffer.writeUInt32BE(chapter.startOffsetBytes)
+        startOffsetBytesBuffer.writeUInt32BE(chapter.startOffsetBytes, 0)
     }
     let endOffsetBytesBuffer = Buffer.alloc(4, 0xFF)
     if (chapter.endOffsetBytes) {
-        endOffsetBytesBuffer.writeUInt32BE(chapter.endOffsetBytes)
+        endOffsetBytesBuffer.writeUInt32BE(chapter.endOffsetBytes, 0)
     }
 
     let frames
@@ -1255,10 +1255,10 @@ NodeID3.prototype.readChapterFrame = function (frame) {
     tags.elementID = iconv.decode(frame.slice(0, endOfElementIDString), "ISO-8859-1")
     tags.startTimeMs = frame.readUInt32BE(endOfElementIDString + 1)
     tags.endTimeMs = frame.readUInt32BE(endOfElementIDString + 5)
-    if (frame.readUInt32BE(endOfElementIDString + 9) != Buffer.alloc(4, 0xff).readUInt32BE()) {
+    if (frame.readUInt32BE(endOfElementIDString + 9) != Buffer.alloc(4, 0xff).readUInt32BE(0)) {
         tags.startOffsetBytes = frame.readUInt32BE(endOfElementIDString + 9)
     }
-    if (frame.readUInt32BE(endOfElementIDString + 13) != Buffer.alloc(4, 0xff).readUInt32BE()) {
+    if (frame.readUInt32BE(endOfElementIDString + 13) != Buffer.alloc(4, 0xff).readUInt32BE(0)) {
         tags.endOffsetBytes = frame.readUInt32BE(endOfElementIDString + 13)
     }
 
