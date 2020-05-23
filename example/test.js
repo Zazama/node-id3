@@ -32,6 +32,14 @@ const tags = {
     data: Buffer.from([0x01, 0x02, 0x05])
   }],
   chapter: [{
+    elementID: "Intro",
+    startTimeMs: 0,
+    endTimeMs: 5000,
+    tags: {
+      title: "Intro...",
+      artist: "...duction"
+    }
+  }, {
     elementID: "Hey!",
     startTimeMs: 5000,
     endTimeMs: 8000,
