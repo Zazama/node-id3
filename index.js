@@ -298,13 +298,13 @@ NodeID3.prototype.read = function (filebuffer, options, fn) {
         options = {}
     }
     if (!fn || typeof fn !== 'function') {
-        if (typeof filebuffer === "string" || filebuffer instanceof String) {
+        if (typeof filebuffer === "string") {
             filebuffer = fs.readFileSync(filebuffer)
         }
         let tags = this.getTagsFromBuffer(filebuffer, options)
         return tags
     } else {
-        if (typeof filebuffer === "string" || filebuffer instanceof String) {
+        if (typeof filebuffer === "string") {
             fs.readFile(filebuffer, function (err, data) {
                 if (err) {
                     fn(err, null)
