@@ -1204,7 +1204,7 @@ NodeID3.prototype.createChapterFrame = function(chapter) {
 }
 
 NodeID3.prototype.createChapterFrameHelper = function(chapter, id) {
-    if(!chapter || !chapter.elementID || !chapter.startTimeMs || !chapter.endTimeMs) {
+    if(!chapter || !chapter.elementID || typeof chapter.startTimeMs === "undefined" || !chapter.endTimeMs) {
         return null
     }
 
