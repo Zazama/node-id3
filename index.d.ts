@@ -283,7 +283,16 @@ declare module "node-id3" {
          private?: [{
             ownerIdentifier: string,
             data: string
-         }]
+         }],
+         chapter?: Array<{
+            elementID: string;
+            endTimeMs: number;
+            startTimeMs: number;
+            tags?: {
+               image?: Tags["image"];
+               title?: string;
+            };
+         }>;
       }
       export function write(tags: Tags, filebuffer: Buffer): Buffer
       export function write(tags: Tags, filebuffer: Buffer, fun: (err: null, buffer: Buffer) => void): void

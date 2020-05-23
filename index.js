@@ -1,3 +1,4 @@
+// @ts-check
 const fs = require('fs')
 const iconv = require("iconv-lite")
 
@@ -982,7 +983,7 @@ NodeID3.prototype.readUnsynchronisedLyricsFrame = function (frame) {
 **  }
 **/
 NodeID3.prototype.createUserDefinedText = function (userDefinedText, recursiveBuffer) {
-    udt = userDefinedText || {}
+    let udt = userDefinedText || {}
     if (udt instanceof Array && udt.length > 0) {
         if (!recursiveBuffer) {
             // Don't alter passed array value!
@@ -1179,16 +1180,17 @@ NodeID3.prototype.readPrivateFrame = function (frame) {
 }
 
 
-/*
-**  chapter => object|array {
-**      startTimeMs:    number,
-**      endTimeMs:   number,
-**      startOffsetBytes: number,
-**      endOffsetBytes: number,
-**      tags: object
-**  }
-**/
-NodeID3.prototype.createChapterFrame = function (chapter) {
+/**
+ * @typedef {Object} Chapter
+ * @property {string} elementID
+ * @property {number} startTimeMs
+ * @property {number} endTimeMs
+ * @property {number} [startOffsetBytes]
+ * @property {number} [endOffsetBytes]
+ * @property {object} [tags]
+ */
+
+NodeID3.prototype.createChapterFrame = function (/** @type Chapter[] | Chapter */chapter) {
     if (chapter instanceof Array && chapter.length > 0) {
         let frames = []
         chapter.forEach((tag, index) => {
@@ -1229,7 +1231,7 @@ NodeID3.prototype.createChapterFrameHelper = function (chapter, id) {
     if (chapter.tags) {
         frames = this.createBuffersFromTags(chapter.tags)
     }
-    framesBuffer = frames ? Buffer.concat(frames) : Buffer.alloc(0)
+    const framesBuffer = frames ? Buffer.concat(frames) : Buffer.alloc(0)
 
     header.writeUInt32BE(elementIDBuffer.length + 16 + framesBuffer.length, 4)
     return Buffer.concat([header, elementIDBuffer, startTimeBuffer, endTimeBuffer, startOffsetBytesBuffer, endOffsetBytesBuffer, framesBuffer])
