@@ -1179,16 +1179,16 @@ NodeID3.prototype.readPrivateFrame = function(frame) {
 }
 
 
-/*
-**  chapter => object|array {
-**      startTimeMs:    number,
-**      endTimeMs:   number,
-**      startOffsetBytes: number,
-**      endOffsetBytes: number,
-**      tags: object
-**  }
-**/
-NodeID3.prototype.createChapterFrame = function(chapter) {
+/**
+ * @typedef {Object} Chapter
+ * @property {string} elementID
+ * @property {number} startTimeMs
+ * @property {number} endTimeMs
+ * @property {number} [startOffsetBytes]
+ * @property {number} [endOffsetBytes]
+ * @property {object} [tags]
+ */
+NodeID3.prototype.createChapterFrame = function (/** @type Chapter[] | Chapter */chapter) {
     if(chapter instanceof Array && chapter.length > 0) {
         let frames = []
         chapter.forEach((tag, index) => {
