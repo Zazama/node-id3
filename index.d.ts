@@ -292,6 +292,46 @@ declare module "node-id3" {
                image?: Tags["image"],
                title?: string,
             },
+         }>,
+
+         /**
+          * The 'Commercial information' frame is a URL pointing at a webpage with information such as where the album can be bought. There may be more than one "WCOM" frame in a tag, but not with the same content.
+          */         
+         commercialUrl?: Array<string>,
+         /**
+          * The 'Copyright/Legal information' frame is a URL pointing at a webpage where the terms of use and ownership of the file is described.
+          */
+         copyrightUrl?: string,
+         /**
+          * The 'Official audio file webpage' frame is a URL pointing at a file specific webpage.
+          */
+         fileUrl?: string,
+         /**
+          * The 'Official artist/performer webpage' frame is a URL pointing at the artists official webpage. There may be more than one "WOAR" frame in a tag if the audio contains more than one performer, but not with the same content.
+          */
+         artistUrl?: Array<string>,
+         /**
+          * The 'Official audio source webpage' frame is a URL pointing at the official webpage for the source of the audio file, e.g. a movie.
+          */
+         audioSourceUrl?: string,
+         /**
+          * The 'Official internet radio station homepage' contains a URL pointing at the homepage of the internet radio station.
+          */
+         radioStationUrl?: string,
+         /**
+          * The 'Payment' frame is a URL pointing at a webpage that will handle the process of paying for this file.
+          */
+         paymentUrl?: string,
+         /**
+          * The 'Publishers official webpage' frame is a URL pointing at the official wepage for the publisher.
+          */
+         publisherUrl?: string,
+         /**
+          * The 'User-defined URL link' frame is intended for URL links concerning the audiofile in a similar way to the other "W"-frames. There may be more than one "WXXX" frame in each tag, but only one with the same description.
+          */
+         userDefinedUrl?: Array<{
+            description: string,
+            url: string
          }>
       }
       export function write(tags: Tags, filebuffer: Buffer): Buffer
