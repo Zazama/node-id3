@@ -349,7 +349,7 @@ NodeID3.prototype.createBuffersFromTags = function(tags) {
             frame = this.createTextFrame(specName, tags[tag])
         } else if (WFrames[tag] || Object.keys(WFrames).map(i => WFrames[i]).map(x => x.name).indexOf(tag) !== -1) {
             let specName = WFrames[tag] ? WFrames[tag].name : tag
-            let multiple = WFrames[Object.keys(WFrames)[Object.keys(WFrames).map(i => WFrames[i]).map(x => x.name).indexOf(tag)]].multiple
+            let multiple = WFrames[Object.keys(WFrames)[Object.keys(WFrames).map(i => WFrames[i]).map(x => x.name).indexOf(specName)]].multiple
             if(multiple && tags[tag] instanceof Array && tags[tag].length > 0) {
                 frame = Buffer.alloc(0);
                 // deduplicate array

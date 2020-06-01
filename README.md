@@ -171,18 +171,18 @@ chapter: [{
     artist: "akshdas"
   }
 }]
-commercialUrl:
-copyrightUrl:
-fileUrl:
-artistUrl:
-audioSourceUrl:
-radioStationUrl:
-paymentUrl:
-publisherUrl:
-userDefinedUrl: {
+commercialUrl: ["commercialurl.com"], // array or single string
+copyrightUrl: "example.com",
+fileUrl: "example.com",
+artistUrl: ["example.com"], // array or single string
+audioSourceUrl: "example.com",
+radioStationUrl: "example.com",
+paymentUrl: "example.com",
+publisherUrl: "example.com",
+userDefinedUrl: [{
   description: "URL description"
   url: "https://example.com/"
-}
+}] // array or single object
 ```
 
 ### Supported raw IDs
