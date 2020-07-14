@@ -198,7 +198,7 @@ const WFrames = {
    4.3.1 WPB Publishers official webpage
    4.3.2 WXX User defined URL link frame
 */
-const WFrames220 = {
+const WFramesV220 = {
     commercialUrl: {
         name: "WCM",
         multiple: true
