@@ -1,6 +1,6 @@
 {
   "name": "node-id3",
-  "version": "0.1.15",
+  "version": "0.1.18",
   "description": "Pure JavaScript ID3 Tag writer/reader",
   "author": "Jan Metzger <jan.metzger@gmx.net>",
   "main": "index.js",
@@ -32,6 +32,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "iconv-lite": "^0.4.15"
+    "iconv-lite": "0.5.1"
   }
 }

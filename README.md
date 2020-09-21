@@ -171,6 +171,18 @@ chapter: [{
     artist: "akshdas"
   }
 }]
+commercialUrl: ["commercialurl.com"], // array or single string
+copyrightUrl: "example.com",
+fileUrl: "example.com",
+artistUrl: ["example.com"], // array or single string
+audioSourceUrl: "example.com",
+radioStationUrl: "example.com",
+paymentUrl: "example.com",
+publisherUrl: "example.com",
+userDefinedUrl: [{
+  description: "URL description"
+  url: "https://example.com/"
+}] // array or single object
 ```
 
 ### Supported raw IDs
@@ -221,4 +233,13 @@ userDefinedText       "TXXX"
 popularimeter         "POPM"
 private               "PRIV"
 chapter               "CHAP"
+commercialUrl         "WCOM"
+copyrightUrl          "WCOP"
+fileUrl               "WOAF"
+artistUrl             "WOAR"
+audioSourceUrl        "WOAS"
+radioStationUrl       "WORS"
+paymentUrl            "WPAY"
+publisherUrl          "WPUB"
+userDefinedUrl        "WXXX"
 ```
