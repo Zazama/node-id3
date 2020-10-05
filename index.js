@@ -331,7 +331,7 @@ NodeID3.prototype.create = function(tags, fn) {
     frames[0].writeUInt8(size[3], 9)
 
     if(fn && typeof fn === 'function') {
-        fn(Buffer.concat(frames))
+        fn(null, Buffer.concat(frames))
     } else {
         return Buffer.concat(frames)
     }
