@@ -569,6 +569,8 @@ NodeID3.prototype.getTagsFromFrames = function(frames, ID3Version) {
             let decoded
             if(frame.body[0] === 0x01) {
                 decoded = iconv.decode(frame.body.slice(1), "utf16").replace(/\0/g, "")
+            } else if (frame.body[0] === 0x03) {
+                decoded = iconv.decode(frame.body.slice(1), "utf8").replace(/\0/g, "")
             } else {
                 decoded = iconv.decode(frame.body.slice(1), "ISO-8859-1").replace(/\0/g, "")
             }
