@@ -161,7 +161,7 @@ private: [{
   data: Buffer.from([0x01, 0x02, 0x05])
 }],
 chapter: [{
-  elementID: "Hey!", //THIS MUST BE UNIQUE!
+  elementID: "Hey!", // THIS MUST BE UNIQUE!
   startTimeMs: 5000,
   endTimeMs: 8000,
   startOffsetBytes: 123, // OPTIONAL!
@@ -170,7 +170,15 @@ chapter: [{
     title: "abcdef",
     artist: "akshdas"
   }
-}]
+}],
+tableOfContents: [{
+  elementID: "toc1",    // THIS MUST BE UNIQUE!
+  isOrdered: false,     // OPTIONAL, tells a player etc. if elements are in a specific order
+  elements: ['chap1'],  // OPTIONAL but most likely needed, contains the chapter/tableOfContents elementIDs
+  tags: {               // OPTIONAL
+    title: "abcdef"
+  }  
+}],
 commercialUrl: ["commercialurl.com"], // array or single string
 copyrightUrl: "example.com",
 fileUrl: "example.com",
@@ -233,6 +241,7 @@ userDefinedText       "TXXX"
 popularimeter         "POPM"
 private               "PRIV"
 chapter               "CHAP"
+tableOfContents       "CTOC"
 commercialUrl         "WCOM"
 copyrightUrl          "WCOP"
 fileUrl               "WOAF"

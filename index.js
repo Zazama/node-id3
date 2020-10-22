@@ -137,6 +137,12 @@ const SFrames = {
         name: "CHAP",
         multiple: true
     },
+    tableOfContents: {
+        create: "createTableOfContentsFrame",
+        read: "readTableOfContentsFrame",
+        name: "CTOC",
+        multiple: true
+    },
     userDefinedUrl: {
         create: "createUserDefinedUrl",
         read: "readUserDefinedUrl",
@@ -1408,6 +1414,81 @@ NodeID3.prototype.readChapterFrame = function(frame) {
     }
 
     return tags
+}
+
+NodeID3.prototype.createTableOfContentsFrame = function (tableOfContents) {
+    if(tableOfContents instanceof Array && tableOfContents.length > 0) {
+        let frames = []
+        tableOfContents.forEach((tag, index) => {
+            let frame = this.createTableOfContentsFrameHelper(tag, index + 1)
+            if(frame) {
+                frames.push(frame)
+            }
+        })
+        return frames.length ? Buffer.concat(frames) : null
+    } else {
+        return this.createTableOfContentsFrameHelper(tableOfContents, 1)
+    }
+}
+
+NodeID3.prototype.createTableOfContentsFrameHelper = function(tableOfContents, id) {
+    if(!tableOfContents || !tableOfContents.elementID) {
+        return null
+    }
+    if(!(tableOfContents.elements instanceof Array)) {
+        tableOfContents.elements = [];
+    }
+
+    let header = Buffer.alloc(10, 0)
+    header.write("CTOC")
+
+    let elementIDBuffer = Buffer.from(tableOfContents.elementID + "\0")
+    let ctocFlags = Buffer.alloc(1, 0);
+    if(id === 1) {
+        ctocFlags[0] += 2;
+    }
+    if(tableOfContents.isOrdered) {
+        ctocFlags[0] += 1;
+    }
+    let entryCountBuffer = Buffer.alloc(1, tableOfContents.elements.length);
+    let entries = Buffer.from(tableOfContents.elements.map(element => element += "\0").join(""));
+
+    let frames
+    if(tableOfContents.tags) {
+        frames = this.createBuffersFromTags(tableOfContents.tags)
+    }
+    const framesBuffer = frames ? Buffer.concat(frames) : Buffer.alloc(0)
+
+    const finalFrame = Buffer.concat([header, elementIDBuffer, ctocFlags, entryCountBuffer, entries, framesBuffer]);
+    finalFrame.writeUInt32BE(finalFrame.length - 10, 4)
+    return finalFrame
+}
+
+NodeID3.prototype.readTableOfContentsFrame = function(frame) {
+    let toc = {}
+
+    if(!frame) {
+        return toc
+    }
+
+    let endOfElementIDString = frame.indexOf(0x00)
+    if(endOfElementIDString === -1 || frame.length - endOfElementIDString - 1 < 16) {
+        return toc
+    }
+
+    toc.elementID = iconv.decode(frame.slice(0, endOfElementIDString), "ISO-8859-1")
+    /* %000000ab where a is top level and b is ordered */
+    toc.isOrdered = !!(frame.readUInt8(endOfElementIDString + 1) & 0x01 === 0x01)
+
+    toc.elements = frame.slice(endOfElementIDString + 3).toString('latin1').split("\0", frame.readUInt8(endOfElementIDString + 2))
+
+    let framesPosition = endOfElementIDString + 3 + toc.elements.map(element => element.length).reduce((a, b) => a + b + 1, 0)
+    if(frame.length > framesPosition) {
+        let framesBuffer = frame.slice(framesPosition)
+        toc.tags = this.getTagsFromFrames(this.getFramesFromID3Body(framesBuffer, 3, 4, 10), 3)
+    }
+
+    return toc
 }
 
 NodeID3.prototype.createUserDefinedUrl = function(userDefinedUrl, recursiveBuffer) {
