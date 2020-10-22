@@ -549,7 +549,7 @@ NodeID3.prototype.getFramesFromID3Body = function(ID3FrameBody, ID3Version, iden
             decodeSize = true
         }
         let bodyFrameSize = this.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
-        if(bodyFrameSize > (ID3FrameBody.length - currentPosition)) {
+        if(bodyFrameSize + 10 > (ID3FrameBody.length - currentPosition)) {
             break
         }
         let bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
@@ -681,7 +681,7 @@ NodeID3.prototype.getFrameSize = function(buffer, decode, ID3Version) {
 NodeID3.prototype.removeTagsFromBuffer = function(data) {
     let framePosition = this.getFramePosition(data)
 
-    if(framePosition == -1) {
+    if(framePosition === -1) {
         return data
     }
 
@@ -692,8 +692,12 @@ NodeID3.prototype.removeTagsFromBuffer = function(data) {
         return false
     }
 
-    let size = this.decodeSize(hSize)
-    return data.slice(framePosition + size + 10)
+    if(data.length >= framePosition + 10) {
+        const size = this.decodeSize(data.slice(framePosition + 6, framePosition + 10));
+        return Buffer.concat([data.slice(0, framePosition), data.slice(framePosition + size + 10)])
+    } else {
+        return data;
+    }
 }
 
 /*
@@ -831,28 +835,43 @@ NodeID3.prototype.createUrlFrame = function(specName, text) {
 */
 NodeID3.prototype.createPictureFrame = function(data) {
     try {
-        if(data && data.imageBuffer && data.imageBuffer instanceof Buffer === true) {
-            data = data.imageBuffer
+        if (data instanceof Buffer) {
+            data = {
+                imageBuffer: Buffer.from(data)
+            }
+        } else if (typeof data === 'string' || data instanceof String) {
+            data = {
+                imageBuffer: Buffer.from(fs.readFileSync(data, 'binary'), 'binary')
+            }
+        } else if (!data.imageBuffer) {
+            return Buffer.alloc(0);
         }
-        let apicData = (data instanceof Buffer == true) ? Buffer.from(data) : Buffer.from(fs.readFileSync(data, 'binary'), 'binary')
+
         let bHeader = Buffer.alloc(10)
         bHeader.fill(0)
         bHeader.write("APIC", 0)
 
-    	let mime_type = "image/png"
+    	let mime_type = data.mime
 
-        if(apicData[0] == 0xff && apicData[1] == 0xd8 && apicData[2] == 0xff) {
-            mime_type = "image/jpeg"
+        if(!data.mime) {
+            if (data.imageBuffer[0] === 0xff && data.imageBuffer[1] === 0xd8 && data.imageBuffer[2] === 0xff) {
+                mime_type = "image/jpeg"
+            } else {
+                mime_type = "image/png"
+            }
         }
 
-        let bContent = Buffer.alloc(mime_type.length + 4)
+        let bContent = Buffer.alloc(mime_type.length + 3)
         bContent.fill(0)
         bContent[mime_type.length + 2] = 0x03                           //  Front cover
         bContent.write(mime_type, 1)
+        bContent[0] = 0x01
 
-    	bHeader.writeUInt32BE(apicData.length + bContent.length, 4)     //  Size of frame
+        let bDescription = this.createContentDescriptor(data.description, 0x01, true)
 
-        return Buffer.concat([bHeader, bContent, apicData])
+    	bHeader.writeUInt32BE(data.imageBuffer.length + bContent.length + bDescription.length, 4)     //  Size of frame
+
+        return Buffer.concat([bHeader, bContent, bDescription, data.imageBuffer])
     } catch(e) {
         return e
     }

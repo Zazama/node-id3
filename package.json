@@ -28,10 +28,13 @@
     "example": "example"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "license": "MIT",
   "dependencies": {
     "iconv-lite": "0.5.1"
+  },
+  "devDependencies": {
+    "mocha": "8.1.3"
   }
 }
