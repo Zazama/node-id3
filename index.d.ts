@@ -8,7 +8,7 @@ declare module "node-id3" {
          /**
           * The 'BPM' frame contains the number of beats per minute in the mainpart of the audio. The BPM is an integer and represented as a numerical string. 
           */
-         bpm?: number,
+         bpm?: string,
          /**
           *  The 'Composer(s)' frame is intended for the name of the composer(s). They are seperated with the "/" character. 
           */
@@ -30,7 +30,7 @@ declare module "node-id3" {
          /**
           * The 'Playlist delay' defines the numbers of milliseconds of silence between every song in a playlist. The player should use the "ETC" frame, if present, to skip initial silence and silence at the end of the audio to match the 'Playlist delay' time. The time is represented as a numeric string. 
           */
-         playlistDelay?: number,
+         playlistDelay?: string,
          /**
           * The 'Encoded by' frame contains the name of the person or organisation that encoded the audio file. This field may contain a copyright message, if the audio file also is copyrighted by the encoder. 
           */
@@ -81,7 +81,7 @@ declare module "node-id3" {
          /**
           * The 'Length' frame contains the length of the audiofile in milliseconds, represented as a numeric string. 
           */
-         length?: number,
+         length?: string,
          /**
           * The 'Media type' frame describes from which media the sound originated. This may be a text string or a reference to the predefined media types found in the list below. References are made within "(" and ")" and are optionally followed by a text refinement, e.g. "(MC) with four channels". If a text refinement should begin with a "(" character it should be replaced with "((". Predefined refinements is appended after the media type, e.g. "(CD/A)" or "(VID/PAL/VHS)".
           *
@@ -187,7 +187,7 @@ declare module "node-id3" {
          /**
           * The 'Original release year' frame is intended for the year when the original recording, if for example the music in the file should be a cover of a previously released song, was released. The field is formatted as in the "Year" frame. 
           */
-         originalYear?: number,
+         originalYear?: string,
          /**
           * The 'File owner/licensee' frame contains the name of the owner or licensee of the file and it's contents. 
           */
@@ -235,7 +235,7 @@ declare module "node-id3" {
          /**
           * The 'Size' frame contains the size of the audiofile in bytes, excluding the ID3v2 tag, represented as a numeric string. 
           */
-         size?: number,
+         size?: string,
          /**
           * The 'ISRC' frame should contain the International Standard Recording Code (ISRC) (12 characters). 
           */
@@ -247,7 +247,7 @@ declare module "node-id3" {
          /**
           * The 'Year' frame is a numeric string with a year of the recording. This frames is always four characters long (until the year 10000). 
           */
-         year?: number,
+         year?: string,
          comment?: {
             language: string,
             text: string,
