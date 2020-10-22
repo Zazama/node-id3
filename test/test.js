@@ -123,6 +123,28 @@ describe('NodeID3', function () {
                 NodeID3.create(tags),
                 Buffer.from('4944330300000000003B4150494300000031000001696D6167652F6A7065670003FFFE610073006400660000005B307836312C20307836322C20307836332C20307836345D', 'hex')
             ), 0);
+
+            assert.equal(Buffer.compare(
+                NodeID3.create({
+                    image: __dirname + '/smallimg'
+                }),
+                NodeID3.create({
+                    image: {
+                        imageBuffer: fs.readFileSync(__dirname + '/smallimg')
+                    }
+                })
+            ), 0)
+
+            assert.equal(Buffer.compare(
+                NodeID3.create({
+                    image: fs.readFileSync(__dirname + '/smallimg')
+                }),
+                NodeID3.create({
+                    image: {
+                        imageBuffer: fs.readFileSync(__dirname + '/smallimg')
+                    }
+                })
+            ), 0)
         });
 
         it('create USLT frame', function() {
