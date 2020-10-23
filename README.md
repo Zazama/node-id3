@@ -14,77 +14,85 @@ const NodeID3 = require('node-id3')
 
 /* Variables found in the following usage examples */
 
-//  file can be a buffer or string with the path to a file
-let file = './path/to/(mp3)file' || new Buffer("Some Buffer of a (mp3) file")
-let filebuffer = new Buffer("Some Buffer of a (mp3) file")
-let filepath = './path/to/(mp3)file'
+const filebuffer = new Buffer("Some Buffer of a (mp3) file")
+const filepath = './path/to/(mp3)file'
+
+const tags = {
+    title: "Tomorrow",
+    artist: "Kevin Penkin",
+    album: "TVアニメ「メイドインアビス」オリジナルサウンドトラック",
+    APIC: "./example/mia_cover.jpg",
+    TRCK: "27"
+}
 ```
 
-### Creating/Writing tags
-
+### Write tags to file
 ```javascript
-//  Define the tags for your file using the ID (e.g. APIC) or the alias (see at bottom)
-let tags = {
-  title: "Tomorrow",
-  artist: "Kevin Penkin",
-  album: "TVアニメ「メイドインアビス」オリジナルサウンドトラック",
-  APIC: "./example/mia_cover.jpg",
-  TRCK: "27"
-}
+const success = NodeID3.write(tags, filepath) // Returns true/Error
+// async version
+NodeID3.write(tags, file, function(err) {  })
+```
 
-//  Create a ID3-Frame buffer from passed tags
-//  Synchronous
-let ID3FrameBuffer = NodeID3.create(tags)   //  Returns ID3-Frame buffer
-//  Asynchronous
-NodeID3.create(tags, function(frame) {  })
+### Write tags to filebuffer
+```javascript
+const success = NodeID3.write(tags, filebuffer) // Returns Buffer
+// async version
+NodeID3.write(tags, file, function(err, buffer) {  })
+```
 
-//  Write ID3-Frame into (.mp3) file
-let success = NodeID3.write(tags, file) //  Returns true/false or, if buffer passed as file, the tagged buffer
-NodeID3.write(tags, file, function(err, buffer) {  }) //  Buffer is only returned if a buffer was passed as file
+### Update existing tags of file or buffer
+This will write new/changed values but keep all others
+```javascript
+const success = NodeID3.update(tags, filepath) //  Returns true/Error
+const success = NodeID3.update(tags, filebuffer) //  Returns Buffer
+NodeID3.update(tags, filepath, function(err, buffer) {  })
+NodeID3.update(tags, filebuffer, function(err, buffer) {  })
+```
 
-//  Update existing ID3-Frame with new/edited tags
-let success = NodeID3.update(tags, file) //  Returns true/false or, if buffer passed as file, the tagged buffer
-NodeID3.update(tags, file, function(err, buffer) {  })  //  Buffer is only returned if a buffer was passed as file
+### Create tags as buffer
+```javascript
+const success = NodeID3.create(tags) // Returns ID3-Tag Buffer
+// async version
+NodeID3.create(tags, function(buffer) {  })
 ```
 
 ### Reading ID3-Tags
 
 ```javascript
-let tags = NodeID3.read(file)
-NodeID3.read(file, function(err, tags) {
-  /*
-  tags: {
-    title: "Tomorrow",
-    artist: "Kevin Penkin",
-    image: {
-      mime: "jpeg",
-      type: {
-        id: 3,
-        name: "front cover"
-      },
-      description: String,
-      imageBuffer: Buffer
-    },
-    raw: {
-      TIT2: "Tomorrow",
-      TPE1: "Kevin Penkin",
-      APIC: Object (See above)
-    }
-  }
-  */
-})
+const tags = NodeID3.read(file)
+NodeID3.read(file, function(err, tags) {})
+/*
+    tags: {
+        title: "Tomorrow",
+        artist: "Kevin Penkin",
+        image: {
+          mime: "jpeg",
+          type: {
+            id: 3,
+            name: "front cover"
+          },
+          description: String,
+          imageBuffer: Buffer
+        },
+        raw: {
+          TIT2: "Tomorrow",
+          TPE1: "Kevin Penkin",
+          APIC: Object (See above)
+        }
+      }
+*/
 ```
 
 ### Removing ID3-Tags from file/buffer
 
 ```javascript
-let success = NodeID3.removeTags(filepath)  //  returns true/false
+const success = NodeID3.removeTags(filepath)  //  returns true/Error
 NodeID3.removeTags(filepath, function(err) {  })
 
 let bufferWithoutID3Frame = NodeID3.removeTagsFromBuffer(filebuffer)  //  Returns Buffer
 ```
 
-## Supported aliases
+## Supported aliases/fields
 ```
 album:
 bpm:
