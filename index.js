@@ -937,12 +937,12 @@ NodeID3.prototype.readPictureFrame = function(APICFrame, ID3Version) {
             }
             if(APICFrame[descEnd] !== undefined) {
                 picture.description = iconv.decode(APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, descEnd), 'utf16').replace(/\0/g, "") || undefined
-                descEnd += 2
+                descEnd += 1
             }
         }
     }
     if(descEnd) {
-        picture.imageBuffer = APICFrame.slice(descEnd)
+        picture.imageBuffer = APICFrame.slice(descEnd + 1)
     } else {
         picture.imageBuffer = APICFrame.slice(5)
     }
