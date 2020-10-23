@@ -931,18 +931,18 @@ NodeID3.prototype.readPictureFrame = function(APICFrame, ID3Version) {
                 picture.description = iconv.decode(desc.slice(0, descFound + 2), 'utf16') || undefined
             }
         } else {
-            let descOffset = APICFrame.indexOf(0x00, 1) + 2
-            let desc = APICFrame.slice(descOffset)
-            let descFound = desc.indexOf("0000", 0, 'hex')
-            descEnd = descOffset + descFound + 2
-
-            if(descFound != -1) {
-                picture.description = iconv.decode(desc.slice(0, descFound + 2), 'utf16') || undefined
+            descEnd = 0
+            while(APICFrame[descEnd] !== undefined && APICFrame[descEnd] !== 0x00 || APICFrame[descEnd + 1] !== 0x00 || APICFrame[descEnd + 2] === 0x00) {
+                descEnd++
+            }
+            if(APICFrame[descEnd] !== undefined) {
+                picture.description = iconv.decode(APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, descEnd), 'utf16').replace(/\0/g, "") || undefined
+                descEnd += 2
             }
         }
     }
     if(descEnd) {
-        picture.imageBuffer = APICFrame.slice(descEnd + 1)
+        picture.imageBuffer = APICFrame.slice(descEnd)
     } else {
         picture.imageBuffer = APICFrame.slice(5)
     }
