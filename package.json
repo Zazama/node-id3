@@ -35,6 +35,8 @@
     "iconv-lite": "0.5.1"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
+    "jsmediatags": "^3.9.3",
     "mocha": "8.1.3"
   }
 }

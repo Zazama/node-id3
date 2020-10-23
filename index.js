@@ -1,5 +1,7 @@
 const fs = require('fs')
 const iconv = require("iconv-lite")
+const ID3FrameBuilder = require("./src/ID3FrameBuilder")
+const ID3FrameReader = require("./src/ID3FrameReader")
 
 module.exports = new NodeID3
 
@@ -53,6 +55,11 @@ const TFrames = {
     year:               "TYER"
 }
 
+const TFrameSpecs = Object.keys(TFrames).reduce((ret, key) => {
+    ret[TFrames[key]] = key
+    return ret
+}, {})
+
 const TFramesV220 =  {
     album:              "TAL",
     bpm:                "TBP",
@@ -90,6 +97,11 @@ const TFramesV220 =  {
     encodingTechnology: "TSS",
     year:               "TYE"
 }
+
+const TFrameV220Specs = Object.keys(TFramesV220).reduce((ret, key) => {
+    ret[TFramesV220[key]] = key
+    return ret
+}, {})
 
 /*
 **  List of non-text frames which follow their specific specification
@@ -152,6 +164,11 @@ const SFrames = {
     }
 }
 
+const SFrameSpecs = Object.keys(SFrames).reduce((ret, key) => {
+    ret[SFrames[key].name] = key
+    return ret
+}, {})
+
 const SFramesV220 = {
     image: {
         create: "createPictureFrame",
@@ -159,6 +176,11 @@ const SFramesV220 = {
         name: "PIC"
     }
 }
+
+const SFrameV220Specs = Object.keys(SFramesV220).reduce((ret, key) => {
+    ret[SFramesV220[key].name] = key
+    return ret
+}, {})
 
 /*
 **  List of URL frames.
@@ -194,6 +216,11 @@ const WFrames = {
         name: "WPUB"
     }
 }
+
+const WFrameSpecs = Object.keys(WFrames).reduce((ret, key) => {
+    ret[WFrames[key].name] = key
+    return ret
+}, {})
 
 /*
    4.3.1 WAF Official audio file webpage
@@ -232,6 +259,11 @@ const WFramesV220 = {
     }
 }
 
+const WFrameV220Specs = Object.keys(WFramesV220).reduce((ret, key) => {
+    ret[WFramesV220[key].name] = key
+    return ret
+}, {})
+
 /*
 **  Officially available types of the picture frame
 */
@@ -257,6 +289,10 @@ const APICTypes = [
 	"illustration",
 	"band logotype",
 	"publisher logotype"
+]
+
+const ENCODINGS = [
+    'ISO-8859-1', 'UTF-16', 'UTF-16BE', 'utf8'
 ]
 
 function NodeID3() {
@@ -343,23 +379,27 @@ NodeID3.prototype.create = function(tags, fn) {
     }
 }
 
+/*
+* Returns array of buffers created by tags specified in the tags argument
+* */
 NodeID3.prototype.createBuffersFromTags = function(tags) {
     let frames = []
+    if(!tags) return frames
     let tagNames = Object.keys(tags)
 
     tagNames.forEach(function (tag, index) {
         //  Check if passed tag is text frame (Alias or ID)
         let frame
-        if (TFrames[tag] || Object.keys(TFrames).map(i => TFrames[i]).indexOf(tag) != -1) {
+        if (TFrames[tag] || TFrameSpecs[tag]) {
             let specName = TFrames[tag] || tag
             frame = this.createTextFrame(specName, tags[tag])
-        } else if (WFrames[tag] || Object.keys(WFrames).map(i => WFrames[i]).map(x => x.name).indexOf(tag) !== -1) {
+        } else if (WFrames[tag] || WFrameSpecs[tag]) {
             let specName = WFrames[tag] ? WFrames[tag].name : tag
-            let multiple = WFrames[Object.keys(WFrames)[Object.keys(WFrames).map(i => WFrames[i]).map(x => x.name).indexOf(specName)]].multiple
+            let multiple = WFrames[WFrameSpecs[specName]].multiple
             if(multiple && tags[tag] instanceof Array && tags[tag].length > 0) {
-                frame = Buffer.alloc(0);
+                frame = Buffer.alloc(0)
                 // deduplicate array
-                for(var url of [...new Set(tags[tag])]) {
+                for(let url of [...new Set(tags[tag])]) {
                     frame = Buffer.concat([frame, this.createUrlFrame(specName, url)])
                 }
             } else {
@@ -368,9 +408,9 @@ NodeID3.prototype.createBuffersFromTags = function(tags) {
         } else if (SFrames[tag]) {  //  Check if Alias of special frame
             let createFrameFunction = SFrames[tag].create
             frame = this[createFrameFunction](tags[tag])
-        } else if (Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag) != -1) {  //  Check if ID of special frame
+        } else if (SFrameSpecs[tag]) {  //  Check if ID of special frame
             //  get create function from special frames where tag ID is found at SFrame[index].name
-            let createFrameFunction = SFrames[Object.keys(SFrames)[Object.keys(SFrames).map(i => SFrames[i]).map(x => x.name).indexOf(tag)]].create
+            let createFrameFunction = SFrames[SFrameSpecs[tag]].create
             frame = this[createFrameFunction](tags[tag])
         }
 
@@ -527,7 +567,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     let ID3Version = ID3Frame[3]
     let identifierSize = 4
     let textframeHeaderSize = 10
-    if(ID3Version == 2) {
+    if(ID3Version === 2) {
         identifierSize = 3
         textframeHeaderSize = 6
     }
@@ -540,12 +580,15 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
 NodeID3.prototype.getFramesFromID3Body = function(ID3FrameBody, ID3Version, identifierSize, textframeHeaderSize) {
     let currentPosition = 0
     let frames = []
+    if(!ID3FrameBody || !(ID3FrameBody instanceof Buffer)) {
+        return frames
+    }
     while(currentPosition < ID3FrameBody.length && ID3FrameBody[currentPosition] !== 0x00) {
         let bodyFrameHeader = Buffer.alloc(textframeHeaderSize)
         ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
 
         let decodeSize = false
-        if(ID3Version == 4) {
+        if(ID3Version === 4) {
             decodeSize = true
         }
         let bodyFrameSize = this.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
@@ -572,15 +615,10 @@ NodeID3.prototype.getTagsFromFrames = function(frames, ID3Version) {
         //  Check first character if frame is text frame
         if(frame.name[0] === "T" && frame.name !== "TXXX") {
             //  Decode body
-            let decoded
-            if(frame.body[0] === 0x01) {
-                decoded = iconv.decode(frame.body.slice(1), "utf16").replace(/\0/g, "")
-            } else {
-                decoded = iconv.decode(frame.body.slice(1), "ISO-8859-1").replace(/\0/g, "")
-            }
+            const decoded = iconv.decode(frame.body.slice(1), this.getEncodingName(frame.body[0])).replace(/\0/g, "")
             tags.raw[frame.name] = decoded
             let versionFrames = TFrames
-            if(ID3Version == 2) {
+            if(ID3Version === 2) {
                 versionFrames = TFramesV220
             }
             Object.keys(versionFrames).map(function(key) {
@@ -590,7 +628,7 @@ NodeID3.prototype.getTagsFromFrames = function(frames, ID3Version) {
             })
         } else if (frame.name[0] === "W" && frame.name !== "WXXX") {
             let versionFrames = WFrames
-            if(ID3Version == 2) {
+            if(ID3Version === 2) {
                 versionFrames = WFramesV220
             }
             Object.keys(versionFrames).map(function(key) {
@@ -610,7 +648,7 @@ NodeID3.prototype.getTagsFromFrames = function(frames, ID3Version) {
             })
         } else {
             let versionFrames = SFrames
-            if(ID3Version == 2) {
+            if(ID3Version === 2) {
                 versionFrames = SFramesV220
             }
             //  Check if non-text frame is supported
@@ -640,7 +678,7 @@ NodeID3.prototype.getTagsFromFrames = function(frames, ID3Version) {
 */
 NodeID3.prototype.getFramePosition = function(buffer) {
     let framePosition = buffer.indexOf("ID3")
-    if(framePosition == -1 || framePosition > 20) {
+    if(framePosition === -1 || framePosition > 20) {
         return -1
     } else {
         return framePosition
@@ -693,10 +731,10 @@ NodeID3.prototype.removeTagsFromBuffer = function(data) {
     }
 
     if(data.length >= framePosition + 10) {
-        const size = this.decodeSize(data.slice(framePosition + 6, framePosition + 10));
+        const size = this.decodeSize(data.slice(framePosition + 6, framePosition + 10))
         return Buffer.concat([data.slice(0, framePosition), data.slice(framePosition + size + 10)])
     } else {
-        return data;
+        return data
     }
 }
 
@@ -794,17 +832,10 @@ NodeID3.prototype.createTextFrame = function(specName, text) {
         return null
     }
 
-    let encoded = iconv.encode(text, "utf16")
-
-    let buffer = Buffer.alloc(10)
-    buffer.fill(0)
-    buffer.write(specName, 0)                           //  ID of the specified frame
-    buffer.writeUInt32BE((encoded).length + 1, 4)       //  Size of frame (string length + encoding byte)
-    let encBuffer = Buffer.alloc(1)                       //  Encoding (now using UTF-16 encoded w/ BOM)
-    encBuffer.fill(1)                                   //  UTF-16
-
-    var contentBuffer = Buffer.from(encoded, 'binary')   //  Text -> Binary encoding for UTF-16 w/ BOM
-    return Buffer.concat([buffer, encBuffer, contentBuffer])
+    return new ID3FrameBuilder(specName)
+        .appendStaticNumber(0x01, 0x01)
+        .appendStaticValue(text, null, 0x01)
+        .getBuffer()
 }
 
 /*
@@ -817,17 +848,9 @@ NodeID3.prototype.createUrlFrame = function(specName, text) {
         return null
     }
 
-    let encoded = iconv.encode(text, "ISO-8859-1")
-
-    let buffer = Buffer.alloc(10)
-    buffer.fill(0)
-    buffer.write(specName, 0)                           //  ID of the specified frame
-    buffer.writeUInt32BE((encoded).length + 1, 4)       //  Size of frame (string length + encoding byte)
-    let encBuffer = Buffer.alloc(1)                       //  Encoding (URLs are always ISO-8859-1)
-    encBuffer.fill(0)                                   //  ISO-8859-1
-
-    var contentBuffer = Buffer.from(encoded, 'binary')   //  Text -> Binary encoding for ISO-8859-1
-    return Buffer.concat([buffer, encBuffer, contentBuffer])
+    return new ID3FrameBuilder(specName)
+        .appendStaticValue(text)
+        .getBuffer()
 }
 
 /*
@@ -844,14 +867,10 @@ NodeID3.prototype.createPictureFrame = function(data) {
                 imageBuffer: Buffer.from(fs.readFileSync(data, 'binary'), 'binary')
             }
         } else if (!data.imageBuffer) {
-            return Buffer.alloc(0);
+            return Buffer.alloc(0)
         }
 
-        let bHeader = Buffer.alloc(10)
-        bHeader.fill(0)
-        bHeader.write("APIC", 0)
-
-    	let mime_type = data.mime
+        let mime_type = data.mime
 
         if(!data.mime) {
             if (data.imageBuffer[0] === 0xff && data.imageBuffer[1] === 0xd8 && data.imageBuffer[2] === 0xff) {
@@ -861,17 +880,13 @@ NodeID3.prototype.createPictureFrame = function(data) {
             }
         }
 
-        let bContent = Buffer.alloc(mime_type.length + 3)
-        bContent.fill(0)
-        bContent[mime_type.length + 2] = 0x03                           //  Front cover
-        bContent.write(mime_type, 1)
-        bContent[0] = 0x01
-
-        let bDescription = this.createContentDescriptor(data.description, 0x01, true)
-
-    	bHeader.writeUInt32BE(data.imageBuffer.length + bContent.length + bDescription.length, 4)     //  Size of frame
-
-        return Buffer.concat([bHeader, bContent, bDescription, data.imageBuffer])
+        return new ID3FrameBuilder("APIC")
+            .appendStaticNumber(0x01, 1)
+            .appendNullTerminatedValue(mime_type)
+            .appendStaticNumber(0x03, 1)
+            .appendNullTerminatedValue(data.description, 0x01)
+            .appendStaticValue(data.imageBuffer)
+            .getBuffer()
     } catch(e) {
         return e
     }
@@ -880,135 +895,41 @@ NodeID3.prototype.createPictureFrame = function(data) {
 /*
 **  data => buffer
 */
-NodeID3.prototype.readPictureFrame = function(APICFrame, ID3Version) {
-    let picture = {}
-
-    let APICMimeType
-    if(ID3Version == 2) {
-        APICMimeType = APICFrame.toString('ascii').substring(1, 4)
+NodeID3.prototype.readPictureFrame = function(frame, ID3Version) {
+    const reader = new ID3FrameReader(frame, 0)
+    let mime
+    if(ID3Version === 2) {
+        mime = reader.consumeStaticValue('string', 3, 0x00)
     } else {
-        APICMimeType = APICFrame.toString('ascii').substring(1, APICFrame.indexOf(0x00, 1))
+        mime = reader.consumeNullTerminatedValue('string', 0x00)
+    }
+    if(mime === "image/jpeg") {
+        mime = "jpeg"
+    } else if(mime === "image/png") {
+        mime = "png"
     }
 
-    if(APICMimeType == "image/jpeg") {
-        picture.mime = "jpeg"
-    } else if(APICMimeType == "image/png") {
-        picture.mime = "png"
-    } else {
-        picture.mime = APICMimeType
-    }
+    const typeId = reader.consumeStaticValue('number', 1)
+    const description = reader.consumeNullTerminatedValue('string')
+    const imageBuffer = reader.consumeStaticValue()
 
-    picture.type = {}
-    if(ID3Version == 2 && APICTypes.length < APICFrame[4]) {
-        picture.type = {
-            id: APICFrame[4],
-            name: APICTypes[APICFrame[4]]
-        }
-    } else {
-        picture.type = {
-            id: APICFrame[APICFrame.indexOf(0x00, 1) + 1],
-            name: APICTypes[APICFrame[APICFrame.indexOf(0x00, 1) + 1]]
-        }
-    }
-
-    let descEnd
-    if(APICFrame[0] == 0x00) {
-        if(ID3Version == 2) {
-            picture.description = iconv.decode(APICFrame.slice(5, APICFrame.indexOf(0x00, 5)), "ISO-8859-1") || undefined
-            descEnd = APICFrame.indexOf(0x00, 5)
-        } else {
-            picture.description = iconv.decode(APICFrame.slice(APICFrame.indexOf(0x00, 1) + 2, APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)), "ISO-8859-1") || undefined
-            descEnd = APICFrame.indexOf(0x00, APICFrame.indexOf(0x00, 1) + 2)
-        }
-    } else if (APICFrame[0] == 0x01) {
-        if(ID3Version == 2) {
-            let descOffset = 5
-            let desc = APICFrame.slice(descOffset)
-            let descFound = desc.indexOf("0000", 0, 'hex')
-            descEnd = descOffset + descFound + 2
-
-            if(descFound != -1) {
-                picture.description = iconv.decode(desc.slice(0, descFound + 2), 'utf16') || undefined
-            }
-        } else {
-            let descOffset = APICFrame.indexOf(0x00, 1) + 2
-            let desc = APICFrame.slice(descOffset)
-            let descFound = desc.indexOf("0000", 0, 'hex')
-            descEnd = descOffset + descFound + 2
-
-            if(descFound != -1) {
-                picture.description = iconv.decode(desc.slice(0, descFound + 2), 'utf16') || undefined
-            }
-        }
-    }
-    if(descEnd) {
-        picture.imageBuffer = APICFrame.slice(descEnd + 1)
-    } else {
-        picture.imageBuffer = APICFrame.slice(5)
-    }
-
-    return picture
-}
-
-NodeID3.prototype.getEncodingByte = function(encoding) {
-    if(!encoding || encoding === 0x00 || encoding === "ISO-8859-1") {
-        return 0x00
-    } else {
-        return 0x01
+    return {
+        mime: mime,
+        type: {
+            id: typeId,
+            name: APICTypes[typeId]
+        },
+        description: description,
+        imageBuffer: imageBuffer
     }
 }
 
-NodeID3.prototype.getEncodingName = function(encoding) {
-    if(this.getEncodingByte(encoding) === 0x00) {
-        return "ISO-8859-1"
+NodeID3.prototype.getEncodingName = function(byte) {
+    if(byte > -1 && byte < ENCODINGS.length) {
+        return ENCODINGS[byte]
     } else {
-        return "utf16"
+        return ENCODINGS[0]
     }
-}
-
-NodeID3.prototype.getTerminationCount = function(encoding) {
-    if(encoding === 0x00) {
-        return 1
-    } else {
-        return 2
-    }
-}
-
-NodeID3.prototype.createTextEncoding = function(encoding) {
-    let buffer = Buffer.alloc(1)
-    buffer[0] = this.getEncodingByte(encoding)
-    return buffer
-}
-
-NodeID3.prototype.createLanguage = function(language) {
-    if(!language) {
-        language = "eng"
-    } else if(language.length > 3) {
-        language = language.substring(0, 3)
-    }
-
-    return Buffer.from(language)
-}
-
-NodeID3.prototype.createContentDescriptor = function(description, encoding, terminated) {
-    if(!description) {
-        description = terminated ? iconv.encode("\0", this.getEncodingName(encoding)) : Buffer.alloc(0)
-        return description
-    }
-
-    description = iconv.encode(description, this.getEncodingName(encoding))
-
-    return terminated ? Buffer.concat([description, Buffer.alloc(this.getTerminationCount(encoding)).fill(0x00)]) : description
-}
-
-NodeID3.prototype.createText = function(text, encoding, terminated) {
-    if(!text) {
-        text = ""
-    }
-
-    text = iconv.encode(text, this.getEncodingName(encoding))
-
-    return terminated ? Buffer.concat([text, Buffer.from(this.getTerminationCount(encoding)).fill(0x00)]) : text
 }
 
 /*
@@ -1024,54 +945,25 @@ NodeID3.prototype.createCommentFrame = function(comment) {
         return null
     }
 
-    // Create frame header
-    let buffer = Buffer.alloc(10)
-    buffer.fill(0)
-    buffer.write("COMM", 0)                 //  Write header ID
-
-    let encodingBuffer = this.createTextEncoding(0x01)
-    let languageBuffer = this.createLanguage(comment.language)
-    let descriptorBuffer = this.createContentDescriptor(comment.shortText, 0x01, true)
-    let textBuffer = this.createText(comment.text, 0x01, false)
-
-    buffer.writeUInt32BE(encodingBuffer.length + languageBuffer.length + descriptorBuffer.length + textBuffer.length, 4)
-    return Buffer.concat([buffer, encodingBuffer, languageBuffer, descriptorBuffer, textBuffer])
+    return new ID3FrameBuilder("COMM")
+        .appendStaticNumber(0x01, 1)
+        .appendStaticValue(comment.language)
+        .appendNullTerminatedValue(comment.shortText, 0x01)
+        .appendStaticValue(comment.text, null, 0x01)
+        .getBuffer()
 }
 
 /*
 **  frame   => Buffer
 */
 NodeID3.prototype.readCommentFrame = function(frame) {
-    let tags = {}
+    const reader = new ID3FrameReader(frame, 0)
 
-    if(!frame) {
-        return tags
+    return {
+        language: reader.consumeStaticValue('string', 3, 0x00),
+        shortText: reader.consumeNullTerminatedValue('string'),
+        text: reader.consumeStaticValue('string', null)
     }
-    if(frame[0] == 0x00) {
-        tags = {
-            language: iconv.decode(frame, "ISO-8859-1").substring(1, 4).replace(/\0/g, ""),
-            shortText: iconv.decode(frame, "ISO-8859-1").substring(4, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
-            text: iconv.decode(frame, "ISO-8859-1").substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
-        }
-    } else if(frame[0] == 0x01) {
-        let descriptorEscape = 0
-        while(frame[descriptorEscape] !== undefined && frame[descriptorEscape] !== 0x00 || frame[descriptorEscape + 1] !== 0x00 || frame[descriptorEscape + 2] === 0x00) {
-            descriptorEscape++
-        }
-        if(frame[descriptorEscape] === undefined) {
-            return tags
-        }
-        let shortText = frame.slice(4, descriptorEscape)
-        let text = frame.slice(descriptorEscape + 2)
-
-        tags = {
-            language: frame.toString().substring(1, 4).replace(/\0/g, ""),
-            shortText: iconv.decode(shortText, "utf16").replace(/\0/g, ""),
-            text: iconv.decode(text, "utf16").replace(/\0/g, "")
-        }
-    }
-
-    return tags
 }
 
 /*
@@ -1092,54 +984,25 @@ NodeID3.prototype.createUnsynchronisedLyricsFrame = function(unsynchronisedLyric
         return null
     }
 
-    // Create frame header
-    let buffer = Buffer.alloc(10)
-    buffer.fill(0)
-    buffer.write("USLT", 0)                 //  Write header ID
-
-    let encodingBuffer = this.createTextEncoding(0x01)
-    let languageBuffer = this.createLanguage(unsynchronisedLyrics.language)
-    let descriptorBuffer = this.createContentDescriptor(unsynchronisedLyrics.shortText, 0x01, true)
-    let textBuffer = this.createText(unsynchronisedLyrics.text, 0x01, false)
-
-    buffer.writeUInt32BE(encodingBuffer.length + languageBuffer.length + descriptorBuffer.length + textBuffer.length, 4)
-    return Buffer.concat([buffer, encodingBuffer, languageBuffer, descriptorBuffer, textBuffer])
+    return new ID3FrameBuilder("USLT")
+        .appendStaticNumber(0x01, 1)
+        .appendStaticValue(unsynchronisedLyrics.language)
+        .appendNullTerminatedValue(unsynchronisedLyrics.shortText, 0x01)
+        .appendStaticValue(unsynchronisedLyrics.text, null, 0x01)
+        .getBuffer()
 }
 
 /*
 **  frame   => Buffer
 */
 NodeID3.prototype.readUnsynchronisedLyricsFrame = function(frame) {
-    let tags = {}
+    const reader = new ID3FrameReader(frame, 0)
 
-    if(!frame) {
-        return tags
+    return {
+        language: reader.consumeStaticValue('string', 3, 0x00),
+        shortText: reader.consumeNullTerminatedValue('string'),
+        text: reader.consumeStaticValue('string', null)
     }
-    if(frame[0] == 0x00) {
-        tags = {
-            language: iconv.decode(frame, "ISO-8859-1").substring(1, 4).replace(/\0/g, ""),
-            shortText: iconv.decode(frame, "ISO-8859-1").substring(4, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
-            text: iconv.decode(frame, "ISO-8859-1").substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
-        }
-    } else if(frame[0] == 0x01) {
-        let descriptorEscape = 0
-        while(frame[descriptorEscape] !== undefined && frame[descriptorEscape] !== 0x00 || frame[descriptorEscape + 1] !== 0x00 || frame[descriptorEscape + 2] === 0x00) {
-            descriptorEscape++
-        }
-        if(frame[descriptorEscape] === undefined) {
-            return tags
-        }
-        let shortText = frame.slice(4, descriptorEscape)
-        let text = frame.slice(descriptorEscape + 2)
-
-        tags = {
-            language: frame.toString().substring(1, 4).replace(/\0/g, ""),
-            shortText: iconv.decode(shortText, "utf16").replace(/\0/g, ""),
-            text: iconv.decode(text, "utf16").replace(/\0/g, "")
-        }
-    }
-
-    return tags
 }
 
 /*
@@ -1149,71 +1012,27 @@ NodeID3.prototype.readUnsynchronisedLyricsFrame = function(frame) {
 **  }
 **/
 NodeID3.prototype.createUserDefinedText = function(userDefinedText, recursiveBuffer) {
-    let udt = userDefinedText || {}
-    if(udt instanceof Array && udt.length > 0) {
-        if(!recursiveBuffer) {
-            // Don't alter passed array value!
-            userDefinedText = userDefinedText.slice(0)
-        }
-        udt = userDefinedText.pop()
+    if(!(userDefinedText instanceof Array)) {
+        userDefinedText = [userDefinedText]
     }
 
-    if(udt && udt.description) {
-        // Create frame header
-        let buffer = Buffer.alloc(10)
-        buffer.fill(0)
-        buffer.write("TXXX", 0)                 //  Write header ID
-
-        let encodingBuffer = this.createTextEncoding(0x01)
-        let descriptorBuffer = this.createContentDescriptor(udt.description, 0x01, true)
-        let valueBuffer = this.createText(udt.value, 0x01, false)
-
-        buffer.writeUInt32BE(encodingBuffer.length + descriptorBuffer.length + valueBuffer.length, 4)
-        if(!recursiveBuffer) {
-            recursiveBuffer = Buffer.concat([buffer, encodingBuffer, descriptorBuffer, valueBuffer])
-        } else {
-            recursiveBuffer = Buffer.concat([recursiveBuffer, buffer, encodingBuffer, descriptorBuffer, valueBuffer])
-        }
-    }
-    if(userDefinedText instanceof Array && userDefinedText.length > 0) {
-        return this.createUserDefinedText(userDefinedText, recursiveBuffer)
-    } else {
-        return recursiveBuffer
-    }
+    return Buffer.concat(userDefinedText.map(udt => new ID3FrameBuilder("TXXX")
+        .appendStaticNumber(0x01, 1)
+        .appendNullTerminatedValue(udt.description, 0x01)
+        .appendStaticValue(udt.value, null, 0x01)
+        .getBuffer()))
 }
 
 /*
 **  frame   => Buffer
 */
 NodeID3.prototype.readUserDefinedText = function(frame) {
-    let tags = {}
+    const reader = new ID3FrameReader(frame, 0)
 
-    if(!frame) {
-        return tags
+    return {
+        description: reader.consumeNullTerminatedValue('string'),
+        value: reader.consumeStaticValue('string')
     }
-    if(frame[0] == 0x00) {
-        tags = {
-            description: iconv.decode(frame, "ISO-8859-1").substring(1, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
-            value: iconv.decode(frame, "ISO-8859-1").substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
-        }
-    } else if(frame[0] == 0x01) {
-        let descriptorEscape = 0
-        while(frame[descriptorEscape] !== undefined && frame[descriptorEscape] !== 0x00 || frame[descriptorEscape + 1] !== 0x00 || frame[descriptorEscape + 2] === 0x00) {
-            descriptorEscape++
-        }
-        if(frame[descriptorEscape] === undefined) {
-            return tags
-        }
-        let description = frame.slice(1, descriptorEscape)
-        let value = frame.slice(descriptorEscape + 2)
-
-        tags = {
-            description: iconv.decode(description, "utf16").replace(/\0/g, ""),
-            value: iconv.decode(value, "utf16").replace(/\0/g, "")
-        }
-    }
-
-    return tags
 }
 
 /*
@@ -1223,9 +1042,8 @@ NodeID3.prototype.readUserDefinedText = function(frame) {
 **      counter:  int
 **  }
 **/
-NodeID3.prototype.createPopularimeterFrame = function(popularimeter) {
-    popularimeter = popularimeter || {}
-    let email = popularimeter.email
+NodeID3.prototype.createPopularimeterFrame = function(popularimeter = {}) {
+    const email = popularimeter.email
     let rating = Math.trunc(popularimeter.rating)
     let counter = Math.trunc(popularimeter.counter)
     if(!email) {
@@ -1238,46 +1056,23 @@ NodeID3.prototype.createPopularimeterFrame = function(popularimeter) {
         counter = 0
     }
 
-    // Create frame header
-    let buffer = Buffer.alloc(10, 0)
-    buffer.write("POPM", 0)                 //  Write header ID
-
-    let emailBuffer = this.createText(email, 0x01, false)
-    emailBuffer = Buffer.from(email + '\0', 'utf8')
-    let ratingBuffer = Buffer.alloc(1, rating)
-    let counterBuffer = Buffer.alloc(4, 0)
-    counterBuffer.writeUInt32BE(counter, 0)
-
-    buffer.writeUInt32BE(emailBuffer.length + ratingBuffer.length + counterBuffer.length, 4)
-    var frame = Buffer.concat([buffer, emailBuffer, ratingBuffer, counterBuffer])
-    return frame
+    return new ID3FrameBuilder("POPM")
+        .appendNullTerminatedValue(email)
+        .appendStaticNumber(rating, 1)
+        .appendStaticNumber(counter, 4)
+        .getBuffer()
 }
 
 /*
 **  frame   => Buffer
 */
 NodeID3.prototype.readPopularimeterFrame = function(frame) {
-    let tags = {}
-
-    if(!frame) {
-        return tags
+    const reader = new ID3FrameReader(frame)
+    return {
+        email: reader.consumeNullTerminatedValue('string'),
+        rating: reader.consumeStaticValue('number', 1),
+        counter: reader.consumeStaticValue('number')
     }
-    let endEmailIndex = frame.indexOf(0x00, 1)
-    if(endEmailIndex > -1) {
-        tags.email = iconv.decode(frame.slice(0, endEmailIndex), "ISO-8859-1")
-        let ratingIndex = endEmailIndex + 1
-        if(ratingIndex < frame.length) {
-            tags.rating = frame[ratingIndex]
-            let counterIndex = ratingIndex + 1
-            if(counterIndex < frame.length) {
-                let value = frame.slice(counterIndex, frame.length)
-                if(value.length >= 4) {
-                    tags.counter = value.readUInt32BE(0)
-                }
-            }
-        }
-    }
-    return tags
 }
 
 /*
@@ -1286,63 +1081,26 @@ NodeID3.prototype.readPopularimeterFrame = function(frame) {
 **      data:   buffer|string
 **  }
 **/
-NodeID3.prototype.createPrivateFrame = function(_private) {
-    if(_private instanceof Array && _private.length > 0) {
-        let frames = []
-        _private.forEach(tag => {
-            let frame = this.createPrivateFrameHelper(tag)
-            if(frame) {
-                frames.push(frame)
-            }
-        })
-        return frames.length ? Buffer.concat(frames) : null
-    } else {
-        return this.createPrivateFrameHelper(_private)
-    }
-}
-
-NodeID3.prototype.createPrivateFrameHelper = function(_private) {
-    if(!_private || !_private.ownerIdentifier || !_private.data) {
-        return null;
-    }
-    let header = Buffer.alloc(10, 0)
-    header.write("PRIV")
-    let ownerIdentifier = Buffer.from(_private.ownerIdentifier + "\0", "utf8")
-    let data
-    if(typeof(_private.data) == "string") {
-        data = Buffer.from(_private.data, "utf8")
-    } else {
-        data = _private.data
+NodeID3.prototype.createPrivateFrame = function(_private = []) {
+    if(!(_private instanceof Array)) {
+        _private = [_private]
     }
 
-    header.writeUInt32BE(ownerIdentifier.length + data.length, 4)
-    return Buffer.concat([header, ownerIdentifier, data])
+    return Buffer.concat(_private.map(priv => new ID3FrameBuilder("PRIV")
+        .appendNullTerminatedValue(priv.ownerIdentifier)
+        .appendStaticValue(priv.data instanceof Buffer ? priv.data : Buffer.from(priv.data, "utf8"))
+        .getBuffer()))
 }
 
 /*
 **  frame   => Buffer
 */
 NodeID3.prototype.readPrivateFrame = function(frame) {
-    let tags = {}
-
-    if(!frame) {
-        return tags
+    const reader = new ID3FrameReader(frame)
+    return {
+        ownerIdentifier: reader.consumeNullTerminatedValue('string'),
+        data: reader.consumeStaticValue()
     }
-
-    let endOfOwnerIdentification = frame.indexOf(0x00)
-    if(endOfOwnerIdentification == -1) {
-        return tags
-    }
-
-    tags.ownerIdentifier = iconv.decode(frame.slice(0, endOfOwnerIdentification), "ISO-8859-1")
-
-    if(frame.length <= endOfOwnerIdentification + 1) {
-        return tags
-    }
-
-    tags.data = frame.slice(endOfOwnerIdentification + 1)
-
-    return tags
 }
 
 
@@ -1355,222 +1113,118 @@ NodeID3.prototype.readPrivateFrame = function(frame) {
  * @property {number} [endOffsetBytes]
  * @property {object} [tags]
  */
-NodeID3.prototype.createChapterFrame = function (/** @type Chapter[] | Chapter */chapter) {
-    if(chapter instanceof Array && chapter.length > 0) {
-        let frames = []
-        chapter.forEach((tag, index) => {
-            let frame = this.createChapterFrameHelper(tag, index + 1)
-            if(frame) {
-                frames.push(frame)
-            }
-        })
-        return frames.length ? Buffer.concat(frames) : null
-    } else {
-        return this.createChapterFrameHelper(chapter, 1)
-    }
-}
-
-NodeID3.prototype.createChapterFrameHelper = function(chapter, id) {
-    if(!chapter || !chapter.elementID || typeof chapter.startTimeMs === "undefined" || !chapter.endTimeMs) {
-        return null
+NodeID3.prototype.createChapterFrame = function (/** @type Chapter[] | Chapter */chapter = []) {
+    if (!(chapter instanceof Array)) {
+        chapter = [chapter]
     }
 
-    let header = Buffer.alloc(10, 0)
-    header.write("CHAP")
-
-    let elementIDBuffer = Buffer.from(chapter.elementID + "\0")
-    let startTimeBuffer = Buffer.alloc(4)
-    startTimeBuffer.writeUInt32BE(chapter.startTimeMs, 0)
-    let endTimeBuffer = Buffer.alloc(4)
-    endTimeBuffer.writeUInt32BE(chapter.endTimeMs, 0)
-    let startOffsetBytesBuffer = Buffer.alloc(4, 0xFF)
-    if(chapter.startOffsetBytes) {
-        startOffsetBytesBuffer.writeUInt32BE(chapter.startOffsetBytes, 0)
-    }
-    let endOffsetBytesBuffer = Buffer.alloc(4, 0xFF)
-    if(chapter.endOffsetBytes) {
-        endOffsetBytesBuffer.writeUInt32BE(chapter.endOffsetBytes, 0)
-    }
-
-    let frames
-    if(chapter.tags) {
-        frames = this.createBuffersFromTags(chapter.tags)
-    }
-    const framesBuffer = frames ? Buffer.concat(frames) : Buffer.alloc(0)
-
-    header.writeUInt32BE(elementIDBuffer.length + 16 + framesBuffer.length, 4)
-    return Buffer.concat([header, elementIDBuffer, startTimeBuffer, endTimeBuffer, startOffsetBytesBuffer, endOffsetBytesBuffer, framesBuffer])
+    return Buffer.concat(chapter.map(chap => {
+        if (!chap || !chap.elementID || typeof chap.startTimeMs === "undefined" || !chap.endTimeMs) {
+            return null
+        }
+        return new ID3FrameBuilder("CHAP")
+            .appendNullTerminatedValue(chap.elementID)
+            .appendStaticNumber(chap.startTimeMs, 4)
+            .appendStaticNumber(chap.endTimeMs, 4)
+            .appendStaticNumber(chap.startOffsetBytes ? chap.startOffsetBytes : 0xFFFFFFFF, 4)
+            .appendStaticNumber(chap.endOffsetBytes ? chap.endOffsetBytes : 0xFFFFFFFF, 4)
+            .appendStaticValue(this.create(chap.tags).slice(10))
+            .getBuffer()
+    }).filter(chap => chap instanceof Buffer))
 }
 
 /*
 **  frame   => Buffer
 */
 NodeID3.prototype.readChapterFrame = function(frame) {
-    let tags = {}
-
-    if(!frame) {
-        return tags
+    const reader = new ID3FrameReader(frame)
+    let chap = {
+        elementID: reader.consumeNullTerminatedValue('string'),
+        startTimeMs: reader.consumeStaticValue('number', 4),
+        endTimeMs: reader.consumeStaticValue('number', 4),
+        startOffsetBytes: reader.consumeStaticValue('number', 4),
+        endOffsetBytes: reader.consumeStaticValue('number', 4),
+        tags: this.getTagsFromFrames(this.getFramesFromID3Body(reader.consumeStaticValue(), 3, 4, 10), 3)
     }
-
-    let endOfElementIDString = frame.indexOf(0x00)
-    if(endOfElementIDString == -1 || frame.length - endOfElementIDString - 1 < 16) {
-        return tags
-    }
-
-    tags.elementID = iconv.decode(frame.slice(0, endOfElementIDString), "ISO-8859-1")
-    tags.startTimeMs = frame.readUInt32BE(endOfElementIDString + 1)
-    tags.endTimeMs = frame.readUInt32BE(endOfElementIDString + 5)
-    if(frame.readUInt32BE(endOfElementIDString + 9) != Buffer.alloc(4, 0xff).readUInt32BE(0)) {
-        tags.startOffsetBytes = frame.readUInt32BE(endOfElementIDString + 9)
-    }
-    if(frame.readUInt32BE(endOfElementIDString + 13) != Buffer.alloc(4, 0xff).readUInt32BE(0)) {
-        tags.endOffsetBytes = frame.readUInt32BE(endOfElementIDString + 13)
-    }
-
-    if(frame.length - endOfElementIDString - 17 > 0) {
-        let framesBuffer = frame.slice(endOfElementIDString + 17)
-        tags.tags = this.getTagsFromFrames(this.getFramesFromID3Body(framesBuffer, 3, 4, 10), 3)
-    }
-
-    return tags
+    if(chap.startOffsetBytes === 0xFFFFFFFF) delete chap.startOffsetBytes
+    if(chap.endOffsetBytes === 0xFFFFFFFF) delete chap.endOffsetBytes
+    return chap
 }
 
-NodeID3.prototype.createTableOfContentsFrame = function (tableOfContents) {
-    if(tableOfContents instanceof Array && tableOfContents.length > 0) {
-        let frames = []
-        tableOfContents.forEach((tag, index) => {
-            let frame = this.createTableOfContentsFrameHelper(tag, index + 1)
-            if(frame) {
-                frames.push(frame)
-            }
+/* TODO: CREATE TESTS */
+NodeID3.prototype.createTableOfContentsFrame = function (tableOfContents = []) {
+    if(!(tableOfContents instanceof Array)) {
+        tableOfContents = [tableOfContents]
+    }
+
+    return Buffer.concat(tableOfContents.map((toc, index) => {
+        if(!toc || !toc.elementID) {
+            return null
+        }
+        if(!(toc.elements instanceof Array)) {
+            toc.elements = []
+        }
+
+        let ctocFlags = Buffer.alloc(1, 0)
+        if(index === 0) {
+            ctocFlags[0] += 2
+        }
+        if(toc.isOrdered) {
+            ctocFlags[0] += 1
+        }
+
+        const builder = new ID3FrameBuilder("CTOC")
+            .appendNullTerminatedValue(toc.elementID)
+            .appendStaticValue(ctocFlags, 1)
+            .appendStaticNumber(toc.elements.length, 1)
+        toc.elements.forEach((el) => {
+            builder.appendNullTerminatedValue(el)
         })
-        return frames.length ? Buffer.concat(frames) : null
-    } else {
-        return this.createTableOfContentsFrameHelper(tableOfContents, 1)
-    }
-}
-
-NodeID3.prototype.createTableOfContentsFrameHelper = function(tableOfContents, id) {
-    if(!tableOfContents || !tableOfContents.elementID) {
-        return null
-    }
-    if(!(tableOfContents.elements instanceof Array)) {
-        tableOfContents.elements = [];
-    }
-
-    let header = Buffer.alloc(10, 0)
-    header.write("CTOC")
-
-    let elementIDBuffer = Buffer.from(tableOfContents.elementID + "\0")
-    let ctocFlags = Buffer.alloc(1, 0);
-    if(id === 1) {
-        ctocFlags[0] += 2;
-    }
-    if(tableOfContents.isOrdered) {
-        ctocFlags[0] += 1;
-    }
-    let entryCountBuffer = Buffer.alloc(1, tableOfContents.elements.length);
-    let entries = Buffer.from(tableOfContents.elements.map(element => element += "\0").join(""));
-
-    let frames
-    if(tableOfContents.tags) {
-        frames = this.createBuffersFromTags(tableOfContents.tags)
-    }
-    const framesBuffer = frames ? Buffer.concat(frames) : Buffer.alloc(0)
-
-    const finalFrame = Buffer.concat([header, elementIDBuffer, ctocFlags, entryCountBuffer, entries, framesBuffer]);
-    finalFrame.writeUInt32BE(finalFrame.length - 10, 4)
-    return finalFrame
+        if(toc.tags) {
+            builder.appendStaticValue(this.create(toc.tags).slice(10))
+        }
+        return builder.getBuffer()
+    }).filter((toc) => toc instanceof Buffer))
 }
 
 NodeID3.prototype.readTableOfContentsFrame = function(frame) {
-    let toc = {}
-
-    if(!frame) {
-        return toc
+    const reader = new ID3FrameReader(frame)
+    const elementID = reader.consumeNullTerminatedValue('string')
+    const flags = reader.consumeStaticValue('number', 1)
+    const entries = reader.consumeStaticValue('number', 1)
+    const elements = []
+    for(let i = 0; i < entries; i++) {
+        elements.push(reader.consumeNullTerminatedValue('string'))
     }
+    const tags = this.getTagsFromFrames(this.getFramesFromID3Body(reader.consumeStaticValue(), 3, 4, 10), 3)
 
-    let endOfElementIDString = frame.indexOf(0x00)
-    if(endOfElementIDString === -1 || frame.length - endOfElementIDString - 1 < 16) {
-        return toc
+    return {
+        elementID,
+        isOrdered: !!(flags & 0x01 === 0x01),
+        elements,
+        tags
     }
-
-    toc.elementID = iconv.decode(frame.slice(0, endOfElementIDString), "ISO-8859-1")
-    /* %000000ab where a is top level and b is ordered */
-    toc.isOrdered = !!(frame.readUInt8(endOfElementIDString + 1) & 0x01 === 0x01)
-
-    toc.elements = frame.slice(endOfElementIDString + 3).toString('latin1').split("\0", frame.readUInt8(endOfElementIDString + 2))
-
-    let framesPosition = endOfElementIDString + 3 + toc.elements.map(element => element.length).reduce((a, b) => a + b + 1, 0)
-    if(frame.length > framesPosition) {
-        let framesBuffer = frame.slice(framesPosition)
-        toc.tags = this.getTagsFromFrames(this.getFramesFromID3Body(framesBuffer, 3, 4, 10), 3)
-    }
-
-    return toc
 }
 
-NodeID3.prototype.createUserDefinedUrl = function(userDefinedUrl, recursiveBuffer) {
-    let udu = userDefinedUrl || {}
-    if(udu instanceof Array && udu.length > 0) {
-        if(!recursiveBuffer) {
-            // Don't alter passed array value!
-            userDefinedUrl = userDefinedUrl.slice(0)
-        }
-        udu = userDefinedUrl.pop()
+NodeID3.prototype.createUserDefinedUrl = function(userDefinedUrl) {
+    if(!(userDefinedUrl instanceof Array)) {
+        userDefinedUrl = [userDefinedUrl]
     }
 
-    if(udu && udu.description) {
-        // Create frame header
-        let buffer = Buffer.alloc(10)
-        buffer.fill(0)
-        buffer.write("WXXX", 0)                 //  Write header ID
-
-        let encodingBuffer = this.createTextEncoding(0x01)
-        let descriptorBuffer = this.createContentDescriptor(udu.description, 0x01, true)
-        let urlBuffer = this.createText(udu.url, 0x00, false)
-
-        buffer.writeUInt32BE(encodingBuffer.length + descriptorBuffer.length + urlBuffer.length, 4)
-        if(!recursiveBuffer) {
-            recursiveBuffer = Buffer.concat([buffer, encodingBuffer, descriptorBuffer, urlBuffer])
-        } else {
-            recursiveBuffer = Buffer.concat([recursiveBuffer, buffer, encodingBuffer, descriptorBuffer, urlBuffer])
-        }
-    }
-    if(userDefinedUrl instanceof Array && userDefinedUrl.length > 0) {
-        return this.createUserDefinedUrl(userDefinedUrl, recursiveBuffer)
-    } else {
-        return recursiveBuffer
-    }
+    return Buffer.concat(userDefinedUrl.map((udu) => {
+        return new ID3FrameBuilder("WXXX")
+            .appendStaticNumber(0x01, 1)
+            .appendNullTerminatedValue(udu.description, 0x01)
+            .appendStaticValue(udu.url, null)
+            .getBuffer()
+    }))
 }
 
 NodeID3.prototype.readUserDefinedUrl = function(frame) {
-    let tags = {}
+    const reader = new ID3FrameReader(frame, 0)
 
-    if(!frame) {
-        return tags
+    return {
+        description: reader.consumeNullTerminatedValue('string'),
+        url: reader.consumeStaticValue('string', null, 0x00)
     }
-    if(frame[0] == 0x00) {
-        tags = {
-            description: iconv.decode(frame, "ISO-8859-1").substring(1, frame.indexOf(0x00, 1)).replace(/\0/g, ""),
-            url: iconv.decode(frame, "ISO-8859-1").substring(frame.indexOf(0x00, 1) + 1).replace(/\0/g, "")
-        }
-    } else if(frame[0] == 0x01) {
-        let descriptorEscape = 0
-        while(frame[descriptorEscape] !== undefined && frame[descriptorEscape] !== 0x00 || frame[descriptorEscape + 1] !== 0x00 || frame[descriptorEscape + 2] === 0x00) {
-            descriptorEscape++
-        }
-        if(frame[descriptorEscape] === undefined) {
-            return tags
-        }
-        let description = frame.slice(1, descriptorEscape)
-        let value = frame.slice(descriptorEscape + 2)
-
-        tags = {
-            description: iconv.decode(description, "utf16").replace(/\0/g, ""),
-            url: iconv.decode(value, "ISO-8859-1").replace(/\0/g, "")
-        }
-    }
-
-    return tags
 }
