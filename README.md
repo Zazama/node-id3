@@ -92,6 +92,18 @@ NodeID3.removeTags(filepath, function(err) {  })
 let bufferWithoutID3Frame = NodeID3.removeTagsFromBuffer(filebuffer)  //  Returns Buffer
 ```
 
+### Using Promises (only available starting with v0.2)
+
+```javascript
+const NodeID3Promise = require('node-id3').Promise
+
+NodeID3.write(tags, fileOrBuffer)
+NodeID3.update(tags, fileOrBuffer)
+NodeID3.create(tags)
+NodeID3.read(filepath)
+NodeID3.removeTags(filepath)
+```
+
 ## Supported aliases/fields
 ```
 album:

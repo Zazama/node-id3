@@ -1228,3 +1228,45 @@ NodeID3.prototype.readUserDefinedUrl = function(frame) {
         url: reader.consumeStaticValue('string', null, 0x00)
     }
 }
+
+module.exports.Promise = {
+    write: (tags, file) => {
+        return new Promise((resolve, reject) => {
+            new NodeID3().write(tags, file, (err, ret) => {
+                if(err) reject(err)
+                else resolve(ret)
+            })
+        })
+    },
+    update: (tags, file) => {
+        return new Promise((resolve, reject) => {
+            new NodeID3().update(tags, file, (err, ret) => {
+                if(err) reject(err)
+                else resolve(ret)
+            })
+        })
+    },
+    create: (tags) => {
+        return new Promise((resolve) => {
+            new NodeID3().create(tags, (buffer) => {
+                resolve(buffer)
+            })
+        })
+    },
+    read: (file) => {
+        return new Promise((resolve, reject) => {
+            new NodeID3().read(file, (err, ret) => {
+                if(err) reject(err)
+                else resolve(ret)
+            })
+        })
+    },
+    removeTags: (filepath) => {
+        return new Promise((resolve, reject) => {
+            new NodeID3().removeTags(filepath, (err) => {
+                if(err) reject(err)
+                else resolve()
+            })
+        })
+    }
+}
