@@ -1,5 +1,4 @@
 const fs = require('fs')
-const iconv = require("iconv-lite")
 const ID3Definitions = require("./src/ID3Definitions")
 const ID3Frames = require('./src/ID3Frames')
 const ID3Util = require('./src/ID3Util')
@@ -13,12 +12,13 @@ module.exports = new NodeID3
 function NodeID3() {
 }
 
-/*
-**  Write passed tags to a file/buffer @ filebuffer
-**  tags        => Object
-**  filebuffer  => String || Buffer
-**  fn          => Function (for asynchronous usage)
-*/
+/**
+ * Write passed tags to a file/buffer
+ * @param tags - Object containing tags to be written
+ * @param filebuffer - Can contain a filepath string or buffer
+ * @param fn - (optional) Function for async version
+ * @returns {boolean|Buffer|Error}
+ */
 NodeID3.prototype.write = function(tags, filebuffer, fn) {
     let completeTag = this.create(tags)
     if(filebuffer instanceof Buffer) {
@@ -61,6 +61,12 @@ NodeID3.prototype.write = function(tags, filebuffer, fn) {
     }
 }
 
+/**
+ * Creates a buffer containing the ID3 Tag
+ * @param tags - Object containing tags to be written
+ * @param fn fn - (optional) Function for async version
+ * @returns {Buffer}
+ */
 NodeID3.prototype.create = function(tags, fn) {
     let frames = []
 
@@ -94,9 +100,11 @@ NodeID3.prototype.create = function(tags, fn) {
     }
 }
 
-/*
-* Returns array of buffers created by tags specified in the tags argument
-* */
+/**
+ * Returns array of buffers created by tags specified in the tags argument
+ * @param tags - Object containing tags to be written
+ * @returns {Array}
+ */
 NodeID3.prototype.createBuffersFromTags = function(tags) {
     let frames = []
     if(!tags) return frames
@@ -139,12 +147,13 @@ NodeID3.prototype.createBuffersFromTags = function(tags) {
     return frames
 }
 
-/*
-**  Read ID3-Tags from passed buffer/filepath
-**  filebuffer  => Buffer || String
-**  options     => Object
-**  fn          => function (for asynchronous usage)
-*/
+/**
+ * Read ID3-Tags from passed buffer/filepath
+ * @param filebuffer - Can contain a filepath string or buffer
+ * @param options - (optional) Object containing options
+ * @param fn - (optional) Function for async version
+ * @returns {boolean}
+ */
 NodeID3.prototype.read = function(filebuffer, options, fn) {
     if(!options || typeof options === 'function') {
         fn = fn || options
@@ -168,12 +177,13 @@ NodeID3.prototype.read = function(filebuffer, options, fn) {
     }
 }
 
-/*
-**  Update ID3-Tags from passed buffer/filepath
-**  filebuffer  => Buffer || String
-**  tags        => Object
-**  fn          => function (for asynchronous usage)
-*/
+/**
+ * Update ID3-Tags from passed buffer/filepath
+ * @param tags - Object containing tags to be written
+ * @param filebuffer - Can contain a filepath string or buffer
+ * @param fn - (optional) Function for async version
+ * @returns {boolean|Buffer|Error}
+ */
 NodeID3.prototype.update = function(tags, filebuffer, fn) {
     const rawTags = Object.keys(tags).reduce((acc, val) => {
         if(ID3Definitions.FRAME_IDENTIFIERS.v3[val] !== undefined) {
@@ -222,11 +232,6 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
     }
 }
 
-/*
-**  Read ID3-Tags from passed buffer
-**  filebuffer  => Buffer
-**  options     => Object
-*/
 NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     let framePosition = this.getFramePosition(filebuffer)
     if(framePosition === -1) {
@@ -359,10 +364,11 @@ NodeID3.prototype.getFrameSize = function(buffer, decode, ID3Version) {
     }
 }
 
-/*
-**  Checks and removes already written ID3-Frames from a buffer
-**  data => buffer
-*/
+/**
+ * Checks and removes already written ID3-Frames from a buffer
+ * @param data - Buffer
+ * @returns {boolean|Buffer}
+ */
 NodeID3.prototype.removeTagsFromBuffer = function(data) {
     let framePosition = this.getFramePosition(data)
 
@@ -385,10 +391,12 @@ NodeID3.prototype.removeTagsFromBuffer = function(data) {
     }
 }
 
-/*
-**  Checks and removes already written ID3-Frames from a file
-**  data => buffer
-*/
+/**
+ * Checks and removes already written ID3-Frames from a file
+ * @param filepath - Filepath to file
+ * @param fn - (optional) Function for async usage
+ * @returns {boolean|Error}
+ */
 NodeID3.prototype.removeTags = function(filepath, fn) {
     if(!fn || typeof fn !== 'function') {
         let data
@@ -467,14 +475,6 @@ NodeID3.prototype.createTagHeader = function() {
     //Last 4 bytes are used for header size, but have to be inserted later, because at this point, its size is not clear.
 
     return header
-}
-
-NodeID3.prototype.getEncodingName = function(byte) {
-    if(byte > -1 && byte < ID3Definitions.ENCODINGS.length) {
-        return ID3Definitions.ENCODINGS[byte]
-    } else {
-        return ID3Definitions.ENCODINGS[0]
-    }
 }
 
 module.exports.Promise = {
