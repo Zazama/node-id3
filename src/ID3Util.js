@@ -1,4 +1,5 @@
 const iconv = require('iconv-lite')
+const ID3Definitions = require('./ID3Definitions')
 
 const ENCODINGS = [
     'ISO-8859-1', 'UTF-16', 'UTF-16BE', 'UTF-8'
@@ -61,4 +62,17 @@ module.exports.stringToEncodedBuffer = function(str, encodingByte) {
 
 module.exports.bufferToDecodedString = function(buffer, encodingByte) {
     return iconv.decode(buffer, this.encodingFromStringOrByte(encodingByte)).replace(/\0/g, '')
+}
+
+module.exports.getSpecOptions = function(specName, version) {
+    if(version === 2) {
+        if(ID3Definitions.ID3_FRAME_OPTIONS.v2[specName] && ID3Definitions.ID3_FRAME_OPTIONS.v2[specName]) {
+            return ID3Definitions.ID3_FRAME_OPTIONS.v2[specName]
+        }
+    } else if (version === 3 || version === 4) {
+        if(ID3Definitions.ID3_FRAME_OPTIONS.v3[specName] && ID3Definitions.ID3_FRAME_OPTIONS.v3[specName]) {
+            return ID3Definitions.ID3_FRAME_OPTIONS.v3[specName]
+        }
+    }
+    return {}
 }
