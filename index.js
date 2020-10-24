@@ -70,8 +70,15 @@ NodeID3.prototype.write = function(tags, filebuffer, fn) {
 NodeID3.prototype.create = function(tags, fn) {
     let frames = []
 
-    //  Push a header for the ID3-Frame
-    frames.push(this.createTagHeader())
+    //  Create & push a header for the ID3-Frame
+    const header = Buffer.alloc(10)
+    header.fill(0)
+    header.write("ID3", 0)              //File identifier
+    header.writeUInt16BE(0x0300, 3)     //Version 2.3.0  --  03 00
+    header.writeUInt16BE(0x0000, 5)     //Flags 00
+
+    //Last 4 bytes are used for header size, but have to be inserted later, because at this point, its size is not clear.
+    frames.push(header)
 
     frames = frames.concat(this.createBuffersFromTags(tags))
 
@@ -85,7 +92,7 @@ NodeID3.prototype.create = function(tags, fn) {
     //  Don't count ID3 header itself
     totalSize -= 10
     //  ID3 header size uses only 7 bits of a byte, bit shift is needed
-    let size = this.encodeSize(totalSize)
+    let size = ID3Util.encodeSize(totalSize)
 
     //  Write bytes to ID3 frame header, which is the first frame
     frames[0].writeUInt8(size[0], 6)
@@ -233,11 +240,11 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
 }
 
 NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
-    let framePosition = this.getFramePosition(filebuffer)
+    let framePosition = ID3Util.getFramePosition(filebuffer)
     if(framePosition === -1) {
         return this.getTagsFromFrames([], 3)
     }
-    let frameSize = this.getTagSize(Buffer.from(filebuffer.toString('hex', framePosition, framePosition + 10), "hex")) + 10
+    const frameSize = ID3Util.decodeSize(filebuffer.slice(framePosition + 6, framePosition + 10)) + 10
     let ID3Frame = Buffer.alloc(frameSize + 1)
     let ID3FrameBody = Buffer.alloc(frameSize - 10 + 1)
     filebuffer.copy(ID3Frame, 0, framePosition)
@@ -271,7 +278,7 @@ NodeID3.prototype.getFramesFromID3Body = function(ID3FrameBody, ID3Version, iden
         if(ID3Version === 4) {
             decodeSize = true
         }
-        let bodyFrameSize = this.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
+        let bodyFrameSize = ID3Util.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
         if(bodyFrameSize + 10 > (ID3FrameBody.length - currentPosition)) {
             break
         }
@@ -324,53 +331,13 @@ NodeID3.prototype.getTagsFromFrames = function(frames, ID3Version) {
     return tags
 }
 
-/*
-**  Get position of ID3-Frame, returns -1 if not found
-**  buffer  => Buffer
-*/
-NodeID3.prototype.getFramePosition = function(buffer) {
-    let framePosition = buffer.indexOf("ID3")
-    if(framePosition === -1 || framePosition > 20) {
-        return -1
-    } else {
-        return framePosition
-    }
-}
-
-/*
-**  Get size of tag from header
-**  buffer  => Buffer/Array (header)
-*/
-NodeID3.prototype.getTagSize = function(buffer) {
-    return this.decodeSize(Buffer.from([buffer[6], buffer[7], buffer[8], buffer[9]]))
-}
-
-/*
-**  Get size of frame from header
-**  buffer  => Buffer/Array (header)
-**  decode  => Boolean
-*/
-NodeID3.prototype.getFrameSize = function(buffer, decode, ID3Version) {
-    let decodeBytes
-    if(ID3Version > 2) {
-        decodeBytes = [buffer[4], buffer[5], buffer[6], buffer[7]]
-    } else {
-        decodeBytes = [buffer[3], buffer[4], buffer[5]]
-    }
-    if(decode) {
-        return this.decodeSize(Buffer.from(decodeBytes))
-    } else {
-        return Buffer.from(decodeBytes).readUIntBE(0, decodeBytes.length)
-    }
-}
-
 /**
  * Checks and removes already written ID3-Frames from a buffer
  * @param data - Buffer
  * @returns {boolean|Buffer}
  */
 NodeID3.prototype.removeTagsFromBuffer = function(data) {
-    let framePosition = this.getFramePosition(data)
+    let framePosition = ID3Util.getFramePosition(data)
 
     if(framePosition === -1) {
         return data
@@ -384,7 +351,7 @@ NodeID3.prototype.removeTagsFromBuffer = function(data) {
     }
 
     if(data.length >= framePosition + 10) {
-        const size = this.decodeSize(data.slice(framePosition + 6, framePosition + 10))
+        const size = ID3Util.decodeSize(data.slice(framePosition + 6, framePosition + 10))
         return Buffer.concat([data.slice(0, framePosition), data.slice(framePosition + size + 10)])
     } else {
         return data
@@ -439,42 +406,6 @@ NodeID3.prototype.removeTags = function(filepath, fn) {
             })
         }.bind(this))
     }
-}
-
-/*
-**  This function ensures that the msb of each byte is 0
-**  totalSize => int
-*/
-NodeID3.prototype.encodeSize = function(totalSize) {
-    let byte_3 = totalSize & 0x7F
-    let byte_2 = (totalSize >> 7) & 0x7F
-    let byte_1 = (totalSize >> 14) & 0x7F
-    let byte_0 = (totalSize >> 21) & 0x7F
-    return ([byte_0, byte_1, byte_2, byte_3])
-}
-
-
-/*
-**  This function decodes the 7-bit size structure
-**  hSize => int
-*/
-NodeID3.prototype.decodeSize = function(hSize) {
-    return ((hSize[0] << 21) + (hSize[1] << 14) + (hSize[2] << 7) + (hSize[3]))
-}
-
-/*
-**  Create header for ID3-Frame v2.3.0
-*/
-NodeID3.prototype.createTagHeader = function() {
-    let header = Buffer.alloc(10)
-    header.fill(0)
-    header.write("ID3", 0)              //File identifier
-    header.writeUInt16BE(0x0300, 3)     //Version 2.3.0  --  03 00
-    header.writeUInt16BE(0x0000, 5)     //Flags 00
-
-    //Last 4 bytes are used for header size, but have to be inserted later, because at this point, its size is not clear.
-
-    return header
 }
 
 NodeID3.prototype.Promise = function() {

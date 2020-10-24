@@ -5,6 +5,7 @@ const chai = require('chai')
 const expect = chai.expect
 const iconv = require('iconv-lite')
 const fs = require('fs')
+const ID3Util = require('../src/ID3Util')
 
 describe('NodeID3', function () {
     describe('#create()', function () {
@@ -32,7 +33,7 @@ describe('NodeID3', function () {
             assert.ok(buffer.includes(
                 Buffer.concat([
                     Buffer.from([0x49, 0x44, 0x33, 0x03, 0x00, 0x00]),
-                    Buffer.from(NodeID3.encodeSize(titleSize + albumSize + yearSize))
+                    Buffer.from(ID3Util.encodeSize(titleSize + albumSize + yearSize))
                 ])
             ))
 

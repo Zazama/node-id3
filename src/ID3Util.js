@@ -76,3 +76,69 @@ module.exports.getSpecOptions = function(specName, version) {
     }
     return {}
 }
+
+module.exports.isValidID3Header = function(buffer) {
+    if(buffer.length < 10) {
+        return false;
+    } else if(buffer.readUIntBE(0, 3) !== 0x494433) {
+        return false;
+    } else if([0x02, 0x03, 0x04].indexOf(buffer[3]) === -1 || buffer[4] !== 0x00) {
+        return false;
+    } else if(buffer[6] & 128 === 1 || buffer[7] & 128 === 1 || buffer[8] & 128 === 1 || buffer[9] & 128 === 1) {
+        return false;
+    }
+    return true;
+};
+
+module.exports.getFramePosition = function(buffer) {
+    /* Search Buffer for valid ID3 frame */
+    let framePosition = -1;
+    let frameHeaderValid = false;
+    do {
+        framePosition = buffer.indexOf("ID3", framePosition + 1);
+        if(framePosition !== -1) {
+            /* It's possible that there is a "ID3" sequence without being an ID3 Frame,
+             * so we need to check for validity of the next 10 bytes
+             */
+            frameHeaderValid = this.isValidID3Header(buffer.slice(framePosition, framePosition + 10));
+        }
+    } while (framePosition !== -1 && !frameHeaderValid);
+
+    if(!frameHeaderValid) {
+        return -1;
+    } else {
+        return framePosition;
+    }
+}
+
+/**
+ * @return {Buffer}
+ */
+module.exports.encodeSize = function(totalSize) {
+    let byte_3 = totalSize & 0x7F;
+    let byte_2 = (totalSize >> 7) & 0x7F;
+    let byte_1 = (totalSize >> 14) & 0x7F;
+    let byte_0 = (totalSize >> 21) & 0x7F;
+    return Buffer.from([byte_0, byte_1, byte_2, byte_3]);
+};
+
+/**
+ * @return {Buffer}
+ */
+module.exports.decodeSize = function(hSize) {
+    return (hSize[0] << 21) + (hSize[1] << 14) + (hSize[2] << 7) + hSize[3];
+};
+
+module.exports.getFrameSize = function(buffer, decode, ID3Version) {
+    let decodeBytes
+    if(ID3Version > 2) {
+        decodeBytes = [buffer[4], buffer[5], buffer[6], buffer[7]]
+    } else {
+        decodeBytes = [buffer[3], buffer[4], buffer[5]]
+    }
+    if(decode) {
+        return ID3Util.decodeSize(Buffer.from(decodeBytes))
+    } else {
+        return Buffer.from(decodeBytes).readUIntBE(0, decodeBytes.length)
+    }
+}
