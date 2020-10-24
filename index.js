@@ -235,7 +235,7 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
 NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     let framePosition = this.getFramePosition(filebuffer)
     if(framePosition === -1) {
-        return false
+        return this.getTagsFromFrames([], 3)
     }
     let frameSize = this.getTagSize(Buffer.from(filebuffer.toString('hex', framePosition, framePosition + 10), "hex")) + 10
     let ID3Frame = Buffer.alloc(frameSize + 1)
@@ -477,44 +477,46 @@ NodeID3.prototype.createTagHeader = function() {
     return header
 }
 
-module.exports.Promise = {
-    write: (tags, file) => {
-        return new Promise((resolve, reject) => {
-            new NodeID3().write(tags, file, (err, ret) => {
-                if(err) reject(err)
-                else resolve(ret)
+NodeID3.prototype.Promise = function() {
+    return {
+        write: (tags, file) => {
+            return new Promise((resolve, reject) => {
+                this.write(tags, file, (err, ret) => {
+                    if(err) reject(err)
+                    else resolve(ret)
+                })
             })
-        })
-    },
-    update: (tags, file) => {
-        return new Promise((resolve, reject) => {
-            new NodeID3().update(tags, file, (err, ret) => {
-                if(err) reject(err)
-                else resolve(ret)
+        },
+        update: (tags, file) => {
+            return new Promise((resolve, reject) => {
+                this.update(tags, file, (err, ret) => {
+                    if(err) reject(err)
+                    else resolve(ret)
+                })
             })
-        })
-    },
-    create: (tags) => {
-        return new Promise((resolve) => {
-            new NodeID3().create(tags, (buffer) => {
-                resolve(buffer)
+        },
+        create: (tags) => {
+            return new Promise((resolve) => {
+                this.create(tags, (buffer) => {
+                    resolve(buffer)
+                })
             })
-        })
-    },
-    read: (file) => {
-        return new Promise((resolve, reject) => {
-            new NodeID3().read(file, (err, ret) => {
-                if(err) reject(err)
-                else resolve(ret)
+        },
+        read: (file) => {
+            return new Promise((resolve, reject) => {
+                this.read(file, (err, ret) => {
+                    if(err) reject(err)
+                    else resolve(ret)
+                })
             })
-        })
-    },
-    removeTags: (filepath) => {
-        return new Promise((resolve, reject) => {
-            new NodeID3().removeTags(filepath, (err) => {
-                if(err) reject(err)
-                else resolve()
+        },
+        removeTags: (filepath) => {
+            return new Promise((resolve, reject) => {
+                this.removeTags(filepath, (err) => {
+                    if(err) reject(err)
+                    else resolve()
+                })
             })
-        })
+        }
     }
 }
