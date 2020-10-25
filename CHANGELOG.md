@@ -9,6 +9,7 @@
 - Exposed functions have JSDoc comments
 - Changelog
 - Pass options to .read (include, exclude, noRaw, onlyRaw)
+- Read unsynchronisation & dataLengthIndicator of frame header (v2.4.0)
 
 ### Changed
 - Frames are now build/read by a frame builder definition instead of the manual programmed way

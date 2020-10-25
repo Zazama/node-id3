@@ -4,7 +4,7 @@ const ID3FrameReader = require("./ID3FrameReader")
 const ID3Definitions = require("./ID3Definitions")
 
 module.exports.GENERIC_TEXT = {
-    create: (specName, data, version) => {
+    create: (specName, data) => {
         if(!specName || !data) {
             return null
         }
@@ -14,7 +14,7 @@ module.exports.GENERIC_TEXT = {
             .appendStaticValue(data, null, 0x01)
             .getBuffer()
     },
-    read: (buffer, version) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer, 0)
 
         return reader.consumeStaticValue('string')
@@ -22,7 +22,7 @@ module.exports.GENERIC_TEXT = {
 }
 
 module.exports.GENERIC_URL = {
-    create: (specName, data, version) => {
+    create: (specName, data) => {
         if(!specName || !data) {
             return null
         }
@@ -31,7 +31,7 @@ module.exports.GENERIC_URL = {
             .appendStaticValue(data)
             .getBuffer()
     },
-    read: (buffer, version) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer)
 
         return reader.consumeStaticValue('string')
@@ -39,7 +39,7 @@ module.exports.GENERIC_URL = {
 }
 
 module.exports.APIC = {
-    create: (data, version) => {
+    create: (data) => {
         try {
             if (data instanceof Buffer) {
                 data = {
@@ -105,7 +105,7 @@ module.exports.APIC = {
 }
 
 module.exports.COMM = {
-    create: (data, version) => {
+    create: (data) => {
         data = data || {}
         if(!data.text) {
             return null
@@ -118,7 +118,7 @@ module.exports.COMM = {
             .appendStaticValue(data.text, null, 0x01)
             .getBuffer()
     },
-    read: (buffer, version) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer, 0)
 
         return {
@@ -130,7 +130,7 @@ module.exports.COMM = {
 }
 
 module.exports.USLT = {
-    create: (data, version) => {
+    create: (data) => {
         data = data || {}
         if(typeof data === 'string' || data instanceof String) {
             data = {
@@ -148,7 +148,7 @@ module.exports.USLT = {
             .appendStaticValue(data.text, null, 0x01)
             .getBuffer()
     },
-    read: (buffer, version) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer, 0)
 
         return {
@@ -160,7 +160,7 @@ module.exports.USLT = {
 }
 
 module.exports.TXXX = {
-    create: (data, version) => {
+    create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
@@ -171,7 +171,7 @@ module.exports.TXXX = {
             .appendStaticValue(udt.value, null, 0x01)
             .getBuffer()))
     },
-    read: (buffer, version) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer, 0)
 
         return {
@@ -182,7 +182,7 @@ module.exports.TXXX = {
 }
 
 module.exports.POPM = {
-    create: (data, version) => {
+    create: (data) => {
         const email = data.email
         let rating = Math.trunc(data.rating)
         let counter = Math.trunc(data.counter)
@@ -202,7 +202,7 @@ module.exports.POPM = {
             .appendStaticNumber(counter, 4)
             .getBuffer()
     },
-    read: (buffer, version) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer)
         return {
             email: reader.consumeNullTerminatedValue('string'),
@@ -213,7 +213,7 @@ module.exports.POPM = {
 }
 
 module.exports.PRIV = {
-    create: (data, version) => {
+    create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
@@ -223,7 +223,7 @@ module.exports.PRIV = {
             .appendStaticValue(priv.data instanceof Buffer ? priv.data : Buffer.from(priv.data, "utf8"))
             .getBuffer()))
     },
-    read: (buffer, version) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer)
         return {
             ownerIdentifier: reader.consumeNullTerminatedValue('string'),
@@ -324,7 +324,7 @@ module.exports.CTOC = {
 }
 
 module.exports.WXXX = {
-    create: (data, version) => {
+    create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
@@ -337,7 +337,7 @@ module.exports.WXXX = {
                 .getBuffer()
         }))
     },
-    read: (buffer, version) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer, 0)
 
         return {

@@ -137,8 +137,44 @@ module.exports.getFrameSize = function(buffer, decode, ID3Version) {
         decodeBytes = [buffer[3], buffer[4], buffer[5]]
     }
     if(decode) {
-        return ID3Util.decodeSize(Buffer.from(decodeBytes))
+        return this.decodeSize(Buffer.from(decodeBytes))
     } else {
         return Buffer.from(decodeBytes).readUIntBE(0, decodeBytes.length)
     }
+}
+
+module.exports.parseFrameHeaderFlags = function(header, ID3Version) {
+    if(!(header instanceof Buffer && header.length === 10)) {
+        return {}
+    }
+    const flagsFirstByte = header[8]
+    const flagsSecondByte = header[9]
+    if(ID3Version === 3) {
+        return {
+            tagAlterPreservation: !!(flagsFirstByte & 128),
+            fileAlterPreservation: !!(flagsFirstByte & 64),
+            readOnly: !!(flagsFirstByte & 32),
+            compression: !!(flagsSecondByte & 128),
+            encryption: !!(flagsSecondByte & 64),
+            groupingIdentity: !!(flagsSecondByte & 32)
+        }
+    }
+    if(ID3Version === 4) {
+        return {
+            tagAlterPreservation: !!(flagsFirstByte & 64),
+            fileAlterPreservation: !!(flagsFirstByte & 32),
+            readOnly: !!(flagsFirstByte & 16),
+            groupingIdentity: !!(flagsSecondByte & 64),
+            compression: !!(flagsSecondByte & 8),
+            encryption: !!(flagsSecondByte & 4),
+            unsynchronisation: !!(flagsSecondByte & 2),
+            dataLengthIndicator: !!(flagsSecondByte & 1)
+        }
+    }
+    return {}
+}
+
+module.exports.processUnsynchronisedBuffer = function(buffer) {
+    const bufStr = buffer.toString('hex')
+    return Buffer.from(bufStr.replace(/ff00/g, 'ff'), 'hex')
 }

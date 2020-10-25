@@ -284,13 +284,15 @@ module.exports.getFramesFromID3Body = function(ID3FrameBody, ID3Version, options
             currentPosition += bodyFrameSize + textframeHeaderSize
             continue
         }
+        const frameHeaderFlags = ID3Util.parseFrameHeaderFlags(bodyFrameHeader, ID3Version)
         let bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
-        ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + textframeHeaderSize)
+        ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + textframeHeaderSize + (frameHeaderFlags.dataLengthIndicator ? 4 : 0))
         //  Size of sub frame + its header
         currentPosition += bodyFrameSize + textframeHeaderSize
         frames.push({
             name: specName,
-            body: bodyFrameBuffer
+            flags: frameHeaderFlags,
+            body: frameHeaderFlags.unsynchronisation ? ID3Util.processUnsynchronisedBuffer(bodyFrameBuffer) : bodyFrameBuffer
         })
     }
 
@@ -447,7 +449,7 @@ module.exports.Promise = {
             })
         })
     },
-    read: (file) => {
+    read: (file, options) => {
         return new Promise((resolve, reject) => {
             this.read(file, options, (err, ret) => {
                 if(err) reject(err)
