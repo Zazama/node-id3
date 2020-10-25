@@ -1,4 +1,4 @@
-# node-id3 (switch to branch 0.1 for currently release readme)
+# node-id3
 
 node-id3 is a ID3-Tag library written in JavaScript without other dependencies.
 
@@ -101,7 +101,7 @@ NodeID3.removeTags(filepath, function(err) {  })
 let bufferWithoutID3Frame = NodeID3.removeTagsFromBuffer(filebuffer)  //  Returns Buffer
 ```
 
-### Using Promises (only available starting with v0.2)
+### Using Promises (available starting with v0.2)
 
 ```javascript
 const NodeID3Promise = require('node-id3').Promise
