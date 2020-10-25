@@ -560,6 +560,68 @@ describe('NodeID3', function () {
                 fileUrl
             )
         })
+
+        it('read exclude', function() {
+            let tags = {
+                TIT2: "abcdeÜ看板かんばん",
+                album: "nasÖÄkdnasd",
+                year: "1990"
+            }
+
+            const buffer = NodeID3.create(tags)
+            let read = NodeID3.read(buffer, { exclude: ['TIT2'] })
+            delete read.raw
+            delete tags.TIT2
+            assert.deepStrictEqual(
+                read,
+                tags
+            )
+        })
+
+        it('read include', function() {
+            let tags = {
+                title: "abcdeÜ看板かんばん",
+                album: "nasÖÄkdnasd",
+                year: "1990"
+            }
+
+            const buffer = NodeID3.create(tags)
+            let read = NodeID3.read(buffer, { include: ['TALB', 'TIT2'] })
+            delete read.raw
+            delete tags.year
+            assert.deepStrictEqual(
+                read,
+                tags
+            )
+        })
+
+        it('onlyRaw', function() {
+            let tags = {
+                TIT2: "abcdeÜ看板かんばん",
+                TALB: "nasÖÄkdnasd"
+            }
+
+            const buffer = NodeID3.create(tags)
+            let read = NodeID3.read(buffer, { onlyRaw: true })
+            assert.deepStrictEqual(
+                read,
+                tags
+            )
+        })
+
+        it('noRaw', function() {
+            let tags = {
+                title: "abcdeÜ看板かんばん",
+                album: "nasÖÄkdnasd"
+            }
+
+            const buffer = NodeID3.create(tags)
+            let read = NodeID3.read(buffer, { noRaw: true })
+            assert.deepStrictEqual(
+                read,
+                tags
+            )
+        })
     })
 })
 

@@ -247,6 +247,19 @@ module.exports.getTagsFromBuffer = function(filebuffer, options) {
 
     //ID3 version e.g. 3 if ID3v2.3.0
     let ID3Version = ID3Frame[3]
+
+    let frames = this.getFramesFromID3Body(ID3FrameBody, ID3Version, options)
+
+    return this.getTagsFromFrames(frames, ID3Version, options)
+}
+
+module.exports.getFramesFromID3Body = function(ID3FrameBody, ID3Version, options = {}) {
+    let currentPosition = 0
+    let frames = []
+    if(!ID3FrameBody || !(ID3FrameBody instanceof Buffer)) {
+        return frames
+    }
+
     let identifierSize = 4
     let textframeHeaderSize = 10
     if(ID3Version === 2) {
@@ -254,17 +267,6 @@ module.exports.getTagsFromBuffer = function(filebuffer, options) {
         textframeHeaderSize = 6
     }
 
-    let frames = this.getFramesFromID3Body(ID3FrameBody, ID3Version, identifierSize, textframeHeaderSize)
-
-    return this.getTagsFromFrames(frames, ID3Version)
-}
-
-module.exports.getFramesFromID3Body = function(ID3FrameBody, ID3Version, identifierSize, textframeHeaderSize) {
-    let currentPosition = 0
-    let frames = []
-    if(!ID3FrameBody || !(ID3FrameBody instanceof Buffer)) {
-        return frames
-    }
     while(currentPosition < ID3FrameBody.length && ID3FrameBody[currentPosition] !== 0x00) {
         let bodyFrameHeader = Buffer.alloc(textframeHeaderSize)
         ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
@@ -277,12 +279,17 @@ module.exports.getFramesFromID3Body = function(ID3FrameBody, ID3Version, identif
         if(bodyFrameSize + 10 > (ID3FrameBody.length - currentPosition)) {
             break
         }
+        const specName = bodyFrameHeader.toString('utf8', 0, identifierSize)
+        if(options.exclude instanceof Array && options.exclude.includes(specName) || options.include instanceof Array && !options.include.includes(specName)) {
+            currentPosition += bodyFrameSize + textframeHeaderSize
+            continue
+        }
         let bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
         ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + textframeHeaderSize)
         //  Size of sub frame + its header
         currentPosition += bodyFrameSize + textframeHeaderSize
         frames.push({
-            name: bodyFrameHeader.toString('utf8', 0, identifierSize),
+            name: specName,
             body: bodyFrameBuffer
         })
     }
@@ -290,8 +297,9 @@ module.exports.getFramesFromID3Body = function(ID3FrameBody, ID3Version, identif
     return frames
 }
 
-module.exports.getTagsFromFrames = function(frames, ID3Version) {
-    let tags = { raw: {} }
+module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
+    let tags = { }
+    let raw = { }
 
     frames.forEach((frame, index) => {
         const specName = ID3Version === 2 ? ID3Definitions.FRAME_IDENTIFIERS.v3[ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]] : frame.name
@@ -312,17 +320,29 @@ module.exports.getTagsFromFrames = function(frames, ID3Version) {
 
         if(decoded) {
             if(ID3Util.getSpecOptions(specName, ID3Version).multiple) {
-                if(!tags[identifier]) tags[identifier] = []
-                if(!tags.raw[specName]) tags.raw[specName] = []
-                tags[identifier].push(decoded)
-                tags.raw[specName].push(decoded)
+                if(!options.onlyRaw) {
+                    if(!tags[identifier]) tags[identifier] = []
+                    tags[identifier].push(decoded)
+                }
+                if(!options.noRaw) {
+                    if(!raw[specName]) raw[specName] = []
+                    raw[specName].push(decoded)
+                }
             } else {
-                tags[identifier] = decoded
-                tags.raw[specName] = decoded
+                if(!options.onlyRaw) {
+                    tags[identifier] = decoded
+                }
+                if(!options.noRaw) {
+                    raw[specName] = decoded
+                }
             }
         }
     })
 
+    if(options.onlyRaw) return raw
+    if(options.noRaw) return tags
+
+    tags.raw = raw
     return tags
 }
 
@@ -429,7 +449,7 @@ module.exports.Promise = {
     },
     read: (file) => {
         return new Promise((resolve, reject) => {
-            this.read(file, (err, ret) => {
+            this.read(file, options, (err, ret) => {
                 if(err) reject(err)
                 else resolve(ret)
             })

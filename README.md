@@ -1,4 +1,4 @@
-# node-id3
+# node-id3 (switch to branch 0.1 for currently release readme)
 
 node-id3 is a ID3-Tag library written in JavaScript without other dependencies.
 
@@ -81,6 +81,15 @@ NodeID3.read(file, function(err, tags) {})
         }
       }
 */
+
+// Possible options
+const options = {
+    include: ['TALB', 'TIT2'],    // only read the specified tags (default: all)
+    exclude: ['APIC'],            // don't read the specified tags (default: [])
+    onlyRaw: false,               // only return raw object (default: false)
+    noRaw: false                  // don't generate raw object (default: false)
+}
+const tags = NodeID3.read(file, options)
 ```
 
 ### Removing ID3-Tags from file/buffer

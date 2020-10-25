@@ -8,6 +8,7 @@
 - Promise versions of methods are available by calling require('node-id3').Promise
 - Exposed functions have JSDoc comments
 - Changelog
+- Pass options to .read (include, exclude, noRaw, onlyRaw)
 
 ### Changed
 - Frames are now build/read by a frame builder definition instead of the manual programmed way

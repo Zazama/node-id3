@@ -1,3 +1,5 @@
+import {Tags} from "node-id3";
+
 declare module "node-id3" {
    namespace NodeID3 {
       export interface Tags {
@@ -260,7 +262,7 @@ declare module "node-id3" {
             description: string,
             value: string
          }]
-         image?: {
+         image?: string | {
             mime: string
             /**
              * See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
@@ -343,7 +345,9 @@ declare module "node-id3" {
       export function create(tags: Tags): Buffer
       export function create(tags: Tags, fn: (buffer: Buffer) => void): void
       export function read(filebuffer: string | Buffer): Tags
+      export function read(filebuffer: string | Buffer, options: Object): Tags
       export function read(filebuffer: string | Buffer, fn: (err: NodeJS.ErrnoException | null, tags: Tags | null) => void): void
+      export function read(filebuffer: string | Buffer, options: Object, fn: (err: NodeJS.ErrnoException | null, tags: Tags | null) => void): void
       export function update(tags: Tags, filebuffer: Buffer): Buffer
       export function update(tags: Tags, filepath: string): true | Error
       export function update(tags: Tags, filepath: string, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
