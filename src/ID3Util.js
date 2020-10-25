@@ -143,6 +143,30 @@ module.exports.getFrameSize = function(buffer, decode, ID3Version) {
     }
 }
 
+module.exports.parseTagHeaderFlags = function(header) {
+    if(!(header instanceof Buffer && header.length >= 10)) {
+        return {}
+    }
+    const version = header[3]
+    const flagsByte = header[5]
+    if(version === 3) {
+        return {
+            unsynchronisation: !!(flagsByte & 128),
+            extendedHeader: !!(flagsByte & 64),
+            experimentalIndicator: !!(flagsByte & 32)
+        }
+    }
+    if(version === 4) {
+        return {
+            unsynchronisation: !!(flagsByte & 128),
+            extendedHeader: !!(flagsByte & 64),
+            experimentalIndicator: !!(flagsByte & 32),
+            footerPresent: !!(flagsByte & 16)
+        }
+    }
+    return {}
+}
+
 module.exports.parseFrameHeaderFlags = function(header, ID3Version) {
     if(!(header instanceof Buffer && header.length === 10)) {
         return {}

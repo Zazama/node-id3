@@ -237,16 +237,24 @@ module.exports.update = function(tags, filebuffer, fn) {
 module.exports.getTagsFromBuffer = function(filebuffer, options) {
     let framePosition = ID3Util.getFramePosition(filebuffer)
     if(framePosition === -1) {
-        return this.getTagsFromFrames([], 3)
+        return this.getTagsFromFrames([], 3, options)
     }
     const frameSize = ID3Util.decodeSize(filebuffer.slice(framePosition + 6, framePosition + 10)) + 10
     let ID3Frame = Buffer.alloc(frameSize + 1)
-    let ID3FrameBody = Buffer.alloc(frameSize - 10 + 1)
     filebuffer.copy(ID3Frame, 0, framePosition)
-    filebuffer.copy(ID3FrameBody, 0, framePosition + 10)
-
     //ID3 version e.g. 3 if ID3v2.3.0
     let ID3Version = ID3Frame[3]
+    const tagFlags = ID3Util.parseTagHeaderFlags(ID3Frame)
+    let extendedHeaderOffset = 0
+    if(tagFlags.extendedHeader) {
+        if(ID3Version === 3) {
+            extendedHeaderOffset = 4 + filebuffer.readUInt32BE(10)
+        } else if(ID3Version === 4) {
+            extendedHeaderOffset = ID3Util.decodeSize(filebuffer.slice(10, 14))
+        }
+    }
+    let ID3FrameBody = Buffer.alloc(frameSize - 10 - extendedHeaderOffset)
+    filebuffer.copy(ID3FrameBody, 0, framePosition + 10 + extendedHeaderOffset)
 
     let frames = this.getFramesFromID3Body(ID3FrameBody, ID3Version, options)
 
