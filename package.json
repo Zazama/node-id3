@@ -1,7 +1,7 @@
 {
   "name": "node-id3",
   "version": "0.2.0",
-  "description": "Pure JavaScript ID3 Tag writer/reader",
+  "description": "Pure JavaScript ID3v2 Tag writer and reader",
   "author": "Jan Metzger <jan.metzger@gmx.net>",
   "main": "index.js",
   "repository": {
@@ -12,9 +12,12 @@
     "url": "https://github.com/Zazama/node-id3/issues"
   },
   "keywords": [
-    "id3",
-    "mp3",
+    "ID3",
+    "ID3v2",
+    "metadata",
     "tags",
+    "mp3",
+    "audio",
     "music"
   ],
   "licenses": [
@@ -25,6 +28,7 @@
   ],
   "homepage": "https://github.com/Zazama/node-id3#readme",
   "directories": {
+    "test": "test",
     "example": "example"
   },
   "scripts": {
