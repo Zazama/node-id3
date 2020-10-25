@@ -403,46 +403,44 @@ module.exports.removeTags = function(filepath, fn) {
     }
 }
 
-module.exports.Promise = function() {
-    return {
-        write: (tags, file) => {
-            return new Promise((resolve, reject) => {
-                this.write(tags, file, (err, ret) => {
-                    if(err) reject(err)
-                    else resolve(ret)
-                })
+module.exports.Promise = {
+    write: (tags, file) => {
+        return new Promise((resolve, reject) => {
+            this.write(tags, file, (err, ret) => {
+                if(err) reject(err)
+                else resolve(ret)
             })
-        },
-        update: (tags, file) => {
-            return new Promise((resolve, reject) => {
-                this.update(tags, file, (err, ret) => {
-                    if(err) reject(err)
-                    else resolve(ret)
-                })
+        })
+    },
+    update: (tags, file) => {
+        return new Promise((resolve, reject) => {
+            this.update(tags, file, (err, ret) => {
+                if(err) reject(err)
+                else resolve(ret)
             })
-        },
-        create: (tags) => {
-            return new Promise((resolve) => {
-                this.create(tags, (buffer) => {
-                    resolve(buffer)
-                })
+        })
+    },
+    create: (tags) => {
+        return new Promise((resolve) => {
+            this.create(tags, (buffer) => {
+                resolve(buffer)
             })
-        },
-        read: (file) => {
-            return new Promise((resolve, reject) => {
-                this.read(file, (err, ret) => {
-                    if(err) reject(err)
-                    else resolve(ret)
-                })
+        })
+    },
+    read: (file) => {
+        return new Promise((resolve, reject) => {
+            this.read(file, (err, ret) => {
+                if(err) reject(err)
+                else resolve(ret)
             })
-        },
-        removeTags: (filepath) => {
-            return new Promise((resolve, reject) => {
-                this.removeTags(filepath, (err) => {
-                    if(err) reject(err)
-                    else resolve()
-                })
+        })
+    },
+    removeTags: (filepath) => {
+        return new Promise((resolve, reject) => {
+            this.removeTags(filepath, (err) => {
+                if(err) reject(err)
+                else resolve()
             })
-        }
+        })
     }
 }
