@@ -3,14 +3,9 @@ const ID3Definitions = require("./src/ID3Definitions")
 const ID3Frames = require('./src/ID3Frames')
 const ID3Util = require('./src/ID3Util')
 
-module.exports = new NodeID3
-
 /*
 **  Used specification: http://id3.org/id3v2.3.0
 */
-
-function NodeID3() {
-}
 
 /**
  * Write passed tags to a file/buffer
@@ -19,7 +14,7 @@ function NodeID3() {
  * @param fn - (optional) Function for async version
  * @returns {boolean|Buffer|Error}
  */
-NodeID3.prototype.write = function(tags, filebuffer, fn) {
+module.exports.write = function(tags, filebuffer, fn) {
     let completeTag = this.create(tags)
     if(filebuffer instanceof Buffer) {
         filebuffer = this.removeTagsFromBuffer(filebuffer) || filebuffer
@@ -67,7 +62,7 @@ NodeID3.prototype.write = function(tags, filebuffer, fn) {
  * @param fn fn - (optional) Function for async version
  * @returns {Buffer}
  */
-NodeID3.prototype.create = function(tags, fn) {
+module.exports.create = function(tags, fn) {
     let frames = []
 
     //  Create & push a header for the ID3-Frame
@@ -112,7 +107,7 @@ NodeID3.prototype.create = function(tags, fn) {
  * @param tags - Object containing tags to be written
  * @returns {Array}
  */
-NodeID3.prototype.createBuffersFromTags = function(tags) {
+module.exports.createBuffersFromTags = function(tags) {
     let frames = []
     if(!tags) return frames
     const rawObject = Object.keys(tags).reduce((acc, val) => {
@@ -161,7 +156,7 @@ NodeID3.prototype.createBuffersFromTags = function(tags) {
  * @param fn - (optional) Function for async version
  * @returns {boolean}
  */
-NodeID3.prototype.read = function(filebuffer, options, fn) {
+module.exports.read = function(filebuffer, options, fn) {
     if(!options || typeof options === 'function') {
         fn = fn || options
         options = {}
@@ -191,7 +186,7 @@ NodeID3.prototype.read = function(filebuffer, options, fn) {
  * @param fn - (optional) Function for async version
  * @returns {boolean|Buffer|Error}
  */
-NodeID3.prototype.update = function(tags, filebuffer, fn) {
+module.exports.update = function(tags, filebuffer, fn) {
     const rawTags = Object.keys(tags).reduce((acc, val) => {
         if(ID3Definitions.FRAME_IDENTIFIERS.v3[val] !== undefined) {
             acc[ID3Definitions.FRAME_IDENTIFIERS.v3[val]] = tags[val]
@@ -239,7 +234,7 @@ NodeID3.prototype.update = function(tags, filebuffer, fn) {
     }
 }
 
-NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
+module.exports.getTagsFromBuffer = function(filebuffer, options) {
     let framePosition = ID3Util.getFramePosition(filebuffer)
     if(framePosition === -1) {
         return this.getTagsFromFrames([], 3)
@@ -264,7 +259,7 @@ NodeID3.prototype.getTagsFromBuffer = function(filebuffer, options) {
     return this.getTagsFromFrames(frames, ID3Version)
 }
 
-NodeID3.prototype.getFramesFromID3Body = function(ID3FrameBody, ID3Version, identifierSize, textframeHeaderSize) {
+module.exports.getFramesFromID3Body = function(ID3FrameBody, ID3Version, identifierSize, textframeHeaderSize) {
     let currentPosition = 0
     let frames = []
     if(!ID3FrameBody || !(ID3FrameBody instanceof Buffer)) {
@@ -295,7 +290,7 @@ NodeID3.prototype.getFramesFromID3Body = function(ID3FrameBody, ID3Version, iden
     return frames
 }
 
-NodeID3.prototype.getTagsFromFrames = function(frames, ID3Version) {
+module.exports.getTagsFromFrames = function(frames, ID3Version) {
     let tags = { raw: {} }
 
     frames.forEach((frame, index) => {
@@ -336,7 +331,7 @@ NodeID3.prototype.getTagsFromFrames = function(frames, ID3Version) {
  * @param data - Buffer
  * @returns {boolean|Buffer}
  */
-NodeID3.prototype.removeTagsFromBuffer = function(data) {
+module.exports.removeTagsFromBuffer = function(data) {
     let framePosition = ID3Util.getFramePosition(data)
 
     if(framePosition === -1) {
@@ -364,7 +359,7 @@ NodeID3.prototype.removeTagsFromBuffer = function(data) {
  * @param fn - (optional) Function for async usage
  * @returns {boolean|Error}
  */
-NodeID3.prototype.removeTags = function(filepath, fn) {
+module.exports.removeTags = function(filepath, fn) {
     if(!fn || typeof fn !== 'function') {
         let data
         try {
@@ -408,7 +403,7 @@ NodeID3.prototype.removeTags = function(filepath, fn) {
     }
 }
 
-NodeID3.prototype.Promise = function() {
+module.exports.Promise = function() {
     return {
         write: (tags, file) => {
             return new Promise((resolve, reject) => {
