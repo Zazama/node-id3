@@ -1,6 +1,6 @@
 # node-id3
 
-node-id3 is a ID3-Tag library written in JavaScript without other dependencies.
+node-id3 is an ID3-Tag library written in JavaScript.
 
 ## Installation
 ```
