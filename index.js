@@ -175,6 +175,8 @@ module.exports.read = function(filebuffer, options, fn) {
                     fn(null, this.getTagsFromBuffer(data, options))
                 }
             }.bind(this))
+        } else {
+            fn(null, this.getTagsFromBuffer(filebuffer, options))
         }
     }
 }
