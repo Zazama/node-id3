@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.2.0] - 2020-10-26
 
 ### Added
 - Tests & checks with jsmediatags to ensure more consistency
@@ -17,6 +17,9 @@
 - Change the way definitions are saved to make code simpler
 - Internal functions are not exposed by index.js anymore
 - Change from exporting a function constructor to exporting every function itself
+
+### Fixed
+- async read function didn't return anything when buffer was passend
 
 ## [0.1.21] - 2020-10-23
 
@@ -178,7 +181,8 @@
 - Fix node v6
 
 
-[unreleased]: https://github.com/Zazama/node-id3/compare/0.1.21...HEAD
+[unreleased]: https://github.com/Zazama/node-id3/compare/0.2.0...HEAD
+[0.2.9]: https://github.com/Zazama/node-id3/compare/0.1.21...0.2.0
 [0.1.21]: https://github.com/Zazama/node-id3/compare/0.1.20...0.1.21
 [0.1.20]: https://github.com/Zazama/node-id3/compare/0.1.19...0.1.20
 [0.1.19]: https://github.com/Zazama/node-id3/compare/0.1.18...0.1.19
