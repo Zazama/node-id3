@@ -1,5 +1,4 @@
 declare module "node-id3" {
-   import {Tags} from "node-id3";
    namespace NodeID3 {
       export interface Tags {
          /**
@@ -351,6 +350,17 @@ declare module "node-id3" {
       export function update(tags: Tags, filepath: string): true | Error
       export function update(tags: Tags, filepath: string, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
       export function update(tags: Tags, filebuffer: Buffer, fn: (err: NodeJS.ErrnoException | null, buffer?: Buffer) => void): void
+      export const Promise: {
+         write(tags: Tags, filebuffer: Buffer) : Promise<Buffer>,
+         write(tags: Tags, filepath: string) : Promise<boolean>,
+         create(tags: Tags) : Promise<Buffer>,
+         read(filebuffer: Buffer, options?: Object) : Promise<Tags>,
+         read(filepath: string, options?: Object) : Promise<Tags>,
+         update(tags: Tags, filebuffer: Buffer) : Promise<Buffer>,
+         update(tags: Tags, filepath: string) : Promise<boolean>,
+         removeTags(filepath: string) : Promise<Buffer>,
+         removeTags(filebuffer: Buffer) : Promise<Buffer>
+      }
    }
    export = NodeID3
 }
