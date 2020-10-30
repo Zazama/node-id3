@@ -1,6 +1,5 @@
-import {Tags} from "node-id3";
-
 declare module "node-id3" {
+   import {Tags} from "node-id3";
    namespace NodeID3 {
       export interface Tags {
          /**
