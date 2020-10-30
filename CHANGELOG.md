@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.1] - 2020-10-30
+
+### Fixed
+- Removed wrong import from TypeScript definition file
+- Added Promises to TypeScript definition file
+
 ## [0.2.0] - 2020-10-26
 
 ### Added
@@ -181,7 +187,8 @@
 - Fix node v6
 
 
-[unreleased]: https://github.com/Zazama/node-id3/compare/0.2.0...HEAD
+[unreleased]: https://github.com/Zazama/node-id3/compare/0.2.1...HEAD
+[0.2.1]: https://github.com/Zazama/node-id3/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/Zazama/node-id3/compare/0.1.21...0.2.0
 [0.1.21]: https://github.com/Zazama/node-id3/compare/0.1.20...0.1.21
 [0.1.20]: https://github.com/Zazama/node-id3/compare/0.1.19...0.1.20
