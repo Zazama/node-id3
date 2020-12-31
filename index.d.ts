@@ -350,6 +350,8 @@ declare module "node-id3" {
       export function update(tags: Tags, filepath: string): true | Error
       export function update(tags: Tags, filepath: string, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
       export function update(tags: Tags, filebuffer: Buffer, fn: (err: NodeJS.ErrnoException | null, buffer?: Buffer) => void): void
+      export function removeTags(filepath: string): true | Error
+      export function removeTags(filepath: string, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
       export const Promise: {
          write(tags: Tags, filebuffer: Buffer) : Promise<Buffer>,
          write(tags: Tags, filepath: string) : Promise<boolean>,
