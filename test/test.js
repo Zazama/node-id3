@@ -440,7 +440,7 @@ describe('NodeID3', function () {
             let obj = {
                 description: "asdf",
                 imageBuffer: Buffer.from([0x61, 0x62, 0x63, 0x64]),
-                mime: "jpeg",
+                mime: "image/jpeg",
                 type: { id: 3, name: "front cover" }
             }
 

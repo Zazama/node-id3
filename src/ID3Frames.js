@@ -56,10 +56,12 @@ module.exports.APIC = {
             let mime_type = data.mime
 
             if(!data.mime) {
-                if (data.imageBuffer[0] === 0xff && data.imageBuffer[1] === 0xd8 && data.imageBuffer[2] === 0xff) {
+                if (data.imageBuffer.length > 3 && data.imageBuffer.compare(Buffer.from([0xff, 0xd8, 0xff]), 0, 3, 0, 3) === 0) {
                     mime_type = "image/jpeg"
-                } else {
+                } else if (data.imageBuffer.length > 8 && data.imageBuffer.compare(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]), 0, 8, 0, 8) === 0) {
                     mime_type = "image/png"
+                } else {
+                    mime_type = ""
                 }
             }
 
@@ -87,11 +89,6 @@ module.exports.APIC = {
             mime = reader.consumeStaticValue('string', 3, 0x00)
         } else {
             mime = reader.consumeNullTerminatedValue('string', 0x00)
-        }
-        if(mime === "image/jpeg") {
-            mime = "jpeg"
-        } else if(mime === "image/png") {
-            mime = "png"
         }
 
         const typeId = reader.consumeStaticValue('number', 1)
