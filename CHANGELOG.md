@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.2] - 2020-01-01
+
+### Fixed
+- Bug in iTunes where artwork doesn't show up when description is empty
+- Creating tags with undefined, terminated UTF-16 value now passes FF FE 00 00 instead of 00 00 
+- Add raw to TypeScript definition
+- Add removeTags async to TypeScript definition
+
+### Added
+- Added options to update
+
 ## [0.2.1] - 2020-10-30
 
 ### Fixed
@@ -187,7 +198,8 @@
 - Fix node v6
 
 
-[unreleased]: https://github.com/Zazama/node-id3/compare/0.2.1...HEAD
+[unreleased]: https://github.com/Zazama/node-id3/compare/0.2.2...HEAD
+[0.2.2]: https://github.com/Zazama/node-id3/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/Zazama/node-id3/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/Zazama/node-id3/compare/0.1.21...0.2.0
 [0.1.21]: https://github.com/Zazama/node-id3/compare/0.1.20...0.1.21

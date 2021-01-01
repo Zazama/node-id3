@@ -47,6 +47,17 @@ const success = NodeID3.update(tags, filepath) //  Returns true/Error
 const success = NodeID3.update(tags, filebuffer) //  Returns Buffer
 NodeID3.update(tags, filepath, function(err, buffer) {  })
 NodeID3.update(tags, filebuffer, function(err, buffer) {  })
+
+// Possible options
+const options = {
+    include: ['TALB', 'TIT2'],    // only read the specified tags (default: all)
+    exclude: ['APIC']            // don't read the specified tags (default: [])
+}
+
+NodeID3.update(tags, filepath, options)
+const success = NodeID3.update(tags, filebuffer, options)
+NodeID3.update(tags, filepath, options, function(err, buffer) {  })
+NodeID3.update(tags, filebuffer, options, function(err, buffer) {  })
 ```
 
 ### Create tags as buffer
