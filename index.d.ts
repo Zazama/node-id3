@@ -334,7 +334,8 @@ declare module "node-id3" {
          userDefinedUrl?: Array<{
             description: string,
             url: string
-         }>
+         }>,
+         raw?: Tags
       }
       export function write(tags: Tags, filebuffer: Buffer): Buffer
       export function write(tags: Tags, filebuffer: Buffer, fun: (err: null, buffer: Buffer) => void): void
