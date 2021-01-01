@@ -161,6 +161,11 @@ describe('NodeID3', function () {
                     }
                 })
             ), 0)
+
+            // iTunes fix if description is empty
+            assert.strictEqual(NodeID3.create({
+                image: fs.readFileSync(__dirname + '/smallimg')
+            })[20], 0x00)
         })
 
         it('create USLT frame', function() {
@@ -672,6 +677,7 @@ const nodeTagsFull = {
     },
     unsynchronisedLyrics: {
         language: 'e33',
+        shortText: 'asd物f',
         text: 'asd物f asd物f asd物f'
     },
     userDefinedText: [
@@ -770,7 +776,7 @@ describe('Cross tests jsmediatags', function() {
                 assert.strictEqual(tags.TIT2.data, nodeTagsFull.title)
                 assert.strictEqual(tags.TALB.data, nodeTagsFull.album)
                 assert.deepStrictEqual({ language: tags.COMM.data.language, shortText: tags.COMM.data.short_description, text: parseInt(tags.COMM.data.text) }, nodeTagsFull.comment)
-                assert.deepStrictEqual({ language: tags.USLT.data.language, text: tags.USLT.data.lyrics }, nodeTagsFull.unsynchronisedLyrics)
+                assert.deepStrictEqual({ language: tags.USLT.data.language, shortText: tags.USLT.data.descriptor, text: tags.USLT.data.lyrics }, nodeTagsFull.unsynchronisedLyrics)
                 expect(tags.TXXX.map((t) => {
                     return {
                         description: t.data.user_description,
@@ -867,7 +873,7 @@ describe('Cross tests jsmediatags', function() {
         read.comment.text = parseInt(read.comment.text)
         delete read.image.type
         read.private[0].data = read.private[0].data.toString()
-        if(read.unsynchronisedLyrics.shortText === undefined) delete read.unsynchronisedLyrics.shortText
+        if(!read.unsynchronisedLyrics.shortText) delete read.unsynchronisedLyrics.shortText
         assert.deepStrictEqual(nodeTagsFull, read)
     })
 
@@ -879,8 +885,8 @@ describe('Cross tests jsmediatags', function() {
         assert.deepStrictEqual(read.chapter[0].tags.raw, {})
         delete read.chapter[0].tags
         read.comment.text = parseInt(read.comment.text)
-        if(read.comment.shortText === undefined) delete read.comment.shortText
-        if(read.image.description === undefined) delete read.image.description
+        if(!read.comment.shortText) delete read.comment.shortText
+        if(!read.image.description) delete read.image.description
         delete read.image.type
         assert.strictEqual(read.popularimeter.rating, 0)
         delete read.popularimeter.rating
@@ -891,8 +897,8 @@ describe('Cross tests jsmediatags', function() {
         assert.deepStrictEqual(read.tableOfContents[0].tags.raw, {})
         delete read.tableOfContents[0].tags
         delete read.tableOfContents[0].isOrdered
-        if(read.userDefinedText[0].description === undefined) delete read.userDefinedText[0].description
-        if(read.userDefinedText[1].description === undefined) delete read.userDefinedText[1].description
+        if(!read.userDefinedText[0].description) delete read.userDefinedText[0].description
+        if(!read.userDefinedText[1].description) delete read.userDefinedText[1].description
         assert.deepStrictEqual(nodeTagsMissingValues, read)
     })
 })

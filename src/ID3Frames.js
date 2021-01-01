@@ -63,6 +63,10 @@ module.exports.APIC = {
                 }
             }
 
+            /*
+             * Fix a bug in iTunes where the artwork is not recognized when the description is empty using UTF-16.
+             * Instead, if the description is empty, use encoding 0x00 (ISO-8859-1).
+             */
             const { description = '' } = data;
             const encoding = description ? 0x01 : 0x00
             return new ID3FrameBuilder("APIC")

@@ -25,6 +25,7 @@ ID3FrameBuilder.prototype.appendStaticNumber = function(value, size) {
 }
 
 ID3FrameBuilder.prototype.appendNullTerminatedValue = function(value, encoding = 0x00) {
+    if(!value) value = ''
     const convertedValue = convertValue(value, encoding)
     this._buffer = Buffer.concat([this._buffer, nullTerminatedValueToBuffer(convertedValue, encoding)])
     return this
