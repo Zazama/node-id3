@@ -185,10 +185,16 @@ module.exports.read = function(filebuffer, options, fn) {
  * Update ID3-Tags from passed buffer/filepath
  * @param tags - Object containing tags to be written
  * @param filebuffer - Can contain a filepath string or buffer
+ * @param options - (optional) Object containing options
  * @param fn - (optional) Function for async version
  * @returns {boolean|Buffer|Error}
  */
-module.exports.update = function(tags, filebuffer, fn) {
+module.exports.update = function(tags, filebuffer, options, fn) {
+    if(!options || typeof options === 'function') {
+        fn = fn || options
+        options = {}
+    }
+
     const rawTags = Object.keys(tags).reduce((acc, val) => {
         if(ID3Definitions.FRAME_IDENTIFIERS.v3[val] !== undefined) {
             acc[ID3Definitions.FRAME_IDENTIFIERS.v3[val]] = tags[val]
@@ -228,10 +234,10 @@ module.exports.update = function(tags, filebuffer, fn) {
     }
 
     if(!fn || typeof fn !== 'function') {
-        return this.write(updateFn(this.read(filebuffer)), filebuffer)
+        return this.write(updateFn(this.read(filebuffer, options)), filebuffer)
     } else {
         this.read(filebuffer, (err, currentTags) => {
-            this.write(updateFn(this.read(filebuffer)), filebuffer, fn)
+            this.write(updateFn(this.read(filebuffer, options)), filebuffer, fn)
         })
     }
 }
