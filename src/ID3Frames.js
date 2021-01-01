@@ -47,7 +47,7 @@ module.exports.APIC = {
                 }
             } else if (typeof data === 'string' || data instanceof String) {
                 data = {
-                    imageBuffer: Buffer.from(fs.readFileSync(data, 'binary'), 'binary')
+                    imageBuffer: fs.readFileSync(data)
                 }
             } else if (!data.imageBuffer) {
                 return Buffer.alloc(0)
