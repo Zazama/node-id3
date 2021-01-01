@@ -64,12 +64,14 @@ module.exports.APIC = {
             }
 
             return new ID3FrameBuilder("APIC")
-                .appendStaticNumber(0x01, 1)
+                .appendStaticNumber(0x00, 1)
                 .appendNullTerminatedValue(mime_type)
                 .appendStaticNumber(0x03, 1)
-                .appendNullTerminatedValue(data.description, 0x01)
+                .appendStaticValue(data.description)
+                .appendStaticNumber(0x00, 1)
                 .appendStaticValue(data.imageBuffer)
                 .getBuffer()
+
         } catch(e) {
             return e
         }
