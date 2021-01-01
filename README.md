@@ -14,7 +14,7 @@ const NodeID3 = require('node-id3')
 
 /* Variables found in the following usage examples */
 
-const filebuffer = new Buffer("Some Buffer of a (mp3) file")
+const filebuffer = Buffer.from("Some Buffer of a (mp3) file")
 const filepath = './path/to/(mp3)file'
 
 const tags = {
