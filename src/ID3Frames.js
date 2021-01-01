@@ -63,13 +63,15 @@ module.exports.APIC = {
                 }
             }
 
+            const { description = '' } = data;
+            const encoding = description ? 0x01 : 0x00
             return new ID3FrameBuilder("APIC")
-                .appendStaticNumber(0x01, 1)
-                .appendNullTerminatedValue(mime_type)
-                .appendStaticNumber(0x03, 1)
-                .appendNullTerminatedValue(data.description, 0x01)
-                .appendStaticValue(data.imageBuffer)
-                .getBuffer()
+              .appendStaticNumber(encoding, 1)
+              .appendNullTerminatedValue(mime_type)
+              .appendStaticNumber(0x03, 1)
+              .appendNullTerminatedValue(description, encoding)
+              .appendStaticValue(data.imageBuffer)
+              .getBuffer()
         } catch(e) {
             return e
         }
