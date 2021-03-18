@@ -2,7 +2,6 @@
 
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/zazama/node-id3?style=flat-square)
 ![Travis (.org)](https://img.shields.io/travis/zazama/node-id3?style=flat-square)
-![David](https://img.shields.io/david/zazama/node-id3?style=flat-square)
 ![Codecov](https://img.shields.io/codecov/c/github/Zazama/node-id3?style=flat-square)
 ![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability-percentage/Zazama/node-id3?style=flat-square)
 ![npm](https://img.shields.io/npm/dt/node-id3?style=flat-square)
