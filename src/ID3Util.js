@@ -199,6 +199,14 @@ module.exports.parseFrameHeaderFlags = function(header, ID3Version) {
 }
 
 module.exports.processUnsynchronisedBuffer = function(buffer) {
-    const bufStr = buffer.toString('hex')
-    return Buffer.from(bufStr.replace(/ff00/g, 'ff'), 'hex')
+    const newDataArr = []
+    if(buffer.length > 0) {
+        newDataArr.push(buffer[0])
+    }
+    for(let i = 1; i < buffer.length; i++) {
+        if(buffer[i - 1] === 0xFF && buffer[i] === 0x00)
+            continue
+        newDataArr.push(buffer[i])
+    }
+    return Buffer.from(newDataArr)
 }
