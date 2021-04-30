@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.3] - 2020-04-30
+- Don't change APIC mime type on read
+- Fix unsynchronisation implementation
+
 ## [0.2.2] - 2020-01-01
 
 ### Fixed
@@ -198,7 +202,8 @@
 - Fix node v6
 
 
-[unreleased]: https://github.com/Zazama/node-id3/compare/0.2.2...HEAD
+[unreleased]: https://github.com/Zazama/node-id3/compare/0.2.3...HEAD
+[0.2.3]: https://github.com/Zazama/node-id3/compare/0.2.2...0.2.3
 [0.2.2]: https://github.com/Zazama/node-id3/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/Zazama/node-id3/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/Zazama/node-id3/compare/0.1.21...0.2.0

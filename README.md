@@ -83,7 +83,7 @@ NodeID3.read(file, function(err, tags) {})
         title: "Tomorrow",
         artist: "Kevin Penkin",
         image: {
-          mime: "jpeg",
+          mime: "image/jpeg",
           type: {
             id: 3,
             name: "front cover"
@@ -157,7 +157,7 @@ originalArtist:
 originalYear:
 fileOwner:
 artist:
-performerInfo:
+performerInfo: // (album artist)
 conductor:
 remixArtist:
 partOfSet:
@@ -186,7 +186,7 @@ userDefinedText: [{
   value: "TXXX value text 2"
 }] // Care, update doesn't delete non-passed array items!
 image: {
-  mime: "png/jpeg"/undefined,
+  mime: "image/png",
   type: {
     id: 3,
     name: "front cover
@@ -267,7 +267,7 @@ originalArtist:       "TOPE"
 originalYear:         "TORY"
 fileOwner:            "TOWN"
 artist:               "TPE1"
-performerInfo:        "TPE2"
+performerInfo:        "TPE2"    (album artist)
 conductor:            "TPE3"
 remixArtist:          "TPE4"
 partOfSet:            "TPOS"
