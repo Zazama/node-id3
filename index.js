@@ -22,7 +22,7 @@ module.exports.write = function(tags, filebuffer, fn) {
         let completeBuffer = Buffer.concat([completeTag, filebuffer])
         if(fn && typeof fn === 'function') {
             fn(null, completeBuffer)
-            return
+            return undefined
         } else {
             return completeBuffer
         }
@@ -110,7 +110,9 @@ module.exports.create = function(tags, fn) {
  */
 module.exports.createBuffersFromTags = function(tags) {
     let frames = []
-    if(!tags) return frames
+    if(!tags) {
+        return frames
+    }
     const rawObject = Object.keys(tags).reduce((acc, val) => {
         if(ID3Definitions.FRAME_IDENTIFIERS.v3[val] !== undefined) {
             acc[ID3Definitions.FRAME_IDENTIFIERS.v3[val]] = tags[val]
@@ -120,7 +122,7 @@ module.exports.createBuffersFromTags = function(tags) {
         return acc
     }, {})
 
-    Object.keys(rawObject).forEach((specName, index) => {
+    Object.keys(rawObject).forEach((specName) => {
         let frame
         // Check if invalid specName
         if(specName.length !== 4) {
@@ -142,7 +144,7 @@ module.exports.createBuffersFromTags = function(tags) {
             }
         }
 
-        if (frame instanceof Buffer) {
+        if (frame && frame instanceof Buffer) {
             frames.push(frame)
         }
     })
@@ -217,8 +219,10 @@ module.exports.update = function(tags, filebuffer, options, fn) {
                     })
 
                 }
-                if (!(rawTags[specName] instanceof Array)) rawTags[specName] = [rawTags[specName]]
-                rawTags[specName].forEach((rTag, index) => {
+                if (!(rawTags[specName] instanceof Array)) {
+                    rawTags[specName] = [rawTags[specName]]
+                }
+                rawTags[specName].forEach((rTag) => {
                     const comparison = cCompare[rTag[options.updateCompareKey]]
                     if (comparison !== undefined) {
                         currentTags[specName][comparison] = rTag
@@ -236,11 +240,9 @@ module.exports.update = function(tags, filebuffer, options, fn) {
 
     if(!fn || typeof fn !== 'function') {
         return this.write(updateFn(this.read(filebuffer, options)), filebuffer)
-    } else {
-        this.read(filebuffer, (err, currentTags) => {
-            this.write(updateFn(this.read(filebuffer, options)), filebuffer, fn)
-        })
     }
+
+    this.write(updateFn(this.read(filebuffer, options)), filebuffer, fn)
 }
 
 module.exports.getTagsFromBuffer = function(filebuffer, options) {
@@ -320,7 +322,7 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
     let tags = { }
     let raw = { }
 
-    frames.forEach((frame, index) => {
+    frames.forEach((frame) => {
         const specName = ID3Version === 2 ? ID3Definitions.FRAME_IDENTIFIERS.v3[ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]] : frame.name
         const identifier = ID3Version === 2 ? ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name] : ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.name]
 
@@ -338,7 +340,7 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
             * ZLIB has a 2-byte header.
             * 1. try if header + body decompression
             * 2. else try if header is not stored (assume that all content is deflated "body")
-            * 3. else try if deflation works if the header is omitted (implementation dependent)
+            * 3. else try if inflation works if the header is omitted (implementation dependent)
             * */
             try {
                 frame.body = zlib.inflateSync(frame.body.slice(4))
@@ -370,11 +372,15 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
         if(decoded) {
             if(ID3Util.getSpecOptions(specName, ID3Version).multiple) {
                 if(!options.onlyRaw) {
-                    if(!tags[identifier]) tags[identifier] = []
+                    if(!tags[identifier]) {
+                        tags[identifier] = []
+                    }
                     tags[identifier].push(decoded)
                 }
                 if(!options.noRaw) {
-                    if(!raw[specName]) raw[specName] = []
+                    if(!raw[specName]) {
+                        raw[specName] = []
+                    }
                     raw[specName].push(decoded)
                 }
             } else {
@@ -388,8 +394,12 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
         }
     })
 
-    if(options.onlyRaw) return raw
-    if(options.noRaw) return tags
+    if(options.onlyRaw) {
+        return raw
+    }
+    if(options.noRaw) {
+        return tags
+    }
 
     tags.raw = raw
     return tags
@@ -403,7 +413,7 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
 module.exports.removeTagsFromBuffer = function(data) {
     let framePosition = ID3Util.getFramePosition(data)
 
-    if(framePosition === -1) {
+    if (framePosition === -1) {
         return data
     }
 
@@ -414,12 +424,12 @@ module.exports.removeTagsFromBuffer = function(data) {
         return false
     }
 
-    if(data.length >= framePosition + 10) {
+    if (data.length >= framePosition + 10) {
         const size = ID3Util.decodeSize(data.slice(framePosition + 6, framePosition + 10))
         return Buffer.concat([data.slice(0, framePosition), data.slice(framePosition + size + 10)])
-    } else {
-        return data
     }
+
+    return data
 }
 
 /**
@@ -449,43 +459,49 @@ module.exports.removeTags = function(filepath, fn) {
         }
 
         return true
-    } else {
-        fs.readFile(filepath, function(err, data) {
+    }
+
+    fs.readFile(filepath, function(err, data) {
+        if(err) {
+            fn(err)
+        }
+
+        let newData = this.removeTagsFromBuffer(data)
+        if(!newData) {
+            fn(err)
+            return
+        }
+
+        fs.writeFile(filepath, newData, 'binary', function(err) {
             if(err) {
                 fn(err)
+            } else {
+                fn(false)
             }
-
-            let newData = this.removeTagsFromBuffer(data)
-            if(!newData) {
-                fn(err)
-                return
-            }
-
-            fs.writeFile(filepath, newData, 'binary', function(err) {
-                if(err) {
-                    fn(err)
-                } else {
-                    fn(false)
-                }
-            })
-        }.bind(this))
-    }
+        })
+    }.bind(this))
 }
 
 module.exports.Promise = {
     write: (tags, file) => {
         return new Promise((resolve, reject) => {
             this.write(tags, file, (err, ret) => {
-                if(err) reject(err)
-                else resolve(ret)
+                if(err) {
+                    reject(err)
+                } else {
+                    resolve(ret)
+                }
             })
         })
     },
     update: (tags, file) => {
         return new Promise((resolve, reject) => {
             this.update(tags, file, (err, ret) => {
-                if(err) reject(err)
-                else resolve(ret)
+                if(err) {
+                    reject(err)
+                } else {
+                    resolve(ret)
+                }
             })
         })
     },
@@ -499,16 +515,22 @@ module.exports.Promise = {
     read: (file, options) => {
         return new Promise((resolve, reject) => {
             this.read(file, options, (err, ret) => {
-                if(err) reject(err)
-                else resolve(ret)
+                if(err) {
+                    reject(err)
+                } else {
+                    resolve(ret)
+                }
             })
         })
     },
     removeTags: (filepath) => {
         return new Promise((resolve, reject) => {
             this.removeTags(filepath, (err) => {
-                if(err) reject(err)
-                else resolve()
+                if(err) {
+                    reject(err)
+                } else {
+                    resolve()
+                }
             })
         })
     }
