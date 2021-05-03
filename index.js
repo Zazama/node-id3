@@ -2,6 +2,7 @@ const fs = require('fs')
 const ID3Definitions = require("./src/ID3Definitions")
 const ID3Frames = require('./src/ID3Frames')
 const ID3Util = require('./src/ID3Util')
+const zlib = require('zlib')
 
 /*
 **  Used specification: http://id3.org/id3v2.3.0
@@ -323,8 +324,38 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
         const specName = ID3Version === 2 ? ID3Definitions.FRAME_IDENTIFIERS.v3[ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]] : frame.name
         const identifier = ID3Version === 2 ? ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name] : ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.name]
 
-        if(!specName || !identifier) {
+        if(!specName || !identifier || frame.flags.encryption) {
             return
+        }
+
+        if(frame.flags.compression) {
+            if(frame.body.length < 5) {
+                return
+            }
+            const inflatedSize = frame.body.readInt32BE()
+            /*
+            * ID3 spec defines that compression is stored in ZLIB format, but doesn't specify if header is present or not.
+            * ZLIB has a 2-byte header.
+            * 1. try if header + body decompression
+            * 2. else try if header is not stored (assume that all content is deflated "body")
+            * 3. else try if deflation works if the header is omitted (implementation dependent)
+            * */
+            try {
+                frame.body = zlib.inflateSync(frame.body.slice(4))
+            } catch (e) {
+                try {
+                    frame.body = zlib.inflateRawSync(frame.body.slice(4))
+                } catch (e) {
+                    try {
+                        frame.body = zlib.inflateRawSync(frame.body.slice(6))
+                    } catch (e) {
+                        return
+                    }
+                }
+            }
+            if(frame.body.length !== inflatedSize) {
+                return
+            }
         }
 
         let decoded
