@@ -1,10 +1,10 @@
 # Changelog
 
-## [0.2.3] - 2020-04-30
+## [0.2.3] - 2021-04-30
 - Don't change APIC mime type on read
 - Fix unsynchronisation implementation
 
-## [0.2.2] - 2020-01-01
+## [0.2.2] - 2021-01-01
 
 ### Fixed
 - Bug in iTunes where artwork doesn't show up when description is empty
