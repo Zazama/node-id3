@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.4] - 2021-12-09
+### Added
+- Added uniqueFileIdentifier (UFID frame)
+
 ## [0.2.3] - 2021-04-30
 - Don't change APIC mime type on read
 - Fix unsynchronisation implementation
@@ -8,7 +12,7 @@
 
 ### Fixed
 - Bug in iTunes where artwork doesn't show up when description is empty
-- Creating tags with undefined, terminated UTF-16 value now passes FF FE 00 00 instead of 00 00 
+- Creating tags with undefined, terminated UTF-16 value now passes FF FE 00 00 instead of 00 00
 - Add raw to TypeScript definition
 - Add removeTags async to TypeScript definition
 

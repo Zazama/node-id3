@@ -284,6 +284,10 @@ declare module "node-id3" {
             ownerIdentifier: string,
             data: string
          }],
+         uniqueFileIdentifier?: [{
+            ownerIdentifier: string,
+            identifier: string
+         }],
          chapter?: Array<{
             elementID: string,
             endTimeMs: number,

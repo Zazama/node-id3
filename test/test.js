@@ -68,7 +68,7 @@ describe('NodeID3', function () {
             ))
         })
 
-        it('user defined text frames', function() {
+        it('user defined text frames', function () {
             let tags = {
                 userDefinedText: {
                     description: "abc",
@@ -125,13 +125,13 @@ describe('NodeID3', function () {
             ), 0)
         })
 
-        it('create APIC frame', function() {
+        it('create APIC frame', function () {
             let tags = {
                 image: {
                     description: "asdf",
                     imageBuffer: Buffer.from('5B307836312C20307836322C20307836332C20307836345D', 'hex'),
                     mime: "image/jpeg",
-                    type: {id: 3, name: "front cover"}
+                    type: { id: 3, name: "front cover" }
                 }
             }
 
@@ -168,7 +168,7 @@ describe('NodeID3', function () {
             })[20], 0x00)
         })
 
-        it('create USLT frame', function() {
+        it('create USLT frame', function () {
             let tags = {
                 unsynchronisedLyrics: {
                     language: "deu",
@@ -183,7 +183,7 @@ describe('NodeID3', function () {
             ), 0)
         })
 
-        it('create COMM frame', function() {
+        it('create COMM frame', function () {
             const tags = {
                 comment: {
                     language: "deu",
@@ -199,7 +199,7 @@ describe('NodeID3', function () {
             ), 0)
         })
 
-        it('create POPM frame', function() {
+        it('create POPM frame', function () {
             let frameBuf = Buffer.from('49443303000000000020504F504D0000001600006D61696C406578616D706C652E636F6D00C00000000C', 'hex')
             const tags = {
                 popularimeter: {
@@ -215,9 +215,10 @@ describe('NodeID3', function () {
             ), 0)
         })
 
-        it('create PRIV frame', function() {
+        it('create PRIV frame', function () {
             let frameBuf = Buffer.from('4944330300000000003250524956000000140000416243006173646F61687764696F686177646177505249560000000A000041624353535300010205', 'hex')
-            const tags = { PRIV: [{
+            const tags = {
+                PRIV: [{
                     ownerIdentifier: "AbC",
                     data: Buffer.from("asdoahwdiohawdaw")
                 }, {
@@ -232,9 +233,24 @@ describe('NodeID3', function () {
             )
         })
 
-        it('create CHAP frame', function() {
+        it("create UFID frame", function () {
+            let frameBuf = Buffer.from('4944330300000000001e55464944000000140000416243006173646f61687764696f686177646177', 'hex');
+            const tags = {
+                UFID: [
+                    {
+                        ownerIdentifier: "AbC",
+                        identifier: "asdoahwdiohawdaw",
+                    }
+                ],
+            };
+
+            assert.deepStrictEqual(NodeID3.create(tags), frameBuf);
+        });
+
+        it('create CHAP frame', function () {
             let frameBuf = Buffer.from('494433030000000000534348415000000049000048657921000000138800001F400000007B000001C8544954320000000F000001FFFE6100620063006400650066005450453100000011000001FFFE61006B0073006800640061007300', 'hex')
-            const tags = { CHAP: [{
+            const tags = {
+                CHAP: [{
                     elementID: "Hey!", //THIS MUST BE UNIQUE!
                     startTimeMs: 5000,
                     endTimeMs: 8000,
@@ -244,7 +260,8 @@ describe('NodeID3', function () {
                         title: "abcdef",
                         artist: "akshdas"
                     }
-                }]}
+                }]
+            }
 
             assert.deepStrictEqual(
                 NodeID3.create(tags),
@@ -252,7 +269,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('create WXXX frame', function() {
+        it('create WXXX frame', function () {
             const frameBuf = Buffer.from('4944330300000000002c5758585800000022000001fffe61006200630064002300000068747470733a2f2f6578616d706c652e636f6d', 'hex')
             const tags = {
                 userDefinedUrl: [{
@@ -267,7 +284,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('create URL frame', function() {
+        it('create URL frame', function () {
             const frameBuf = Buffer.from('4944330300000000003b57434f4d00000013000068747470733a2f2f6578616d706c652e636f6d574f414600000014000068747470733a2f2f6578616d706c65322e636f6d', 'hex')
             const tags = {
                 commercialUrl: ['https://example.com'],
@@ -281,23 +298,23 @@ describe('NodeID3', function () {
         })
     })
 
-    describe('#write()', function() {
-        it('sync not existing filepath', function() {
+    describe('#write()', function () {
+        it('sync not existing filepath', function () {
             assert.throws(NodeID3.write.bind({}, './hopefullydoesnotexist.mp3'), Error)
         })
-        it('async not existing filepath', function() {
-            NodeID3.write({}, './hopefullydoesnotexist.mp3', function(err) {
-                if(!(err instanceof Error)) {
+        it('async not existing filepath', function () {
+            NodeID3.write({}, './hopefullydoesnotexist.mp3', function (err) {
+                if (!(err instanceof Error)) {
                     assert.fail("No error thrown on non-existing filepath")
                 }
             })
         })
 
         let buffer = Buffer.from([0x02, 0x06, 0x12, 0x22])
-        let tags = {title: "abc"}
+        let tags = { title: "abc" }
         let filepath = './testfile.mp3'
 
-        it('sync write file without id3 tag', function() {
+        it('sync write file without id3 tag', function () {
             fs.writeFileSync(filepath, buffer, 'binary')
             NodeID3.write(tags, filepath)
             let newFileBuffer = fs.readFileSync(filepath)
@@ -307,12 +324,12 @@ describe('NodeID3', function () {
                 Buffer.concat([NodeID3.create(tags), buffer])
             ), 0)
         })
-        it('async write file without id3 tag', function(done) {
+        it('async write file without id3 tag', function (done) {
             fs.writeFileSync(filepath, buffer, 'binary')
-            NodeID3.write(tags, filepath, function() {
+            NodeID3.write(tags, filepath, function () {
                 let newFileBuffer = fs.readFileSync(filepath)
                 fs.unlinkSync(filepath)
-                if(Buffer.compare(
+                if (Buffer.compare(
                     newFileBuffer,
                     Buffer.concat([NodeID3.create(tags), buffer])
                 ) === 0) {
@@ -324,9 +341,9 @@ describe('NodeID3', function () {
         })
 
         let bufferWithTag = Buffer.concat([NodeID3.create(tags), buffer])
-        tags = {album: "ix123"}
+        tags = { album: "ix123" }
 
-        it('sync write file with id3 tag', function() {
+        it('sync write file with id3 tag', function () {
             fs.writeFileSync(filepath, bufferWithTag, 'binary')
             NodeID3.write(tags, filepath)
             let newFileBuffer = fs.readFileSync(filepath)
@@ -336,12 +353,12 @@ describe('NodeID3', function () {
                 Buffer.concat([NodeID3.create(tags), buffer])
             ), 0)
         })
-        it('async write file with id3 tag', function(done) {
+        it('async write file with id3 tag', function (done) {
             fs.writeFileSync(filepath, bufferWithTag, 'binary')
-            NodeID3.write(tags, filepath, function() {
+            NodeID3.write(tags, filepath, function () {
                 let newFileBuffer = fs.readFileSync(filepath)
                 fs.unlinkSync(filepath)
-                if(Buffer.compare(
+                if (Buffer.compare(
                     newFileBuffer,
                     Buffer.concat([NodeID3.create(tags), buffer])
                 ) === 0) {
@@ -353,29 +370,29 @@ describe('NodeID3', function () {
         })
     })
 
-    describe('#read()', function() {
-        it('read empty id3 tag', function() {
+    describe('#read()', function () {
+        it('read empty id3 tag', function () {
             let frame = NodeID3.create({})
             assert.deepStrictEqual(
                 NodeID3.read(frame),
-                {raw: {}}
+                { raw: {} }
             )
         })
 
-        it('read text frames id3 tag', function() {
+        it('read text frames id3 tag', function () {
             let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
             assert.deepStrictEqual(
                 NodeID3.read(frame),
-                { title: "asdfghjÄÖP", album: "naBGZwssg", raw: { TIT2: "asdfghjÄÖP", TALB: "naBGZwssg" }}
+                { title: "asdfghjÄÖP", album: "naBGZwssg", raw: { TIT2: "asdfghjÄÖP", TALB: "naBGZwssg" } }
             )
         })
 
-        it('read tag with broken frame', function() {
+        it('read tag with broken frame', function () {
             let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
             frame[10] = 0x99
             assert.deepStrictEqual(
                 NodeID3.read(frame),
-                { album: "naBGZwssg", raw: { TALB: "naBGZwssg" }}
+                { album: "naBGZwssg", raw: { TALB: "naBGZwssg" } }
             )
         })
 
@@ -388,26 +405,26 @@ describe('NodeID3', function () {
             )
         })*/
 
-        it('read tag with bigger size', function() {
+        it('read tag with bigger size', function () {
             let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
             frame[9] += 100
             assert.deepStrictEqual(
                 NodeID3.read(frame),
-                { title: "asdfghjÄÖP", album: "naBGZwssg", raw: { TIT2: "asdfghjÄÖP", TALB: "naBGZwssg" }}
+                { title: "asdfghjÄÖP", album: "naBGZwssg", raw: { TIT2: "asdfghjÄÖP", TALB: "naBGZwssg" } }
             )
         })
 
-        it('read tag with smaller size', function() {
+        it('read tag with smaller size', function () {
             let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
             frame[9] -= 25
             assert.deepStrictEqual(
                 NodeID3.read(frame),
-                { title: "asdfghjÄÖP", raw: { TIT2: "asdfghjÄÖP" }}
+                { title: "asdfghjÄÖP", raw: { TIT2: "asdfghjÄÖP" } }
             )
         })
 
-        it('read TXXX frame', function() {
-            let tags = { userDefinedText: {description: "abc", value: "deg"} }
+        it('read TXXX frame', function () {
+            let tags = { userDefinedText: { description: "abc", value: "deg" } }
             let frame = NodeID3.create(tags)
             assert.deepStrictEqual(
                 NodeID3.read(frame),
@@ -420,8 +437,8 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read TXXX array frame', function() {
-            let tags = { userDefinedText: [{description: "abc", value: "deg"}, {description: "abcd", value: "efgh"}] }
+        it('read TXXX array frame', function () {
+            let tags = { userDefinedText: [{ description: "abc", value: "deg" }, { description: "abcd", value: "efgh" }] }
             let frame = NodeID3.create(tags)
             assert.deepStrictEqual(
                 NodeID3.read(frame),
@@ -434,7 +451,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read APIC frame', function() {
+        it('read APIC frame', function () {
             let withAll = Buffer.from("4944330300000000101C4150494300000016000000696D6167652F6A7065670003617364660061626364", "hex")
             let noDesc = Buffer.from("494433030000000000264150494300000012000000696D6167652F6A70656700030061626364", "hex")
             let obj = {
@@ -456,7 +473,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read USLT frame', function() {
+        it('read USLT frame', function () {
             let frameBuf = Buffer.from('4944330300000000006E55534C5400000064000001646575FFFE48006100690077007300E400E40023000000FFFE610073006B00640068002000610073006800640020006F006C00610068007300200065006C006F0077007A00200064006C006F0075006100690073006800200064006B0061006A006800', 'hex')
             const unsynchronisedLyrics = {
                 language: "deu",
@@ -470,7 +487,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read COMM frame', function() {
+        it('read COMM frame', function () {
             let frameBuf = Buffer.from('4944330300000000006E434F4D4D00000064000001646575FFFE48006100690077007300E400E40023000000FFFE610073006B00640068002000610073006800640020006F006C00610068007300200065006C006F0077007A00200064006C006F0075006100690073006800200064006B0061006A006800', 'hex')
             const comment = {
                 language: "deu",
@@ -484,7 +501,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read POPM frame', function() {
+        it('read POPM frame', function () {
             let frameBuf = Buffer.from('49443303000000000020504F504D0000001600006D61696C406578616D706C652E636F6D00C00000000C', 'hex')
             const popularimeter = {
                 email: "mail@example.com",
@@ -498,7 +515,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read PRIV frame', function() {
+        it('read PRIV frame', function () {
             let frameBuf = Buffer.from('4944330300000000003250524956000000140000416243006173646F61687764696F686177646177505249560000000A000041624353535300010205', 'hex')
             const priv = [{
                 ownerIdentifier: "AbC",
@@ -514,7 +531,21 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read CHAP frame', function() {
+        it("read UFID frame", function () {
+            let frameBuf = Buffer.from('4944330300000000001e55464944000000140000416243006173646f61687764696f686177646177', 'hex');
+            const ufid = [
+                {
+                    ownerIdentifier: "AbC",
+                    identifier: "asdoahwdiohawdaw"
+                }
+            ];
+
+            assert.deepStrictEqual(NodeID3.read(frameBuf).uniqueFileIdentifier, ufid);
+        });
+
+
+
+        it('read CHAP frame', function () {
             let frameBuf = Buffer.from('494433030000000000534348415000000049000048657921000000138800001F400000007B000001C8544954320000000F000001FFFE6100620063006400650066005450453100000011000001FFFE61006B0073006800640061007300', 'hex')
             const chap = [{
                 elementID: "Hey!", //THIS MUST BE UNIQUE!
@@ -538,11 +569,11 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read WXXX frame', function() {
+        it('read WXXX frame', function () {
             const frameBuf = Buffer.from('4944330300000000002c5758585800000022000001fffe61006200630064002300000068747470733a2f2f6578616d706c652e636f6d', 'hex')
             const userDefinedUrl = [{
-                    description: 'abcd#',
-                    url: 'https://example.com'
+                description: 'abcd#',
+                url: 'https://example.com'
             }]
 
             assert.deepStrictEqual(
@@ -551,7 +582,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read URL frame', function() {
+        it('read URL frame', function () {
             const frameBuf = Buffer.from('4944330300000000003d57434f4d0000001400000068747470733a2f2f6578616d706c652e636f6d574f41460000001500000068747470733a2f2f6578616d706c65322e636f6d', 'hex')
             const commercialUrl = ['https://example.com']
             const fileUrl = 'https://example2.com'
@@ -566,7 +597,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read exclude', function() {
+        it('read exclude', function () {
             let tags = {
                 TIT2: "abcdeÜ看板かんばん",
                 album: "nasÖÄkdnasd",
@@ -583,7 +614,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('read include', function() {
+        it('read include', function () {
             let tags = {
                 title: "abcdeÜ看板かんばん",
                 album: "nasÖÄkdnasd",
@@ -600,7 +631,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('onlyRaw', function() {
+        it('onlyRaw', function () {
             let tags = {
                 TIT2: "abcdeÜ看板かんばん",
                 TALB: "nasÖÄkdnasd"
@@ -614,7 +645,7 @@ describe('NodeID3', function () {
             )
         })
 
-        it('noRaw', function() {
+        it('noRaw', function () {
             let tags = {
                 title: "abcdeÜ看板かんばん",
                 album: "nasÖÄkdnasd"
@@ -643,7 +674,7 @@ describe('ID3 helper functions', function () {
         it('tags at start', function () {
             let buffer = Buffer.from([0x22, 0x73, 0x72])
             let bufferWithID3 = Buffer.concat([
-                NodeID3.create({title: "abc"}),
+                NodeID3.create({ title: "abc" }),
                 buffer
             ])
             assert.strictEqual(Buffer.compare(
@@ -656,7 +687,7 @@ describe('ID3 helper functions', function () {
             let buffer = Buffer.from([0x22, 0x73, 0x72])
             let bufferWithID3 = Buffer.concat([
                 buffer,
-                NodeID3.create({title: "abc"}),
+                NodeID3.create({ title: "abc" }),
                 buffer
             ])
             assert.strictEqual(Buffer.compare(
@@ -768,8 +799,8 @@ const nodeTagsMissingValues = {
     }],
 }
 
-describe('Cross tests jsmediatags', function() {
-    it('write full', function() {
+describe('Cross tests jsmediatags', function () {
+    it('write full', function () {
         jsmediatags.read(NodeID3.create(nodeTagsFull), {
             onSuccess: (tag) => {
                 const tags = tag.tags
@@ -802,7 +833,7 @@ describe('Cross tests jsmediatags', function() {
                     }
                 }, nodeTagsFull.chapter[0])
                 assert.deepStrictEqual({
-                    elementID:nodeTagsFull.tableOfContents[0].elementID,
+                    elementID: nodeTagsFull.tableOfContents[0].elementID,
                     isOrdered: false,
                     elements: tags.CTOC.data.childElementIds,
                     tags: {
@@ -815,13 +846,13 @@ describe('Cross tests jsmediatags', function() {
                     url: nodeTagsFull.userDefinedUrl[0].url /* The URL is always encoded with ISO-8859-1 => jsmediatags reads as UTF-16, can't use here*/
                 }, nodeTagsFull.userDefinedUrl[0])
             },
-            onError: function(error) {
+            onError: function (error) {
                 throw error
             }
         })
     })
 
-    it('write with missing values', function() {
+    it('write with missing values', function () {
         jsmediatags.read(NodeID3.create(nodeTagsMissingValues), {
             onSuccess: (tag) => {
                 const tags = tag.tags
@@ -857,13 +888,13 @@ describe('Cross tests jsmediatags', function() {
                 assert.deepStrictEqual(tags.CTOC.data.subFrames, {})
                 assert.strictEqual(tags.CTOC.data.ordered, false)
             },
-            onError: function(error) {
+            onError: function (error) {
                 throw error
             }
         })
     })
 
-    it('read from full self-created tags', function() {
+    it('read from full self-created tags', function () {
         const tagsBuffer = NodeID3.create(nodeTagsFull)
         let read = NodeID3.read(tagsBuffer)
 
@@ -873,11 +904,11 @@ describe('Cross tests jsmediatags', function() {
         read.comment.text = parseInt(read.comment.text)
         delete read.image.type
         read.private[0].data = read.private[0].data.toString()
-        if(!read.unsynchronisedLyrics.shortText) delete read.unsynchronisedLyrics.shortText
+        if (!read.unsynchronisedLyrics.shortText) delete read.unsynchronisedLyrics.shortText
         assert.deepStrictEqual(nodeTagsFull, read)
     })
 
-    it('read from missing values self-created tags', function() {
+    it('read from missing values self-created tags', function () {
         const tagsBuffer = NodeID3.create(nodeTagsMissingValues)
         let read = NodeID3.read(tagsBuffer)
 
@@ -885,20 +916,20 @@ describe('Cross tests jsmediatags', function() {
         assert.deepStrictEqual(read.chapter[0].tags.raw, {})
         delete read.chapter[0].tags
         read.comment.text = parseInt(read.comment.text)
-        if(!read.comment.shortText) delete read.comment.shortText
-        if(!read.image.description) delete read.image.description
+        if (!read.comment.shortText) delete read.comment.shortText
+        if (!read.image.description) delete read.image.description
         delete read.image.type
         assert.strictEqual(read.popularimeter.rating, 0)
         delete read.popularimeter.rating
         read.private[0].data = read.private[0].data.toString()
-        if(read.private[0].ownerIdentifier === undefined) delete read.private[0].ownerIdentifier
-        if(read.private[1].ownerIdentifier === undefined) delete read.private[1].ownerIdentifier
+        if (read.private[0].ownerIdentifier === undefined) delete read.private[0].ownerIdentifier
+        if (read.private[1].ownerIdentifier === undefined) delete read.private[1].ownerIdentifier
         assert.strictEqual(read.tableOfContents[0].isOrdered, false)
         assert.deepStrictEqual(read.tableOfContents[0].tags.raw, {})
         delete read.tableOfContents[0].tags
         delete read.tableOfContents[0].isOrdered
-        if(!read.userDefinedText[0].description) delete read.userDefinedText[0].description
-        if(!read.userDefinedText[1].description) delete read.userDefinedText[1].description
+        if (!read.userDefinedText[0].description) delete read.userDefinedText[0].description
+        if (!read.userDefinedText[1].description) delete read.userDefinedText[1].description
         assert.deepStrictEqual(nodeTagsMissingValues, read)
     })
 })

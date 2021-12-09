@@ -206,6 +206,10 @@ private: [{
   ownerIdentifier: "AbCSSS",
   data: Buffer.from([0x01, 0x02, 0x05])
 }],
+uniqueFileIdentifier: [{
+  ownerIdentifier: "AbC",
+  identifier: "asdoahwdiohawdaw"
+}],
 chapter: [{
   elementID: "Hey!", // THIS MUST BE UNIQUE!
   startTimeMs: 5000,
@@ -223,7 +227,7 @@ tableOfContents: [{
   elements: ['chap1'],  // OPTIONAL but most likely needed, contains the chapter/tableOfContents elementIDs
   tags: {               // OPTIONAL
     title: "abcdef"
-  }  
+  }
 }],
 commercialUrl: ["commercialurl.com"], // array or single string
 copyrightUrl: "example.com",
@@ -286,6 +290,7 @@ unsynchronisedLyrics  "USLT"
 userDefinedText       "TXXX"
 popularimeter         "POPM"
 private               "PRIV"
+uniqueFileIdentifier  "UFID"
 chapter               "CHAP"
 tableOfContents       "CTOC"
 commercialUrl         "WCOM"

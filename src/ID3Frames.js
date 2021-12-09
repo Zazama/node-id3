@@ -5,7 +5,7 @@ const ID3Definitions = require("./ID3Definitions")
 
 module.exports.GENERIC_TEXT = {
     create: (specName, data) => {
-        if(!specName || !data) {
+        if (!specName || !data) {
             return null
         }
 
@@ -23,7 +23,7 @@ module.exports.GENERIC_TEXT = {
 
 module.exports.GENERIC_URL = {
     create: (specName, data) => {
-        if(!specName || !data) {
+        if (!specName || !data) {
             return null
         }
 
@@ -55,7 +55,7 @@ module.exports.APIC = {
 
             let mime_type = data.mime
 
-            if(!data.mime) {
+            if (!data.mime) {
                 if (data.imageBuffer.length > 3 && data.imageBuffer.compare(Buffer.from([0xff, 0xd8, 0xff]), 0, 3, 0, 3) === 0) {
                     mime_type = "image/jpeg"
                 } else if (data.imageBuffer.length > 8 && data.imageBuffer.compare(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]), 0, 8, 0, 8) === 0) {
@@ -72,20 +72,20 @@ module.exports.APIC = {
             const { description = '' } = data;
             const encoding = description ? 0x01 : 0x00
             return new ID3FrameBuilder("APIC")
-              .appendStaticNumber(encoding, 1)
-              .appendNullTerminatedValue(mime_type)
-              .appendStaticNumber(0x03, 1)
-              .appendNullTerminatedValue(description, encoding)
-              .appendStaticValue(data.imageBuffer)
-              .getBuffer()
-        } catch(e) {
+                .appendStaticNumber(encoding, 1)
+                .appendNullTerminatedValue(mime_type)
+                .appendStaticNumber(0x03, 1)
+                .appendNullTerminatedValue(description, encoding)
+                .appendStaticValue(data.imageBuffer)
+                .getBuffer()
+        } catch (e) {
             return e
         }
     },
     read: (buffer, version) => {
         const reader = new ID3FrameReader(buffer, 0)
         let mime
-        if(version === 2) {
+        if (version === 2) {
             mime = reader.consumeStaticValue('string', 3, 0x00)
         } else {
             mime = reader.consumeNullTerminatedValue('string', 0x00)
@@ -110,7 +110,7 @@ module.exports.APIC = {
 module.exports.COMM = {
     create: (data) => {
         data = data || {}
-        if(!data.text) {
+        if (!data.text) {
             return null
         }
 
@@ -135,12 +135,12 @@ module.exports.COMM = {
 module.exports.USLT = {
     create: (data) => {
         data = data || {}
-        if(typeof data === 'string' || data instanceof String) {
+        if (typeof data === 'string' || data instanceof String) {
             data = {
                 text: data
             }
         }
-        if(!data.text) {
+        if (!data.text) {
             return null
         }
 
@@ -164,7 +164,7 @@ module.exports.USLT = {
 
 module.exports.TXXX = {
     create: (data) => {
-        if(!(data instanceof Array)) {
+        if (!(data instanceof Array)) {
             data = [data]
         }
 
@@ -189,13 +189,13 @@ module.exports.POPM = {
         const email = data.email
         let rating = Math.trunc(data.rating)
         let counter = Math.trunc(data.counter)
-        if(!email) {
+        if (!email) {
             return null
         }
-        if(isNaN(rating) || rating < 0 || rating > 255) {
+        if (isNaN(rating) || rating < 0 || rating > 255) {
             rating = 0
         }
-        if(isNaN(counter) || counter < 0) {
+        if (isNaN(counter) || counter < 0) {
             counter = 0
         }
 
@@ -217,7 +217,7 @@ module.exports.POPM = {
 
 module.exports.PRIV = {
     create: (data) => {
-        if(!(data instanceof Array)) {
+        if (!(data instanceof Array)) {
             data = [data]
         }
 
@@ -231,6 +231,26 @@ module.exports.PRIV = {
         return {
             ownerIdentifier: reader.consumeNullTerminatedValue('string'),
             data: reader.consumeStaticValue()
+        }
+    }
+}
+
+module.exports.UFID = {
+    create: (data) => {
+        if (!(data instanceof Array)) {
+            data = [data]
+        }
+
+        return Buffer.concat(data.map(ufid => new ID3FrameBuilder("UFID")
+            .appendNullTerminatedValue(ufid.ownerIdentifier)
+            .appendStaticValue(ufid.identifier instanceof Buffer ? ufid.identifier : Buffer.from(ufid.identifier, "utf8"))
+            .getBuffer()))
+    },
+    read: (buffer) => {
+        const reader = new ID3FrameReader(buffer)
+        return {
+            ownerIdentifier: reader.consumeNullTerminatedValue('string'),
+            identifier: reader.consumeStaticValue('string')
         }
     }
 }
@@ -265,31 +285,31 @@ module.exports.CHAP = {
             endOffsetBytes: reader.consumeStaticValue('number', 4),
             tags: nodeId3.getTagsFromFrames(nodeId3.getFramesFromID3Body(reader.consumeStaticValue(), 3, 4, 10), 3)
         }
-        if(chap.startOffsetBytes === 0xFFFFFFFF) delete chap.startOffsetBytes
-        if(chap.endOffsetBytes === 0xFFFFFFFF) delete chap.endOffsetBytes
+        if (chap.startOffsetBytes === 0xFFFFFFFF) delete chap.startOffsetBytes
+        if (chap.endOffsetBytes === 0xFFFFFFFF) delete chap.endOffsetBytes
         return chap
     }
 }
 
 module.exports.CTOC = {
     create: (data, version, nodeId3) => {
-        if(!(data instanceof Array)) {
+        if (!(data instanceof Array)) {
             data = [data]
         }
 
         return Buffer.concat(data.map((toc, index) => {
-            if(!toc || !toc.elementID) {
+            if (!toc || !toc.elementID) {
                 return null
             }
-            if(!(toc.elements instanceof Array)) {
+            if (!(toc.elements instanceof Array)) {
                 toc.elements = []
             }
 
             let ctocFlags = Buffer.alloc(1, 0)
-            if(index === 0) {
+            if (index === 0) {
                 ctocFlags[0] += 2
             }
-            if(toc.isOrdered) {
+            if (toc.isOrdered) {
                 ctocFlags[0] += 1
             }
 
@@ -300,7 +320,7 @@ module.exports.CTOC = {
             toc.elements.forEach((el) => {
                 builder.appendNullTerminatedValue(el)
             })
-            if(toc.tags) {
+            if (toc.tags) {
                 builder.appendStaticValue(nodeId3.create(toc.tags).slice(10))
             }
             return builder.getBuffer()
@@ -312,7 +332,7 @@ module.exports.CTOC = {
         const flags = reader.consumeStaticValue('number', 1)
         const entries = reader.consumeStaticValue('number', 1)
         const elements = []
-        for(let i = 0; i < entries; i++) {
+        for (let i = 0; i < entries; i++) {
             elements.push(reader.consumeNullTerminatedValue('string'))
         }
         const tags = nodeId3.getTagsFromFrames(nodeId3.getFramesFromID3Body(reader.consumeStaticValue(), 3, 4, 10), 3)
@@ -328,7 +348,7 @@ module.exports.CTOC = {
 
 module.exports.WXXX = {
     create: (data) => {
-        if(!(data instanceof Array)) {
+        if (!(data instanceof Array)) {
             data = [data]
         }
 
