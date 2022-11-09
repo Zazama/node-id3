@@ -162,6 +162,49 @@ module.exports.USLT = {
     }
 }
 
+module.exports.SYLT = {
+    create: (data) => {
+        if(!data) {
+            return null
+        }
+
+        const encoding = 1; // 16 bit unicode
+        return Buffer.concat(data.map(lycics => {
+            const frameBuilder = new ID3FrameBuilder("SYLT")
+                .appendStaticNumber(encoding, 1)
+                .appendStaticValue(lycics.language, 3)
+                .appendStaticNumber(lycics.timeStampFormat, 1)
+                .appendStaticNumber(lycics.contentType, 1)
+                .appendNullTerminatedValue(lycics.shortText, encoding)
+            lycics.synchronisedText.forEach(part => {
+                frameBuilder.appendNullTerminatedValue(part.text, encoding)
+                frameBuilder.appendStaticNumber(part.timeStamp, 4)
+            })
+            return frameBuilder.getBuffer()
+        }))
+    },
+    read: (buffer) => {
+        const reader = new ID3FrameReader(buffer, 0)
+
+        return {
+            language: reader.consumeStaticValue('string', 3, 0x00),
+            timeStampFormat: reader.consumeStaticValue('number', 1),
+            contentType: reader.consumeStaticValue('number', 1),
+            shortText: reader.consumeNullTerminatedValue('string'),
+            synchronisedText: Array.from((function*() {
+                while(true) {
+                    const text = reader.consumeNullTerminatedValue('string')
+                    const timeStamp = reader.consumeStaticValue('number', 4)
+                    if (text === undefined || timeStamp === undefined) {
+                        break
+                    }
+                    yield {text, timeStamp}
+                }
+            })())
+        }
+    }
+}
+
 module.exports.TXXX = {
     create: (data) => {
         if(!(data instanceof Array)) {

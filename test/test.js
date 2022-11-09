@@ -183,6 +183,29 @@ describe('NodeID3', function () {
             ), 0)
         })
 
+        it('create SYLT frame', function() {
+            let tags = {
+                synchronisedLyrics: [{
+                    language: "deu",
+                    timeStampFormat: 2, // Milliseconds
+                    contentType: 1, // Lyrics
+                    shortText: "Haiwsää#",
+                    synchronisedText: [{
+                        text: "askdh ashd olahs",
+                        timeStamp: 0
+                     }, {
+                        text: "elowz dlouaish dkajh",
+                        timeStamp: 1000
+                    }]
+                }]
+            }
+
+            assert.strictEqual(Buffer.compare(
+                NodeID3.create(tags),
+                Buffer.from('4944330300000000007c53594c54000000720000016465750201fffe48006100690077007300e400e40023000000fffe610073006b00640068002000610073006800640020006f006c00610068007300000000000000fffe65006c006f0077007a00200064006c006f0075006100690073006800200064006b0061006a0068000000000003e8', 'hex')
+            ), 0)
+        })
+
         it('create COMM frame', function() {
             const tags = {
                 comment: {
@@ -467,6 +490,27 @@ describe('NodeID3', function () {
             assert.deepStrictEqual(
                 NodeID3.read(frameBuf).unsynchronisedLyrics,
                 unsynchronisedLyrics
+            )
+        })
+
+        it('read SYLT frame', function() {
+            let frameBuf = Buffer.from('4944330300000000007c53594c54000000720000016465750201fffe48006100690077007300e400e40023000000fffe610073006b00640068002000610073006800640020006f006c00610068007300000000000000fffe65006c006f0077007a00200064006c006f0075006100690073006800200064006b0061006a0068000000000003e8', 'hex')
+            const synchronisedLyrics = [{
+                language: "deu",
+                timeStampFormat: 2, // Milliseconds
+                contentType: 1, // Lyrics
+                shortText: "Haiwsää#",
+                synchronisedText: [{
+                    text: "askdh ashd olahs",
+                    timeStamp: 0
+                    }, {
+                    text: "elowz dlouaish dkajh",
+                    timeStamp: 1000
+                }]
+            }]
+            assert.deepStrictEqual(
+                NodeID3.read(frameBuf).synchronisedLyrics,
+                synchronisedLyrics
             )
         })
 
