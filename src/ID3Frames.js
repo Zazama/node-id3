@@ -164,8 +164,8 @@ module.exports.USLT = {
 
 module.exports.SYLT = {
     create: (data) => {
-        if(!data) {
-            return null
+        if(!(data instanceof Array)) {
+            data = [data]
         }
 
         const encoding = 1; // 16 bit unicode
