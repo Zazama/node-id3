@@ -257,7 +257,7 @@ declare module "node-id3" {
             text: string
          },
          /**
-          * SYLT frames
+          * `SYLT` tag frames
           *
           * @see {@link https://id3.org/d3v2.3.0 4.10. Synchronised lyrics/text}
           */
@@ -268,19 +268,12 @@ declare module "node-id3" {
              */
             language: string,
             /**
-             * Absolute time:
-             * - 1: MPEG frames unit
-             * - 2: milliseconds unit
+             * Absolute time unit:
+             * {@link Constants.TimeStampFormat}
              */
             timeStampFormat: number,
             /**
-             * - 0: other
-             * - 1: lyrics
-             * - 2: text transcription
-             * - 3: movement/part name (e.g. "Adagio")
-             * - 4: events (e.g. "Don Quijote enters the stage")
-             * - 5: chord (e.g. "Bb F Fsus")
-             * - 6: is trivia/'pop up' information
+             * {@link Constants.SynchronisedLyrics.ContentType}
              */
             contentType: number,
             /**
@@ -375,6 +368,75 @@ declare module "node-id3" {
             url: string
          }>,
          raw?: Tags
+      }
+      /**
+       * Documented constants used in tag frames.
+       *
+       * @see {@link https://id3.org/} for more information.
+       */
+      export const Constants: {
+         /**
+          * Absolute time unit used by:
+          * - Event timing codes (`ETCO` tag frame)
+          * - Synchronised tempo codes (`SYTC` tag frame)
+          * - Synchronised lyrics/text (`SYLT` tag frame)
+          * - Position synchronisation frame (`POSS` tag frame))
+          */
+         TimeStampFormat: {
+            MPEG_FRAMES: 1,
+            MILLISECONDS: 2
+         },
+         /**
+          * `SYLT` tag frame
+          */
+         SynchronisedLyrics: {
+               ContentType: {
+                  OTHER: 0x00,
+                  LYRICS: 0x01,
+                  TEXT_TRANSCRIPTION: 0x02,
+                  MOVEMENT_OR_PART_NAME: 0x03,
+                  EVENTS: 0x04,
+                  CHORD: 0x05,
+                  TRIVIA_OR_POP_UP_INFORMATION: 0x06
+               }
+         },
+         /**
+          * `APIC` tag frame
+          */
+         AttachedPicture: {
+            PictureType: {
+               OTHER: 0,
+               /**
+                * 32x32 pixels (PNG only)
+                */
+               FILE_ICON: 0x01,
+               OTHER_FILE_ICON: 0x02,
+               FRONT_COVER: 0x03,
+               BACK_COVER: 0x04,
+               LEAFLET_PAGE: 0x05,
+               /**
+                * Label side of CD
+                */
+               MEDIA: 0x06
+               /**
+                * Lead artist/lead performer/soloist
+                */,
+               LEAD_ARTIST: 0x07,
+               ARTIST_OR_PERFORMER: 0x08,
+               CONDUCTOR: 0x09,
+               BAND_OR_ORCHESTRA: 0x0A,
+               COMPOSER: 0x0B,
+               LYRICIST_OR_TEXT_WRITER: 0x0C,
+               RECORDING_LOCATION: 0x0D,
+               DURING_RECORDING: 0x0E,
+               DURING_PERFORMANCE: 0x0F,
+               MOVIE_OR_VIDEO_SCREEN_CAPTURE: 0x10,
+               A_BRIGHT_COLOURED_FISH: 0x11,
+               ILLUSTRATION: 0x12,
+               BAND_OR_ARTIST_LOGOTYPE: 0x13,
+               PUBLISHER_OR_STUDIO_LOGOTYPE: 0x14
+            }
+         }
       }
       export function write(tags: Tags, filebuffer: Buffer): Buffer
       export function write(tags: Tags, filebuffer: Buffer, fun: (err: null, buffer: Buffer) => void): void

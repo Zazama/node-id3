@@ -189,11 +189,11 @@ unsynchronisedLyrics: {
   language: "eng",
   text: "lyrics"
 }
-// See documentation for more details.
+// See https://id3.org/ documentation for more details.
 synchronisedLyrics: [{
   language: "eng",
-  timeStampFormat: 2, // Absolute milliseconds
-  contentType: 1, // Lyrics
+  timeStampFormat: Constants.TimeStampFormat.MILLISECONDS,
+  contentType: Constants.SynchronisedLyrics.ContentType.LYRICS,
   shortText: "Content descriptor",
   synchronisedText: [{
     text: "part 1",
