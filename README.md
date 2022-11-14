@@ -10,7 +10,7 @@ node-id3 is an ID3-Tag library written in JavaScript.
 
 ## Installation
 
-```
+```sh
 npm install node-id3
 ```
 
@@ -142,7 +142,7 @@ NodeID3.removeTags(filepath)
 
 ## Supported aliases/fields
 
-```
+```text
 album:
 bpm:
 composer:
@@ -268,7 +268,7 @@ userDefinedUrl: [{
 
 You can also use the currently supported raw tags like TALB instead of album etc.
 
-```
+```text
 album:                "TALB"
 bpm:                  "TBPM"
 composer:             "TCOM"
