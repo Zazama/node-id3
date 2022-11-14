@@ -1,6 +1,6 @@
 {
   "name": "node-id3",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Pure JavaScript ID3v2 Tag writer and reader",
   "author": "Jan Metzger <jan.metzger@gmx.net>",
   "main": "index.js",
