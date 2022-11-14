@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.2.4] - 2022-11-09
+- Add synchronised lyrics (SYLT frame)
+
 ## [0.2.3] - 2021-04-30
 - Don't change APIC mime type on read
 - Fix unsynchronisation implementation

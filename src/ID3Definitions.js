@@ -86,6 +86,7 @@ const FRAME_IDENTIFIERS = {
         comment:                "COMM",
         image:                  "APIC",
         unsynchronisedLyrics:   "USLT",
+        synchronisedLyrics:     "SYLT",
         userDefinedText:        "TXXX",
         popularimeter:          "POPM",
         private:                "PRIV",
@@ -139,6 +140,9 @@ const ID3_FRAME_OPTIONS = {
         },
         "USLT": {
             multiple: false
+        },
+        "SYLT": {
+            multiple: true
         },
         "COMM": {
             multiple: false /* change in 1.0 */

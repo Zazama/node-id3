@@ -182,6 +182,20 @@ unsynchronisedLyrics: {
   language: "eng",
   text: "lyrics"
 }
+// See documentation for more details.
+synchronisedLyrics: [{
+  language: "eng",
+  timeStampFormat: 2, // Absolute milliseconds
+  contentType: 1, // Lyrics
+  shortText: "Content descriptor",
+  synchronisedText: [{
+    text: "part 1",
+    timeStamp: 0
+  }, {
+    text: "part 2",
+    timeStamp: 1000
+  }]
+}]
 userDefinedText: [{
   description: "txxx name",
   value: "TXXX value text"
@@ -287,6 +301,7 @@ year:                 "TYER"
 comment:              "COMM"
 image:                "APIC"
 unsynchronisedLyrics  "USLT"
+synchronisedLyrics    "SYLT"
 userDefinedText       "TXXX"
 popularimeter         "POPM"
 private               "PRIV"

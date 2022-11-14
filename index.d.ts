@@ -255,7 +255,46 @@ declare module "node-id3" {
          unsynchronisedLyrics?: {
             language: string,
             text: string
-         }
+         },
+         /**
+          * SYLT frames
+          *
+          * @see {@link https://id3.org/d3v2.3.0 4.10. Synchronised lyrics/text}
+          */
+         synchronisedLyrics?: Array<{
+            /**
+             * 3 letter ISO 639-2 language code, for example: eng
+             * @see {@link https://id3.org/ISO%20639-2 ISO 639-2}
+             */
+            language: string,
+            /**
+             * Absolute time:
+             * - 1: MPEG frames unit
+             * - 2: milliseconds unit
+             */
+            timeStampFormat: number,
+            /**
+             * - 0: other
+             * - 1: lyrics
+             * - 2: text transcription
+             * - 3: movement/part name (e.g. "Adagio")
+             * - 4: events (e.g. "Don Quijote enters the stage")
+             * - 5: chord (e.g. "Bb F Fsus")
+             * - 6: is trivia/'pop up' information
+             */
+            contentType: number,
+            /**
+             * Content descriptor
+             */
+            shortText?: string,
+            synchronisedText: Array<{
+               text: string,
+               /**
+                * Absolute time in unit according to `timeStampFormat`.
+                */
+               timeStamp: number
+            }>
+         }>,
          userDefinedText?: [{
             description: string,
             value: string
