@@ -9,6 +9,7 @@
 node-id3 is an ID3-Tag library written in JavaScript.
 
 ## Installation
+
 ```
 npm install node-id3
 ```
@@ -33,6 +34,7 @@ const tags = {
 ```
 
 ### Write tags to file
+
 If you have an existing file/buffer (e.g. an mp3 file) you can use the write method to write your tags into it. It will remove existing tags and add yours.
 
 ```javascript
@@ -42,6 +44,7 @@ NodeID3.write(tags, file, function(err) {  })
 ```
 
 ### Write tags to filebuffer
+
 ```javascript
 const success = NodeID3.write(tags, filebuffer) // Returns Buffer
 // async version
@@ -49,6 +52,7 @@ NodeID3.write(tags, file, function(err, buffer) {  })
 ```
 
 ### Update existing tags of file or buffer
+
 The update method works like the write method but will keep or overwrite existing tags instead of removing them.
 
 ```javascript
@@ -70,7 +74,9 @@ NodeID3.update(tags, filebuffer, options, function(err, buffer) {  })
 ```
 
 ### Create tags as buffer
+
 The create method will return a buffer of your ID3-Tag. You can use it to e.g. write it into a file yourself instead of using the write method.
+
 ```javascript
 const success = NodeID3.create(tags) // Returns ID3-Tag Buffer
 // async version
@@ -135,6 +141,7 @@ NodeID3.removeTags(filepath)
 ```
 
 ## Supported aliases/fields
+
 ```
 album:
 bpm:
@@ -258,7 +265,9 @@ userDefinedUrl: [{
 ```
 
 ### Supported raw IDs
+
 You can also use the currently supported raw tags like TALB instead of album etc.
+
 ```
 album:                "TALB"
 bpm:                  "TBPM"
