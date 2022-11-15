@@ -438,7 +438,8 @@ module.exports.removeTagsFromBuffer = function(data) {
 
     let hSize = Buffer.from([data[framePosition + 6], data[framePosition + 7], data[framePosition + 8], data[framePosition + 9]])
 
-    if ((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80) {
+    const isMsbSet = !!((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80)
+    if (isMsbSet) {
         //  Invalid tag size (msb not 0)
         return false
     }
