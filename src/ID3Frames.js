@@ -65,6 +65,11 @@ module.exports.APIC = {
                 }
             }
 
+            const Constants = ID3Definitions.Constants.AttachedPicture
+            const pictureType = data.type || {};
+            const pictureTypeId = pictureType.id === undefined
+                ? Constants.PictureType.FRONT_COVER : pictureType.id
+
             /*
              * Fix a bug in iTunes where the artwork is not recognized when the description is empty using UTF-16.
              * Instead, if the description is empty, use encoding 0x00 (ISO-8859-1).
@@ -74,7 +79,7 @@ module.exports.APIC = {
             return new ID3FrameBuilder("APIC")
               .appendStaticNumber(encoding, 1)
               .appendNullTerminatedValue(mime_type)
-              .appendStaticNumber(0x03, 1)
+              .appendStaticNumber(pictureTypeId, 1)
               .appendNullTerminatedValue(description, encoding)
               .appendStaticValue(data.imageBuffer)
               .getBuffer()

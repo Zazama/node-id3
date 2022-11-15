@@ -292,14 +292,26 @@ declare module "node-id3" {
             description: string,
             value: string
          }]
+         /**
+          * `APIC` (attached picture) tag frames
+          *
+          * Filename or image data.
+          */
          image?: string | {
             mime: string
             /**
              * See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
              */
             type: {
+               /**
+                * {@link Constants.AttachedPicture.PictureType }
+                */
                id: number,
-               name: string
+               /**
+                * @deprecated Provided as an information when a tag is read,
+                * unused when a tag is written.
+                */
+               name?: string
             },
             description: string,
             imageBuffer: Buffer,

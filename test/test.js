@@ -131,7 +131,9 @@ describe('NodeID3', function () {
                     description: "asdf",
                     imageBuffer: Buffer.from('5B307836312C20307836322C20307836332C20307836345D', 'hex'),
                     mime: "image/jpeg",
-                    type: {id: 3, name: "front cover"}
+                    type: {
+                        id: NodeID3.Constants.AttachedPicture.FRONT_COVER
+                    }
                 }
             }
 

@@ -213,8 +213,7 @@ userDefinedText: [{
 image: {
   mime: "image/png",
   type: {
-    id: 3,
-    name: "front cover
+    id: Constants.AttachedPicture.PictureType.FRONT_COVER
   }, // See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
   description: "image description",
   imageBuffer: (file buffer)
