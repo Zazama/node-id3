@@ -1,4 +1,4 @@
-name: CI
+name: Continuous Integration
 
 on: [push, pull_request]
 
@@ -16,3 +16,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm install
       - run: npm test
+
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'latest'
+      - run: npm install -g markdownlint-cli
+      - run: markdownlint '**/*.md' --ignore node_modules

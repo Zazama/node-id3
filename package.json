@@ -32,7 +32,8 @@
     "example": "example"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "markdownlint": "markdownlint --fix README.md CHANGELOG.md"
   },
   "license": "MIT",
   "dependencies": {
@@ -41,6 +42,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "jsmediatags": "^3.9.3",
+    "markdownlint-cli": "^0.32.2",
     "mocha": "8.1.3"
   }
 }
