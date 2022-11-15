@@ -33,7 +33,7 @@
   },
   "scripts": {
     "test": "mocha",
-    "markdownlint": "markdownlint --fix --ignore node_modules '**/*.md'"
+    "markdownlint": "markdownlint --fix README.md CHANGELOG.md"
   },
   "license": "MIT",
   "dependencies": {
