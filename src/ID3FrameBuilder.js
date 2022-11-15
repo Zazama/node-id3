@@ -25,7 +25,7 @@ ID3FrameBuilder.prototype.appendStaticNumber = function(value, size) {
 }
 
 ID3FrameBuilder.prototype.appendNullTerminatedValue = function(value, encoding = 0x00) {
-    if(!value) value = ''
+    value = value || ''
     const convertedValue = convertValue(value, encoding)
     this._buffer = Buffer.concat([this._buffer, nullTerminatedValueToBuffer(convertedValue, encoding)])
     return this
@@ -44,22 +44,24 @@ ID3FrameBuilder.prototype.getBuffer = function() {
 function convertValue(value, encoding = 0x00) {
     if (value instanceof Buffer) {
         return value
-    } else if(Number.isInteger(value)) {
-        return ID3Util.stringToEncodedBuffer(value.toString(), encoding)
-    } else if (typeof value === 'string' || value instanceof String) {
-        return ID3Util.stringToEncodedBuffer(value, encoding)
-    } else {
-        return Buffer.alloc(0)
     }
+    if(Number.isInteger(value)) {
+        return ID3Util.stringToEncodedBuffer(value.toString(), encoding)
+    }
+    if (typeof value === 'string' || value instanceof String) {
+        return ID3Util.stringToEncodedBuffer(value, encoding)
+    }
+    return Buffer.alloc(0)
 }
 
 function staticValueToBuffer(buffer, size) {
-    if(!(buffer instanceof Buffer)) return Buffer.alloc(0)
+    if(!(buffer instanceof Buffer)) {
+        return Buffer.alloc(0)
+    }
     if(size && buffer.length < size) {
         return Buffer.concat([Buffer.alloc(size - buffer.length, 0x00), buffer])
-    } else {
-        return buffer
     }
+    return buffer
 }
 
 function nullTerminatedValueToBuffer(buffer, encoding) {

@@ -30,19 +30,17 @@ module.exports.splitNullTerminatedBuffer = function(buffer, encodingByte = 0x00)
     if(termination.start === -1) {
         return new this.SplitBuffer(null, buffer.slice(0))
     }
-    else if(buffer.length <= termination.start + termination.length) {
+    if(buffer.length <= termination.start + termination.length) {
         return new this.SplitBuffer(buffer.slice(0, termination.start), null)
-    } else {
-        return new this.SplitBuffer(buffer.slice(0, termination.start), buffer.slice(termination.start + termination.size))
     }
+    return new this.SplitBuffer(buffer.slice(0, termination.start), buffer.slice(termination.start + termination.size))
 }
 
 module.exports.terminationBuffer = function(encodingByte = 0x00) {
     if(encodingByte === 0x01 || encodingByte === 0x02) {
         return Buffer.alloc(2, 0x00)
-    } else {
-        return Buffer.alloc(1, 0x00)
     }
+    return Buffer.alloc(1, 0x00)
 }
 
 module.exports.encodingFromStringOrByte = function(encoding) {
@@ -101,9 +99,8 @@ module.exports.getFramePosition = function(buffer) {
 
     if(!frameHeaderValid) {
         return -1;
-    } else {
-        return framePosition;
     }
+    return framePosition;
 }
 
 /**

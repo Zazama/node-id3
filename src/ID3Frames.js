@@ -308,8 +308,12 @@ module.exports.CHAP = {
             endOffsetBytes: reader.consumeStaticValue('number', 4),
             tags: nodeId3.getTagsFromFrames(nodeId3.getFramesFromID3Body(reader.consumeStaticValue(), 3, 4, 10), 3)
         }
-        if(chap.startOffsetBytes === 0xFFFFFFFF) delete chap.startOffsetBytes
-        if(chap.endOffsetBytes === 0xFFFFFFFF) delete chap.endOffsetBytes
+        if(chap.startOffsetBytes === 0xFFFFFFFF) {
+            delete chap.startOffsetBytes
+        }
+        if(chap.endOffsetBytes === 0xFFFFFFFF) {
+            delete chap.endOffsetBytes
+        }
         return chap
     }
 }
