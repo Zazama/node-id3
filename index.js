@@ -9,6 +9,18 @@ const zlib = require('zlib')
 */
 
 /**
+ * @param {any} value
+ * @returns {boolean} true if value is a function
+ */
+const isFunction = (value) => value && typeof value === 'function'
+
+/**
+ * @param {any} value
+ * @returns  {boolean} true if value is a string
+ */
+const isString = (value) => typeof value === 'string' || value instanceof String
+
+/**
  * Write passed tags to a file/buffer
  * @param tags - Object containing tags to be written
  * @param filebuffer - Can contain a filepath string or buffer
@@ -20,7 +32,7 @@ module.exports.write = function(tags, filebuffer, fn) {
     if(filebuffer instanceof Buffer) {
         filebuffer = this.removeTagsFromBuffer(filebuffer) || filebuffer
         let completeBuffer = Buffer.concat([completeTag, filebuffer])
-        if(fn && typeof fn === 'function') {
+        if(isFunction(fn)) {
             fn(null, completeBuffer)
             return undefined
         } else {
@@ -28,7 +40,7 @@ module.exports.write = function(tags, filebuffer, fn) {
         }
     }
 
-    if(fn && typeof fn === 'function') {
+    if(isFunction(fn)) {
         try {
             fs.readFile(filebuffer, function(err, data) {
                 if(err) {
@@ -96,7 +108,7 @@ module.exports.create = function(tags, fn) {
     frames[0].writeUInt8(size[2], 8)
     frames[0].writeUInt8(size[3], 9)
 
-    if(fn && typeof fn === 'function') {
+    if(isFunction(fn)) {
         fn(Buffer.concat(frames))
     } else {
         return Buffer.concat(frames)
@@ -172,13 +184,13 @@ module.exports.read = function(filebuffer, options, fn) {
         fn = fn || options
         options = {}
     }
-    if(!fn || typeof fn !== 'function') {
-        if(typeof filebuffer === "string" || filebuffer instanceof String) {
+    if(!isFunction(fn)) {
+        if(isString(filebuffer)) {
             filebuffer = fs.readFileSync(filebuffer)
         }
         return this.getTagsFromBuffer(filebuffer, options)
     } else {
-        if(typeof filebuffer === "string" || filebuffer instanceof String) {
+        if(isString(filebuffer)) {
             fs.readFile(filebuffer, function(err, data) {
                 if(err) {
                     fn(err, null)
@@ -246,7 +258,7 @@ module.exports.update = function(tags, filebuffer, options, fn) {
         return currentTags
     }
 
-    if(!fn || typeof fn !== 'function') {
+    if(!isFunction(fn)) {
         return this.write(updateFn(this.read(filebuffer, options)), filebuffer)
     }
 
@@ -459,7 +471,7 @@ module.exports.removeTagsFromBuffer = function(data) {
  * @returns {boolean|Error}
  */
 module.exports.removeTags = function(filepath, fn) {
-    if(!fn || typeof fn !== 'function') {
+    if(!isFunction(fn)) {
         let data
         try {
             data = fs.readFileSync(filepath)
