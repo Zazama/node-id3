@@ -465,53 +465,69 @@ module.exports.removeTagsFromBuffer = function(data) {
 }
 
 /**
- * Checks and removes already written ID3-Frames from a file
- * @param filepath - Filepath to file
- * @param fn - (optional) Function for async usage
+ * @param {string} filepath - Filepath to file
  * @returns {boolean|Error}
  */
-module.exports.removeTags = function(filepath, fn) {
-    if(!isFunction(fn)) {
-        let data
-        try {
-            data = fs.readFileSync(filepath)
-        } catch(e) {
-            return e
-        }
-
-        let newData = this.removeTagsFromBuffer(data)
-        if(!newData) {
-            return false
-        }
-
-        try {
-            fs.writeFileSync(filepath, newData, 'binary')
-        } catch(e) {
-            return e
-        }
-
-        return true
+ module.exports.removeTagsSync = function(filepath) {
+    let data
+    try {
+        data = fs.readFileSync(filepath)
+    } catch(error) {
+        return error
     }
 
-    fs.readFile(filepath, function(err, data) {
-        if(err) {
-            fn(err)
+    const newData = this.removeTagsFromBuffer(data)
+    if(!newData) {
+        return false
+    }
+
+    try {
+        fs.writeFileSync(filepath, newData, 'binary')
+    } catch(error) {
+        return error
+    }
+
+    return true
+}
+
+/**
+ * @param {string} filepath - Filepath to file
+ * @param {(error: Error) => void} fn - Function for async usage
+ * @returns {void}
+ */
+ module.exports.removeTagsAsync = function(filepath, fn) {
+    fs.readFile(filepath, function(error, data) {
+        if(error) {
+            fn(error)
         }
 
-        let newData = this.removeTagsFromBuffer(data)
+        const newData = this.removeTagsFromBuffer(data)
         if(!newData) {
-            fn(err)
+            fn(error)
             return
         }
 
-        fs.writeFile(filepath, newData, 'binary', function(err) {
-            if(err) {
-                fn(err)
+        fs.writeFile(filepath, newData, 'binary', function(error) {
+            if(error) {
+                fn(error)
             } else {
                 fn(false)
             }
         })
     }.bind(this))
+}
+
+/**
+ * Checks and removes already written ID3-Frames from a file
+ * @param {string} filepath - Filepath to file
+ * @param fn - (optional) Function for async usage
+ * @returns {boolean|Error}
+ */
+module.exports.removeTags = function(filepath, fn) {
+    if(!isFunction(fn)) {
+        return this.removeTagsSync(filepath)
+    }
+    return this.removeTagsAsync(filepath, fn)
 }
 
 module.exports.Promise = {
