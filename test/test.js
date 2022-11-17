@@ -131,7 +131,9 @@ describe('NodeID3', function () {
                     description: "asdf",
                     imageBuffer: Buffer.from('5B307836312C20307836322C20307836332C20307836345D', 'hex'),
                     mime: "image/jpeg",
-                    type: {id: 3, name: "front cover"}
+                    type: {
+                        id: NodeID3.Constants.AttachedPicture.FRONT_COVER
+                    }
                 }
             }
 
@@ -184,11 +186,12 @@ describe('NodeID3', function () {
         })
 
         it('create SYLT frame', function() {
+            const Constants = NodeID3.Constants
             let tags = {
                 synchronisedLyrics: [{
                     language: "deu",
-                    timeStampFormat: 2, // Milliseconds
-                    contentType: 1, // Lyrics
+                    timeStampFormat: Constants.TimeStampFormat.MILLISECONDS,
+                    contentType: Constants.SynchronisedLyrics.ContentType.LYRICS,
                     shortText: "Haiwsää#",
                     synchronisedText: [{
                         text: "askdh ashd olahs",
@@ -553,10 +556,11 @@ describe('NodeID3', function () {
 
         it('read SYLT frame', function() {
             let frameBuf = Buffer.from('4944330300000000007c53594c54000000720000016465750201fffe48006100690077007300e400e40023000000fffe610073006b00640068002000610073006800640020006f006c00610068007300000000000000fffe65006c006f0077007a00200064006c006f0075006100690073006800200064006b0061006a0068000000000003e8', 'hex')
+            const Constants = NodeID3.Constants;
             const synchronisedLyrics = [{
                 language: "deu",
-                timeStampFormat: 2, // Milliseconds
-                contentType: 1, // Lyrics
+                timeStampFormat: Constants.TimeStampFormat.MILLISECONDS,
+                contentType: Constants.SynchronisedLyrics.ContentType.LYRICS,
                 shortText: "Haiwsää#",
                 synchronisedText: [{
                     text: "askdh ashd olahs",

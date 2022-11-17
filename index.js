@@ -535,3 +535,5 @@ module.exports.Promise = {
         })
     }
 }
+
+module.exports.Constants = ID3Definitions.Constants
