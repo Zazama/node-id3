@@ -2,6 +2,7 @@ const fs = require('fs')
 const ID3FrameBuilder = require("./ID3FrameBuilder")
 const ID3FrameReader = require("./ID3FrameReader")
 const ID3Definitions = require("./ID3Definitions")
+const ID3Util = require("./ID3Util");
 
 module.exports.GENERIC_TEXT = {
     create: (specName, data) => {
@@ -55,14 +56,8 @@ module.exports.APIC = {
 
             let mime_type = data.mime
 
-            if(!data.mime) {
-                if (data.imageBuffer.length > 3 && data.imageBuffer.compare(Buffer.from([0xff, 0xd8, 0xff]), 0, 3, 0, 3) === 0) {
-                    mime_type = "image/jpeg"
-                } else if (data.imageBuffer.length > 8 && data.imageBuffer.compare(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]), 0, 8, 0, 8) === 0) {
-                    mime_type = "image/png"
-                } else {
-                    mime_type = ""
-                }
+            if(!mime_type) {
+                mime_type = ID3Util.getPictureMimeTypeFromBuffer(data.imageBuffer)
             }
 
             /*
@@ -71,9 +66,9 @@ module.exports.APIC = {
              */
             const { description = '' } = data;
             const encoding = description ? 0x01 : 0x00
-            return new ID3FrameBuilder("APIC")
+            return new ID3FrameBuilder('APIC')
               .appendStaticNumber(encoding, 1)
-              .appendNullTerminatedValue(mime_type)
+              .appendNullTerminatedValue(mime_type ? mime_type : '')
               .appendStaticNumber(0x03, 1)
               .appendNullTerminatedValue(description, encoding)
               .appendStaticValue(data.imageBuffer)
@@ -390,5 +385,129 @@ module.exports.WXXX = {
             description: reader.consumeNullTerminatedValue('string'),
             url: reader.consumeStaticValue('string', null, 0x00)
         }
+    }
+}
+
+module.exports.ETCO = {
+    create: (data) => {
+        const builder = new ID3FrameBuilder("ETCO").appendStaticNumber(data.timeStampFormat, 1)
+        data.keyEvents = data.keyEvents || []
+        data.keyEvents.forEach((keyEvent) => {
+            builder
+                .appendStaticNumber(keyEvent.type, 1)
+                .appendStaticNumber(keyEvent.timeStamp, 4)
+        })
+
+        return builder.getBuffer()
+    },
+    read: (buffer) => {
+        const reader = new ID3FrameReader(buffer)
+
+        return {
+            timeStampFormat: reader.consumeStaticValue('number', 1),
+            keyEvents: Array.from((function*() {
+                while(true) {
+                    const type = reader.consumeStaticValue('number', 1)
+                    const timeStamp = reader.consumeStaticValue('number', 4)
+                    if (type === undefined || timeStamp === undefined) {
+                        break
+                    }
+                    yield {type, timeStamp}
+                }
+            })())
+        }
+    }
+}
+
+module.exports.COMR = {
+    create: (data) => {
+        if(!(data instanceof Array)) {
+            data = [data]
+        }
+
+        return Buffer.concat(data.map(comr => {
+            comr.prices = comr.prices || {}
+            const builder = new ID3FrameBuilder("COMR")
+
+            // Text encoding
+            builder.appendStaticNumber(0x01, 1)
+            // Price string
+            const priceString = Object.entries(comr.prices).map((price) => {
+                return price[0].substring(0, 3) + price[1].toString()
+            }).join('/')
+            builder.appendNullTerminatedValue(priceString, 0x00)
+            // Valid until
+            builder.appendStaticValue(
+                comr.validUntil.year.toString().padStart(4, '0').substring(0, 4) +
+                comr.validUntil.month.toString().padStart(2, '0').substring(0, 2) +
+                comr.validUntil.day.toString().padStart(2, '0').substring(0, 2),
+                8, 0x00
+            )
+            // Contact URL
+            builder.appendNullTerminatedValue(comr.contactUrl, 0x00)
+            // Received as
+            builder.appendStaticNumber(comr.receivedAs, 1)
+            // Name of seller
+            builder.appendNullTerminatedValue(comr.nameOfSeller, 0x01)
+            // Description
+            builder.appendNullTerminatedValue(comr.description, 0x01)
+            // Seller logo
+            if(comr.sellerLogo) {
+                let picture = comr.sellerLogo.picture;
+                if(typeof comr.sellerLogo.picture === 'string' || comr.sellerLogo.picture instanceof String) {
+                    picture = fs.readFileSync(comr.sellerLogo.picture)
+                }
+                let mimeType = comr.sellerLogo.mimeType || ID3Util.getPictureMimeTypeFromBuffer(picture)
+                // Only image/png and image/jpeg allowed
+                if(mimeType !== 'image/png' && 'image/jpeg') {
+                    mimeType = 'image/'
+                }
+
+                builder.appendNullTerminatedValue(mimeType ? mimeType : '', 0x00)
+                builder.appendStaticValue(picture)
+            }
+            return builder.getBuffer()
+        }))
+    },
+    read: (buffer) => {
+        const reader = new ID3FrameReader(buffer, 0)
+
+        let tag = {}
+
+        // Price string
+        const priceStrings = reader.consumeNullTerminatedValue('string', 0x00)
+            .split('/')
+            .filter((price) => price.length > 3)
+        tag.prices = {}
+        for(let price of priceStrings) {
+            tag.prices[price.substring(0, 3)] = price.substring(3)
+        }
+        // Valid until
+        const validUntilString = reader.consumeStaticValue('string', 8, 0x00)
+        tag.validUntil = { year: 0, month: 0, day: 0 }
+        if(/^\d+$/.test(validUntilString)) {
+            tag.validUntil.year = parseInt(validUntilString.substring(0, 4))
+            tag.validUntil.month = parseInt(validUntilString.substring(4, 6))
+            tag.validUntil.day = parseInt(validUntilString.substring(6))
+        }
+        // Contact URL
+        tag.contactUrl = reader.consumeNullTerminatedValue('string', 0x00)
+        // Received as
+        tag.receivedAs = reader.consumeStaticValue('number', 1)
+        // Name of seller
+        tag.nameOfSeller = reader.consumeNullTerminatedValue('string')
+        // Description
+        tag.description = reader.consumeNullTerminatedValue('string')
+        // Seller logo
+        const mimeType = reader.consumeNullTerminatedValue('string', 0x00)
+        const picture = reader.consumeStaticValue('buffer')
+        if(picture && picture.length > 0) {
+            tag.sellerLogo = {
+                mimeType,
+                picture
+            }
+        }
+
+        return tag
     }
 }

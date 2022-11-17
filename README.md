@@ -248,7 +248,7 @@ tableOfContents: [{
   elements: ['chap1'],  // OPTIONAL but most likely needed, contains the chapter/tableOfContents elementIDs
   tags: {               // OPTIONAL
     title: "abcdef"
-  }  
+  }
 }],
 commercialUrl: ["commercialurl.com"], // array or single string
 copyrightUrl: "example.com",
@@ -261,7 +261,28 @@ publisherUrl: "example.com",
 userDefinedUrl: [{
   description: "URL description"
   url: "https://example.com/"
-}] // array or single object
+}], // array or single object
+eventTimingCodes: {
+  timeStampFormat: Constants.TimeStampFormat.MILLISECONDS,
+  keyEvents: [
+    { type: Constants.EventTimingCodes.EventType.INTRO_START, timeStamp: 1000 }
+  ]
+},
+commercialFrame: [{
+  prices: {
+    'EUR': 15,
+    'DKK': 17.922
+  },
+  validUntil: { year: 2023, month: 9, day: 1},
+  contactUrl: 'https://example.com',
+  receivedAs: Constants.CommercialFrame.ReceivedAs.OTHER,
+  nameOfSeller: 'Someone',
+  description: 'Something',
+  sellerLogo: {
+    mimeType: 'image/',
+    picture: Buffer.alloc(15, 0x13)
+  }
+}]
 ```
 
 ### Supported raw IDs
@@ -325,4 +346,6 @@ radioStationUrl       "WORS"
 paymentUrl            "WPAY"
 publisherUrl          "WPUB"
 userDefinedUrl        "WXXX"
+eventTimingCodes      "ETCO"
+commercialFrame       "COMR"
 ```

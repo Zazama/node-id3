@@ -374,6 +374,74 @@ declare module "node-id3" {
             description: string,
             url: string
          }>,
+         /**
+          * ETCO frame
+          *
+          * @see {@link https://id3.org/id3v2.3.0#Event_timing_codes 4.6. Event timing codes}
+          */
+         eventTimingCodes?: {
+            /**
+             * Absolute time unit:
+             * {@link Constants.TimeStampFormat}
+             */
+            timeStampFormat: number,
+            keyEvents?: Array<{
+               /**
+                * {@link Constants.EventTimingCodes.EventType}
+                */
+               type: number,
+               /**
+                * Absolute time in unit according to `timeStampFormat`.
+                */
+               timeStamp: number
+            }>
+         },
+         commercialFrame?: Array<{
+            /**
+             * Object containing price information.
+             * Key is a three letter currency code according to ISO-4217 (e.g. EUR).
+             * Value is a price string or number, e.g. 17.52
+             */
+            prices: {
+               [currencyCode: string]: string|number
+            },
+            /**
+             * Describes how long the price is valid
+             */
+            validUntil: {
+               year: number,
+               month: number,
+               day: number
+            },
+            contactUrl?: string,
+            /**
+             * Describes how the audio is delivered when bought
+             * {@link Constants.CommercialFrame.ReceivedAs}
+             */
+            receivedAs: number,
+            /**
+             * Name of the seller
+             */
+            nameOfSeller?: string,
+            /**
+             * Short description of the product
+             */
+            description?: string,
+            /**
+             * Optional logo of the seller.
+             */
+            sellerLogo?: {
+               /**
+                * Mime type of picture.
+                * Only allowed values: image/jpeg, image/png, image/
+                */
+               mimeType?: string,
+               /**
+                * Buffer containing the picture
+                */
+               picture: Buffer
+            }
+         }>,
          raw?: Tags
       }
       export function write(tags: Tags, filebuffer: Buffer): Buffer

@@ -100,7 +100,9 @@ const FRAME_IDENTIFIERS = {
         audioSourceUrl:         "WOAS",
         radioStationUrl:        "WORS",
         paymentUrl:             "WPAY",
-        publisherUrl:           "WPUB"
+        publisherUrl:           "WPUB",
+        eventTimingCodes:       "ETCO",
+        commercialFrame:        "COMR"
     }
 }
 
@@ -167,6 +169,12 @@ const ID3_FRAME_OPTIONS = {
             multiple: true
         },
         "WOAR": {
+            multiple: true
+        },
+        "ETCO": {
+            multiple: false
+        },
+        "COMR": {
             multiple: true
         }
     }

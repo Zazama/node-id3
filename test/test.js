@@ -302,6 +302,64 @@ describe('NodeID3', function () {
                 frameBuf
             )
         })
+
+        it('create ETCO frame', function() {
+            const frameBuf = Buffer.from('494433030000000000154554434F0000000B00000101000003E80500000539', 'hex')
+            const tags = {
+                eventTimingCodes: {
+                    timeStampFormat: 0x01,
+                    keyEvents: [
+                        { type: 0x01, timeStamp: 1000 },
+                        { type: 0x05, timeStamp: 1337 }
+                    ]
+                }
+            }
+
+            assert.deepStrictEqual(
+                NodeID3.create(tags),
+                frameBuf
+            )
+        })
+
+        it('create COMR frame', function() {
+            const frameBufRandomImage = Buffer.from('49443303000000000076434f4d520000006c00000145555231352f444b4b31372e39323200303939393039303168747470733a2f2f6578616d706c652e636f6d0005fffe53006f006d0065006f006e0065000000fffe53006f006d0065007400680069006e0067000000696d6167652f00131313131313131313131313131313', 'hex')
+            let tags = {
+                commercialFrame: {
+                    prices: {
+                        'EUR': 15,
+                        'DKK': 17.922
+                    },
+                    validUntil: { year: 999, month: 9, day: 1},
+                    contactUrl: 'https://example.com',
+                    receivedAs: 0x05,
+                    nameOfSeller: 'Someone',
+                    description: 'Something',
+                    sellerLogo: {
+                        picture: Buffer.alloc(15, 0x13)
+                    }
+                }
+            }
+
+            assert.deepStrictEqual(
+                NodeID3.create(tags),
+                frameBufRandomImage
+            )
+
+            tags.commercialFrame.sellerLogo.picture = __dirname + '/smallimg'
+            const resultWithPictureString = NodeID3.create(tags)
+            tags.commercialFrame.sellerLogo.picture = fs.readFileSync(__dirname + '/smallimg')
+            const resultWithPictureBuffer = NodeID3.create(tags)
+
+            assert.deepStrictEqual(resultWithPictureBuffer, resultWithPictureString)
+
+            delete tags.commercialFrame.sellerLogo
+            const frameBufNoImage = Buffer.from('49443303000000000060434f4d520000005600000145555231352f444b4b31372e39323200303939393039303168747470733a2f2f6578616d706c652e636f6d0005fffe53006f006d0065006f006e0065000000fffe53006f006d0065007400680069006e0067000000', 'hex')
+
+            assert.deepStrictEqual(
+                NodeID3.create(tags),
+                frameBufNoImage
+            )
+        })
     })
 
     describe('#write()', function() {
@@ -607,6 +665,60 @@ describe('NodeID3', function () {
             assert.deepStrictEqual(
                 NodeID3.read(frameBuf).fileUrl,
                 fileUrl
+            )
+        })
+
+        it('read ETCO frame', function() {
+            const frameBuf = Buffer.from('494433030000000000154554434F0000000B00000101000003E80500000539', 'hex')
+
+            const eventTimingCodes = {
+                timeStampFormat: 0x01,
+                keyEvents: [
+                    { type: 0x01, timeStamp: 1000 },
+                    { type: 0x05, timeStamp: 1337 }
+                ]
+            }
+
+            assert.deepStrictEqual(
+                NodeID3.read(frameBuf).eventTimingCodes,
+                eventTimingCodes
+            )
+        })
+
+        it('read COMR frame', function() {
+            const frameBufRandomImage = Buffer.from('49443303000000000076434f4d520000006c00000145555231352f444b4b31372e39323200303939393039303168747470733a2f2f6578616d706c652e636f6d0005fffe53006f006d0065006f006e0065000000fffe53006f006d0065007400680069006e0067000000696d6167652f00131313131313131313131313131313', 'hex')
+            let tags = {
+                commercialFrame: {
+                    prices: {
+                        'EUR': 15,
+                        'DKK': 17.922
+                    },
+                    validUntil: { year: 999, month: 9, day: 1},
+                    contactUrl: 'https://example.com',
+                    receivedAs: 0x05,
+                    nameOfSeller: 'Someone',
+                    description: 'Something',
+                    sellerLogo: {
+                        picture: Buffer.alloc(15, 0x13)
+                    }
+                }
+            }
+
+            tags.commercialFrame.sellerLogo.mimeType = 'image/'
+            tags.commercialFrame.prices['EUR'] = tags.commercialFrame.prices['EUR'].toString()
+            tags.commercialFrame.prices['DKK'] = tags.commercialFrame.prices['DKK'].toString()
+
+            assert.deepStrictEqual(
+                NodeID3.read(frameBufRandomImage).commercialFrame[0],
+                tags.commercialFrame
+            )
+
+            delete tags.commercialFrame.sellerLogo
+            const frameBufNoImage = Buffer.from('49443303000000000060434f4d520000005600000145555231352f444b4b31372e39323200303939393039303168747470733a2f2f6578616d706c652e636f6d0005fffe53006f006d0065006f006e0065000000fffe53006f006d0065007400680069006e0067000000', 'hex')
+
+            assert.deepStrictEqual(
+                NodeID3.read(frameBufNoImage).commercialFrame[0],
+                tags.commercialFrame
             )
         })
 
