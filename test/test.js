@@ -310,10 +310,10 @@ describe('NodeID3', function () {
             const frameBuf = Buffer.from('494433030000000000154554434F0000000B00000101000003E80500000539', 'hex')
             const tags = {
                 eventTimingCodes: {
-                    timeStampFormat: 0x01,
+                    timeStampFormat: NodeID3.Constants.TimeStampFormat.MPEG_FRAMES,
                     keyEvents: [
-                        { type: 0x01, timeStamp: 1000 },
-                        { type: 0x05, timeStamp: 1337 }
+                        { type: NodeID3.Constants.EventTimingCodes.EventType.END_OF_INITIAL_SILENCE, timeStamp: 1000 },
+                        { type: NodeID3.Constants.EventTimingCodes.EventType.OUTRO_END, timeStamp: 1337 }
                     ]
                 }
             }
@@ -334,7 +334,7 @@ describe('NodeID3', function () {
                     },
                     validUntil: { year: 999, month: 9, day: 1},
                     contactUrl: 'https://example.com',
-                    receivedAs: 0x05,
+                    receivedAs: NodeID3.Constants.CommercialFrame.ReceivedAs.AS_NOTE_SHEETS,
                     nameOfSeller: 'Someone',
                     description: 'Something',
                     sellerLogo: {
