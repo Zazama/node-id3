@@ -172,6 +172,27 @@ module.exports.createBuffersFromTags = function(tags) {
     return frames
 }
 
+function readSync(filebuffer, options) {
+    if(isString(filebuffer)) {
+        filebuffer = fs.readFileSync(filebuffer)
+    }
+    return this.getTagsFromBuffer(filebuffer, options)
+}
+
+function readAsync(filebuffer, options, fn) {
+    if(isString(filebuffer)) {
+        fs.readFile(filebuffer, (error, data) => {
+            if(error) {
+                fn(error, null)
+            } else {
+                fn(null, this.getTagsFromBuffer(data, options))
+            }
+        })
+    } else {
+        fn(null, this.getTagsFromBuffer(filebuffer, options))
+    }
+}
+
 /**
  * Read ID3-Tags from passed buffer/filepath
  * @param filebuffer - Can contain a filepath string or buffer
@@ -184,24 +205,10 @@ module.exports.read = function(filebuffer, options, fn) {
         fn = fn || options
         options = {}
     }
-    if(!isFunction(fn)) {
-        if(isString(filebuffer)) {
-            filebuffer = fs.readFileSync(filebuffer)
-        }
-        return this.getTagsFromBuffer(filebuffer, options)
-    } else {
-        if(isString(filebuffer)) {
-            fs.readFile(filebuffer, function(err, data) {
-                if(err) {
-                    fn(err, null)
-                } else {
-                    fn(null, this.getTagsFromBuffer(data, options))
-                }
-            }.bind(this))
-        } else {
-            fn(null, this.getTagsFromBuffer(filebuffer, options))
-        }
+    if(isFunction(fn)) {
+        return readAsync.bind(this)(filebuffer, options, fn)
     }
+    return readSync.bind(this)(filebuffer, options)
 }
 
 /**
