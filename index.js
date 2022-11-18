@@ -538,29 +538,21 @@ module.exports.removeTags = function(filepath, fn) {
     return removeTagsSync(filepath)
 }
 
+function makePromise(fn) {
+    return new Promise((resolve, reject) => {
+        fn((error, result) => {
+            if(error) {
+                reject(error)
+            } else {
+                resolve(result)
+            }
+        })
+    })
+}
+
 module.exports.Promise = {
-    write: (tags, file) => {
-        return new Promise((resolve, reject) => {
-            this.write(tags, file, (err, ret) => {
-                if(err) {
-                    reject(err)
-                } else {
-                    resolve(ret)
-                }
-            })
-        })
-    },
-    update: (tags, file) => {
-        return new Promise((resolve, reject) => {
-            this.update(tags, file, (err, ret) => {
-                if(err) {
-                    reject(err)
-                } else {
-                    resolve(ret)
-                }
-            })
-        })
-    },
+    write: (tags, file) => makePromise(this.write.bind(this, tags, file)),
+    update: (tags, file) => makePromise(this.update.bind(this, tags, file)),
     create: (tags) => {
         return new Promise((resolve) => {
             this.create(tags, (buffer) => {
@@ -568,28 +560,8 @@ module.exports.Promise = {
             })
         })
     },
-    read: (file, options) => {
-        return new Promise((resolve, reject) => {
-            this.read(file, options, (err, ret) => {
-                if(err) {
-                    reject(err)
-                } else {
-                    resolve(ret)
-                }
-            })
-        })
-    },
-    removeTags: (filepath) => {
-        return new Promise((resolve, reject) => {
-            this.removeTags(filepath, (err) => {
-                if(err) {
-                    reject(err)
-                } else {
-                    resolve()
-                }
-            })
-        })
-    }
+    read: (file, options) => makePromise(this.read.bind(this, file, options)),
+    removeTags: (filepath) => makePromise(this.removeTags.bind(this, filepath))
 }
 
 module.exports.Constants = ID3Definitions.Constants
