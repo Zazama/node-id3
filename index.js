@@ -441,8 +441,9 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
  * @param data - Buffer
  * @returns {boolean|Buffer}
  */
-module.exports.removeTagsFromBuffer = function(data) {
-    let framePosition = ID3Util.getFramePosition(data)
+module.exports.removeTagsFromBuffer = removeTagsFromBuffer
+function removeTagsFromBuffer(data) {
+        let framePosition = ID3Util.getFramePosition(data)
 
     if (framePosition === -1) {
         return data
@@ -468,7 +469,7 @@ module.exports.removeTagsFromBuffer = function(data) {
  * @param {string} filepath - Filepath to file
  * @returns {boolean|Error}
  */
- module.exports.removeTagsSync = function(filepath) {
+function removeTagsSync(filepath) {
     let data
     try {
         data = fs.readFileSync(filepath)
@@ -476,7 +477,7 @@ module.exports.removeTagsFromBuffer = function(data) {
         return error
     }
 
-    const newData = this.removeTagsFromBuffer(data)
+    const newData = removeTagsFromBuffer(data)
     if(!newData) {
         return false
     }
@@ -495,26 +496,26 @@ module.exports.removeTagsFromBuffer = function(data) {
  * @param {(error: Error) => void} fn - Function for async usage
  * @returns {void}
  */
- module.exports.removeTagsAsync = function(filepath, fn) {
-    fs.readFile(filepath, function(error, data) {
+function removeTagsAsync(filepath, fn) {
+    fs.readFile(filepath, (error, data) => {
         if(error) {
             fn(error)
         }
 
-        const newData = this.removeTagsFromBuffer(data)
+        const newData = removeTagsFromBuffer(data)
         if(!newData) {
             fn(error)
             return
         }
 
-        fs.writeFile(filepath, newData, 'binary', function(error) {
+        fs.writeFile(filepath, newData, 'binary', (error) => {
             if(error) {
                 fn(error)
             } else {
                 fn(false)
             }
         })
-    }.bind(this))
+    })
 }
 
 /**
@@ -525,9 +526,9 @@ module.exports.removeTagsFromBuffer = function(data) {
  */
 module.exports.removeTags = function(filepath, fn) {
     if(!isFunction(fn)) {
-        return this.removeTagsSync(filepath)
+        return removeTagsSync(filepath)
     }
-    return this.removeTagsAsync(filepath, fn)
+    return removeTagsAsync(filepath, fn)
 }
 
 module.exports.Promise = {
