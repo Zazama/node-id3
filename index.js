@@ -525,10 +525,10 @@ function removeTagsAsync(filepath, fn) {
  * @returns {boolean|Error}
  */
 module.exports.removeTags = function(filepath, fn) {
-    if(!isFunction(fn)) {
-        return removeTagsSync(filepath)
+    if(isFunction(fn)) {
+        return removeTagsAsync(filepath, fn)
     }
-    return removeTagsAsync(filepath, fn)
+    return removeTagsSync(filepath)
 }
 
 module.exports.Promise = {
