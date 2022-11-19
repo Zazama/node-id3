@@ -116,6 +116,14 @@ module.exports.createBuffersFromTags = function(tags) {
     const rawObject = Object.keys(tags).reduce((acc, val) => {
         if(ID3Definitions.FRAME_IDENTIFIERS.v3[val] !== undefined) {
             acc[ID3Definitions.FRAME_IDENTIFIERS.v3[val]] = tags[val]
+        } else if(ID3Definitions.FRAME_IDENTIFIERS.v4[val] !== undefined) {
+            /**
+             * Currently, node-id3 always writes ID3 version 3.
+             * However, version 3 and 4 are very similar, and node-id3 can also read version 4 frames.
+             * Until version 4 is fully supported, as a workaround, allow writing version 4 frames into a version 3 tag.
+             * If a reader does not support a v4 frame, it's (per spec) supposed to skip it, so it should not be a problem.
+             */
+            acc[ID3Definitions.FRAME_IDENTIFIERS.v4[val]] = tags[val]
         } else {
             acc[val] = tags[val]
         }
@@ -323,8 +331,19 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
     let raw = { }
 
     frames.forEach((frame) => {
-        const specName = ID3Version === 2 ? ID3Definitions.FRAME_IDENTIFIERS.v3[ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]] : frame.name
-        const identifier = ID3Version === 2 ? ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name] : ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.name]
+        let specName
+        let identifier
+        if(ID3Version === 2) {
+            specName = ID3Definitions.FRAME_IDENTIFIERS.v3[ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]]
+            identifier = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]
+        } else if(ID3Version === 3 || ID3Version === 4) {
+            /**
+             * Due to their similarity, it's possible to mix v3 and v4 frames even if they don't exist in their corrosponding spec.
+             * Programs like Mp3tag allow you to do so, so we should allow reading e.g. v4 frames from a v3 ID3 Tag
+             */
+            specName = frame.name
+            identifier = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.name] || ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v4[frame.name]
+        }
 
         if(!specName || !identifier || frame.flags.encryption) {
             return

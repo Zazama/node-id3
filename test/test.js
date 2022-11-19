@@ -363,6 +363,21 @@ describe('NodeID3', function () {
                 frameBufNoImage
             )
         })
+
+        it('create mixed v3/v4 tag', function() {
+            const frameBuf = Buffer.from('494433030000000000315449543200000009000001fffe61006c006c005459455200000005000001fffe33005444524300000005000001fffe3400', 'hex')
+
+            const tags = {
+                title: "all",
+                year: 3,
+                recordingTime: 4
+            }
+
+            assert.deepStrictEqual(
+                NodeID3.create(tags),
+                frameBuf
+            )
+        })
     })
 
     describe('#write()', function() {
@@ -723,6 +738,21 @@ describe('NodeID3', function () {
             assert.deepStrictEqual(
                 NodeID3.read(frameBufNoImage).commercialFrame[0],
                 tags.commercialFrame
+            )
+        })
+
+        it('create mixed v3/v4 tag', function() {
+            const frameBuf = Buffer.from('494433030000000000315449543200000009000001fffe61006c006c005459455200000005000001fffe33005444524300000005000001fffe3400', 'hex')
+
+            const tags = {
+                title: "all",
+                year: "3",
+                recordingTime: "4"
+            }
+
+            assert.deepStrictEqual(
+                NodeID3.read(frameBuf, { noRaw: true }),
+                tags
             )
         })
 

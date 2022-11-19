@@ -65,15 +65,10 @@ module.exports.bufferToDecodedString = function(buffer, encodingByte) {
 }
 
 module.exports.getSpecOptions = function(specName, version) {
-    if(version === 2) {
-        if(ID3Definitions.ID3_FRAME_OPTIONS.v2[specName] && ID3Definitions.ID3_FRAME_OPTIONS.v2[specName]) {
-            return ID3Definitions.ID3_FRAME_OPTIONS.v2[specName]
-        }
-    } else if (version === 3 || version === 4) {
-        if(ID3Definitions.ID3_FRAME_OPTIONS.v3[specName] && ID3Definitions.ID3_FRAME_OPTIONS.v3[specName]) {
-            return ID3Definitions.ID3_FRAME_OPTIONS.v3[specName]
-        }
+    if(ID3Definitions.ID3_FRAME_OPTIONS[specName]) {
+        return ID3Definitions.ID3_FRAME_OPTIONS[specName]
     }
+
     return {}
 }
 

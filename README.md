@@ -148,11 +148,17 @@ bpm:
 composer:
 genre:
 copyright:
+encodingTime:
 date:
 playlistDelay:
+originalReleaseTime:
+recordingTime:
+releaseTime:
+taggingTime:
 encodedBy:
 textWriter:
 fileType:
+involvedPeopleList:
 time:
 contentGroup:
 title:
@@ -160,7 +166,9 @@ subtitle:
 initialKey:
 language:
 length:
+musicianCreditsList:
 mediaType:
+mood:
 originalTitle:
 originalFilename:
 originalTextwriter:
@@ -172,14 +180,19 @@ performerInfo: // (album artist)
 conductor:
 remixArtist:
 partOfSet:
+producedNotice:
 publisher:
 trackNumber:
 recordingDates:
 internetRadioName:
 internetRadioOwner:
+albumSortOrder:
+performerSortOrder:
+titleSortOrder:
 size:
 ISRC:
 encodingTechnology:
+setSubtitle:
 year:
 comment: {
   language: "eng",
@@ -295,18 +308,26 @@ composer:             "TCOM"
 genre:                "TCON"
 copyright:            "TCOP"
 date:                 "TDAT"
+encodingTime:         "TDEN"
 playlistDelay:        "TDLY"
+originalReleaseTime:  "TDOR"
+recordingTime:        "TDRC"
+releaseTime:          "TDRL"
+taggingTime:          "TDTG"
 encodedBy:            "TENC"
 textWriter:           "TEXT"
 fileType:             "TFLT"
 time:                 "TIME"
+involvedPeopleList:   "TIPL"
 contentGroup:         "TIT1"
 title:                "TIT2"
 subtitle:             "TIT3"
 initialKey:           "TKEY"
 language:             "TLAN"
 length:               "TLEN"
+musicianCreditsList:  "TMCL"
 mediaType:            "TMED"
+mood:                 "TMOO"
 originalTitle:        "TOAL"
 originalFilename:     "TOFN"
 originalTextwriter:   "TOLY"
@@ -318,14 +339,19 @@ performerInfo:        "TPE2"    (album artist)
 conductor:            "TPE3"
 remixArtist:          "TPE4"
 partOfSet:            "TPOS"
+producedNotice:       "TPRO"
 publisher:            "TPUB"
 trackNumber:          "TRCK"
 recordingDates:       "TRDA"
 internetRadioName:    "TRSN"
 internetRadioOwner:   "TRSO"
 size:                 "TSIZ"
+albumSortOrder:       "TSOA"
+performerSortOrder:   "TSOP"
+titleSortOrder:       "TSOT"
 ISRC:                 "TSRC"
 encodingTechnology:   "TSSE"
+setSubtitle:          "TSST"
 year:                 "TYER"
 comment:              "COMM"
 image:                "APIC"

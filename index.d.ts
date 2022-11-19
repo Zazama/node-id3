@@ -24,6 +24,11 @@ declare module "node-id3" {
           */
          copyright?: string,
          /**
+          * The 'Encoding time' frame contains a timestamp describing when the
+            audio was encoded. Valid timestamps are yyyy, yyyy-MM, yyyy-MM-dd, yyyy-MM-ddTHH, yyyy-MM-ddTHH:mm and yyyy-MM-ddTHH:mm:ss.
+          */
+         encodingTime?: string,
+         /**
           * The 'Date' frame is a numeric string in the DDMM format containing the date for the recording. This field is always four characters long.
           */
          date?: string,
@@ -31,6 +36,22 @@ declare module "node-id3" {
           * The 'Playlist delay' defines the numbers of milliseconds of silence between every song in a playlist. The player should use the "ETC" frame, if present, to skip initial silence and silence at the end of the audio to match the 'Playlist delay' time. The time is represented as a numeric string.
           */
          playlistDelay?: string,
+         /**
+          * The 'Original release time' frame contains a timestamp describing when the original recording of the audio was released. Valid timestamps are yyyy, yyyy-MM, yyyy-MM-dd, yyyy-MM-ddTHH, yyyy-MM-ddTHH:mm and yyyy-MM-ddTHH:mm:ss.
+          */
+         originalReleaseTime?: string,
+         /**
+          * The 'Recording time' frame contains a timestamp describing when the audio was recorded. Valid timestamps are yyyy, yyyy-MM, yyyy-MM-dd, yyyy-MM-ddTHH, yyyy-MM-ddTHH:mm and yyyy-MM-ddTHH:mm:ss.
+          */
+         recordingTime?: string,
+         /**
+          * The 'Release time' frame contains a timestamp describing when the audio was first released. Valid timestamps are yyyy, yyyy-MM, yyyy-MM-dd, yyyy-MM-ddTHH, yyyy-MM-ddTHH:mm and yyyy-MM-ddTHH:mm:ss.
+          */
+         releaseTime?: string,
+         /**
+          * The 'Tagging time' frame contains a timestamp describing then the audio was tagged. Valid timestamps are yyyy, yyyy-MM, yyyy-MM-dd, yyyy-MM-ddTHH, yyyy-MM-ddTHH:mm and yyyy-MM-ddTHH:mm:ss.
+          */
+         taggingTime?: string,
          /**
           * The 'Encoded by' frame contains the name of the person or organisation that encoded the audio file. This field may contain a copyright message, if the audio file also is copyrighted by the encoder.
           */
@@ -54,6 +75,10 @@ declare module "node-id3" {
           * but other types may be used, not for these types though. This is used in a similar way to the predefined types in the "Media type" frame, but without parentheses. If this frame is not present audio type is assumed to be "MPG".
           */
          fileType?: string,
+         /**
+          * The 'Involved people list' is very similar to the musician credits list, but maps between functions, like producer, and names.
+          */
+         involvedPeopleList?: string,
          /**
           * The 'Time' frame is a numeric string in the HHMM format containing the time for the recording. This field is always four characters long.
           */
@@ -82,6 +107,10 @@ declare module "node-id3" {
           * The 'Length' frame contains the length of the audiofile in milliseconds, represented as a numeric string.
           */
          length?: string,
+         /**
+          * The 'Musician credits list' is intended as a mapping between instruments and the musician that played it. Every odd field is an instrument and every even is an artist or a comma delimited list of artists.
+          */
+         musicianCreditsList?: string,
          /**
           * The 'Media type' frame describes from which media the sound originated. This may be a text string or a reference to the predefined media types found in the list below. References are made within "(" and ")" and are optionally followed by a text refinement, e.g. "(MC) with four channels". If a text refinement should begin with a "(" character it should be replaced with "((". Predefined refinements is appended after the media type, e.g. "(CD/A)" or "(VID/PAL/VHS)".
           *
@@ -169,6 +198,10 @@ declare module "node-id3" {
           */
          mediaType?: string,
          /**
+          * The 'Mood' frame is intended to reflect the mood of the audio with a few keywords, e.g. "Romantic" or "Sad".
+          */
+         mood?: string,
+         /**
           * The 'Original album/movie/show title' frame is intended for the title of the original recording (or source of sound), if for example the music in the file should be a cover of a previously released song.
           */
          originalTitle?: string,
@@ -213,6 +246,11 @@ declare module "node-id3" {
           */
          partOfSet?: string,
          /**
+          * The 'Produced notice' frame, in which the string must begin with a year and a space character (making five characters), is intended for the production copyright holder of the original sound, not the audio file itself. The absence of this frame means only that the production copyright information is unavailable or has been removed, and must not be interpreted to mean that the audio is public domain. Every time this field is displayed the field must be preceded with "Produced " (P) " ", where (P) is one character showing a P in a circle.
+
+          */
+         producedNotice?: string,
+         /**
           * The 'Publisher' frame simply contains the name of the label or publisher.
           */
          publisher?: string,
@@ -233,6 +271,18 @@ declare module "node-id3" {
           */
          internetRadioOwner?: string,
          /**
+          * The 'Album sort order' frame defines a string which should be used instead of the album name (TALB) for sorting purposes. E.g. an album named "A Soundtrack" might preferably be sorted as "Soundtrack".
+          */
+         albumSortOrder?: string,
+         /**
+          * The 'Performer sort order' frame defines a string which should be used instead of the performer (TPE2) for sorting purposes.
+          */
+         performerSortOrder?: string,
+         /**
+          * The 'Title sort order' frame defines a string which should be used instead of the title (TIT2) for sorting purposes.
+          */
+         titleSortOrder?: string,
+         /**
           * The 'Size' frame contains the size of the audiofile in bytes, excluding the ID3v2 tag, represented as a numeric string.
           */
          size?: string,
@@ -244,6 +294,10 @@ declare module "node-id3" {
           * The 'Software/Hardware and settings used for encoding' frame includes the used audio encoder and its settings when the file was encoded. Hardware refers to hardware encoders, not the computer on which a program was run.
           */
          encodingTechnology?: string,
+         /**
+          * The 'Set subtitle' frame is intended for the subtitle of the part of a set this track belongs to.
+          */
+         setSubtitle?: string,
          /**
           * The 'Year' frame is a numeric string with a year of the recording. This frames is always four characters long (until the year 10000).
           */
