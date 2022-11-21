@@ -3,22 +3,13 @@ const ID3Definitions = require("./src/ID3Definitions")
 const ID3Frames = require('./src/ID3Frames')
 const ID3Util = require('./src/ID3Util')
 const zlib = require('zlib')
+const { isFunction, isString } = require('./src/util')
 
 /*
 **  Used specification: http://id3.org/id3v2.3.0
 */
 
-/**
- * @param {any} value
- * @returns {boolean} true if value is a function
- */
-const isFunction = (value) => typeof value === 'function'
 
-/**
- * @param {any} value
- * @returns  {boolean} true if value is a string
- */
-const isString = (value) => typeof value === 'string' || value instanceof String
 
 /**
  * Write passed tags to a file/buffer
