@@ -109,9 +109,9 @@ module.exports.create = function(tags, fn) {
 
     if(isFunction(fn)) {
         fn(Buffer.concat(frames))
-    } else {
-        return Buffer.concat(frames)
+        return undefined
     }
+    return Buffer.concat(frames)
 }
 
 /**
