@@ -12,7 +12,7 @@ const zlib = require('zlib')
  * @param {any} value
  * @returns {boolean} true if value is a function
  */
-const isFunction = (value) => value && typeof value === 'function'
+const isFunction = (value) => typeof value === 'function'
 
 /**
  * @param {any} value
