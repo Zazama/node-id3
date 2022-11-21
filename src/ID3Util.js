@@ -73,15 +73,18 @@ module.exports.getSpecOptions = function(specName, version) {
 module.exports.isValidID3Header = function(buffer) {
     if(buffer.length < 10) {
         return false;
-    } else if(buffer.readUIntBE(0, 3) !== 0x494433) {
-        return false;
-    } else if([0x02, 0x03, 0x04].indexOf(buffer[3]) === -1 || buffer[4] !== 0x00) {
-        return false;
-    } else if(buffer[6] & 128 === 1 || buffer[7] & 128 === 1 || buffer[8] & 128 === 1 || buffer[9] & 128 === 1) {
+    }
+    if(buffer.readUIntBE(0, 3) !== 0x494433) {
         return false;
     }
-    return true;
-};
+    if([0x02, 0x03, 0x04].indexOf(buffer[3]) === -1 || buffer[4] !== 0x00) {
+        return false;
+    }
+    if((buffer[6] | buffer[7] | buffer[8] | buffer[9]) & 128 === 1) {
+        return false
+    }
+    return true
+}
 
 module.exports.getFramePosition = function(buffer) {
     /* Search Buffer for valid ID3 frame */
@@ -104,22 +107,44 @@ module.exports.getFramePosition = function(buffer) {
 }
 
 /**
+ * @param {Buffer} encodedSize
+ * @return {boolean} Return if the header contains a valid encoded size
+ */
+module.exports.isValidEncodedSize = function(encodedSize) {
+    // The size must not have the bit 7 set
+    return ((
+        encodedSize[0] |
+        encodedSize[1] |
+        encodedSize[2] |
+        encodedSize[3]
+    ) & 128) === 0
+}
+
+/**
  * ID3 header size uses only 7 bits of a byte, bit shift is needed
+ * @param {number} size
  * @return {Buffer} Return a Buffer of 4 bytes with the encoded size
  */
-module.exports.encodeSize = function(totalSize) {
-    let byte_3 = totalSize & 0x7F;
-    let byte_2 = (totalSize >> 7) & 0x7F;
-    let byte_1 = (totalSize >> 14) & 0x7F;
-    let byte_0 = (totalSize >> 21) & 0x7F;
+module.exports.encodeSize = function(size) {
+    const byte_3 = size & 0x7F;
+    const byte_2 = (size >> 7) & 0x7F;
+    const byte_1 = (size >> 14) & 0x7F;
+    const byte_0 = (size >> 21) & 0x7F;
     return Buffer.from([byte_0, byte_1, byte_2, byte_3]);
 };
 
 /**
- * @return {Buffer}
+ * Decode the size encoded in the ID3 header
+ * @param {Buffer} encodedSize
+ * @return {number} Return the decoded size
  */
-module.exports.decodeSize = function(hSize) {
-    return (hSize[0] << 21) + (hSize[1] << 14) + (hSize[2] << 7) + hSize[3];
+module.exports.decodeSize = function(encodedSize) {
+    return (
+        (encodedSize[0] << 21) +
+        (encodedSize[1] << 14) +
+        (encodedSize[2] << 7) +
+        encodedSize[3]
+    )
 };
 
 module.exports.getFrameSize = function(buffer, decode, ID3Version) {

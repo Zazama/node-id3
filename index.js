@@ -425,30 +425,31 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
     return tags
 }
 
+module.exports.removeTagsFromBuffer = removeTagsFromBuffer
+
 /**
  * Checks and removes already written ID3-Frames from a buffer
- * @param data - Buffer
+ * @param {Buffer} data
  * @returns {boolean|Buffer}
  */
-module.exports.removeTagsFromBuffer = removeTagsFromBuffer
-function removeTagsFromBuffer(data) {
-    let framePosition = ID3Util.getFramePosition(data)
+ function removeTagsFromBuffer(data) {
+    const framePosition = ID3Util.getFramePosition(data)
 
     if (framePosition === -1) {
         return data
     }
 
-    let hSize = Buffer.from([data[framePosition + 6], data[framePosition + 7], data[framePosition + 8], data[framePosition + 9]])
-
-    const isMsbSet = !!((hSize[0] | hSize[1] | hSize[2] | hSize[3]) & 0x80)
-    if (isMsbSet) {
-        //  Invalid tag size (msb not 0)
+    const encodedSize = data.slice(framePosition + 6, framePosition + 10)
+    if (!ID3Util.isValidEncodedSize(encodedSize)) {
         return false
     }
 
     if (data.length >= framePosition + 10) {
-        const size = ID3Util.decodeSize(data.slice(framePosition + 6, framePosition + 10))
-        return Buffer.concat([data.slice(0, framePosition), data.slice(framePosition + size + 10)])
+        const size = ID3Util.decodeSize(encodedSize)
+        return Buffer.concat([
+            data.slice(0, framePosition),
+            data.slice(framePosition + size + 10)
+        ])
     }
 
     return data
