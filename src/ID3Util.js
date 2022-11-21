@@ -104,7 +104,8 @@ module.exports.getFramePosition = function(buffer) {
 }
 
 /**
- * @return {Buffer}
+ * ID3 header size uses only 7 bits of a byte, bit shift is needed
+ * @return {Buffer} Return a Buffer of 4 bytes with the encoded size
  */
 module.exports.encodeSize = function(totalSize) {
     let byte_3 = totalSize & 0x7F;

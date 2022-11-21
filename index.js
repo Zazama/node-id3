@@ -75,43 +75,26 @@ module.exports.write = function(tags, filebuffer, fn) {
  * @returns {Buffer}
  */
 module.exports.create = function(tags, fn) {
-    let frames = []
+    const frames = this.createBuffersFromTags(tags)
 
-    //  Create & push a header for the ID3-Frame
+    //  Calculate ID3 body frames size for the header
+    const framesSize = frames.reduce((size, {length}) => size + length, 0)
+
+    //  Create ID3 header
     const header = Buffer.alloc(10)
     header.fill(0)
     header.write("ID3", 0)              //File identifier
     header.writeUInt16BE(0x0300, 3)     //Version 2.3.0  --  03 00
     header.writeUInt16BE(0x0000, 5)     //Flags 00
+    ID3Util.encodeSize(framesSize).copy(header, 6)
 
-    //Last 4 bytes are used for header size, but have to be inserted later, because at this point, its size is not clear.
-    frames.push(header)
-
-    frames = frames.concat(this.createBuffersFromTags(tags))
-
-    //  Calculate frame size of ID3 body to insert into header
-
-    let totalSize = 0
-    frames.forEach((frame) => {
-        totalSize += frame.length
-    })
-
-    //  Don't count ID3 header itself
-    totalSize -= 10
-    //  ID3 header size uses only 7 bits of a byte, bit shift is needed
-    let size = ID3Util.encodeSize(totalSize)
-
-    //  Write bytes to ID3 frame header, which is the first frame
-    frames[0].writeUInt8(size[0], 6)
-    frames[0].writeUInt8(size[1], 7)
-    frames[0].writeUInt8(size[2], 8)
-    frames[0].writeUInt8(size[3], 9)
+    const id3Data = [header].concat(frames)
 
     if(isFunction(fn)) {
-        fn(Buffer.concat(frames))
+        fn(Buffer.concat(id3Data))
         return undefined
     }
-    return Buffer.concat(frames)
+    return Buffer.concat(id3Data)
 }
 
 /**
