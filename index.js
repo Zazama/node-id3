@@ -9,7 +9,45 @@ const { isFunction, isString } = require('./src/util')
 **  Used specification: http://id3.org/id3v2.3.0
 */
 
+function writeInBuffer(tags, buffer, fn) {
+    buffer = removeTagsFromBuffer(buffer) || buffer
+    const completeBuffer = Buffer.concat([tags, buffer])
+    if(isFunction(fn)) {
+        fn(null, completeBuffer)
+        return undefined
+    }
+    return completeBuffer
+}
 
+function writeAsync(tags, filename, fn) {
+    try {
+        fs.readFile(filename, (error, data) => {
+            if(error) {
+                fn(error)
+                return
+            }
+            data = removeTagsFromBuffer(data) || data
+            const newData = Buffer.concat([tags, data])
+            fs.writeFile(filename, newData, 'binary', (error) => {
+                fn(error)
+            })
+        })
+    } catch(error) {
+        fn(error)
+    }
+}
+
+function writeSync(tags, filename) {
+    try {
+        let data = fs.readFileSync(filename)
+        data = removeTagsFromBuffer(data) || data
+        const newData = Buffer.concat([tags, data])
+        fs.writeFileSync(filename, newData, 'binary')
+    } catch(error) {
+        return error
+    }
+    return true
+}
 
 /**
  * Write passed tags to a file/buffer
@@ -19,45 +57,15 @@ const { isFunction, isString } = require('./src/util')
  * @returns {boolean|Buffer|Error}
  */
 module.exports.write = function(tags, filebuffer, fn) {
-    let completeTag = this.create(tags)
-    if(filebuffer instanceof Buffer) {
-        filebuffer = this.removeTagsFromBuffer(filebuffer) || filebuffer
-        let completeBuffer = Buffer.concat([completeTag, filebuffer])
-        if(isFunction(fn)) {
-            fn(null, completeBuffer)
-            return undefined
-        } else {
-            return completeBuffer
-        }
-    }
+    const completeTags = this.create(tags)
 
-    if(isFunction(fn)) {
-        try {
-            fs.readFile(filebuffer, function(err, data) {
-                if(err) {
-                    fn(err)
-                    return
-                }
-                data = this.removeTagsFromBuffer(data) || data
-                let rewriteFile = Buffer.concat([completeTag, data])
-                fs.writeFile(filebuffer, rewriteFile, 'binary', (err) => {
-                    fn(err)
-                })
-            }.bind(this))
-        } catch(err) {
-            fn(err)
-        }
-    } else {
-        try {
-            let data = fs.readFileSync(filebuffer)
-            data = this.removeTagsFromBuffer(data) || data
-            let rewriteFile = Buffer.concat([completeTag, data])
-            fs.writeFileSync(filebuffer, rewriteFile, 'binary')
-            return true
-        } catch(err) {
-            return err
-        }
+    if(filebuffer instanceof Buffer) {
+        return writeInBuffer(completeTags, filebuffer, fn)
     }
+    if(isFunction(fn)) {
+        return writeAsync(completeTags, filebuffer, fn)
+    }
+    return writeSync(completeTags, filebuffer)
 }
 
 /**
@@ -441,7 +449,7 @@ module.exports.getTagsFromFrames = function(frames, ID3Version, options = {}) {
  */
 module.exports.removeTagsFromBuffer = removeTagsFromBuffer
 function removeTagsFromBuffer(data) {
-        let framePosition = ID3Util.getFramePosition(data)
+    let framePosition = ID3Util.getFramePosition(data)
 
     if (framePosition === -1) {
         return data
