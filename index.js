@@ -522,28 +522,37 @@ module.exports.removeTags = function(filepath, fn) {
     return removeTagsSync(filepath)
 }
 
-function makePromise(fn) {
+function makeSwapParameters(fn) {
+    return (a, b) => fn(b, a)
+}
+
+// The reorderParameter is a workaround because the callback function
+// does not have a consistent interface between all the API functions.
+// Ideally, all the functions should align with the promise style and
+// always have the result first and the error second.
+// Changing this would break the current public API.
+// This could be changed internally and swap the parameter in a light
+// wrapper when creating the public interface and then remove in a
+// version 1.0 later with an API breaking change.
+function makePromise(
+    fn,
+    reorderParameters = fn => (a, b) => fn(a, b)
+) {
     return new Promise((resolve, reject) => {
-        fn((error, result) => {
+        fn(reorderParameters((error, result) => {
             if(error) {
                 reject(error)
             } else {
                 resolve(result)
             }
-        })
+        }))
     })
 }
 
 module.exports.Promise = {
     write: (tags, file) => makePromise(this.write.bind(this, tags, file)),
     update: (tags, file) => makePromise(this.update.bind(this, tags, file)),
-    create: (tags) => {
-        return new Promise((resolve) => {
-            this.create(tags, (buffer) => {
-                resolve(buffer)
-            })
-        })
-    },
+    create: (tags) => makePromise(this.create.bind(this, tags), makeSwapParameters),
     read: (file, options) => makePromise(this.read.bind(this, file, options)),
     removeTags: (filepath) => makePromise(this.removeTags.bind(this, filepath))
 }
