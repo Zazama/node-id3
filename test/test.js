@@ -478,15 +478,6 @@ describe('NodeID3', function () {
             )
         })
 
-        /*it('read tag with broken tag', function() {
-            let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
-            frame[3] = 0x99
-            assert.deepStrictEqual(
-                NodeID3.read(frame),
-                { raw: { }}
-            )
-        })*/
-
         it('read tag with bigger size', function() {
             let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
             const newFrameSize = 127
@@ -504,6 +495,15 @@ describe('NodeID3', function () {
             assert.deepStrictEqual(
                 NodeID3.read(frame),
                 { title: "asdfghjÄÖP", raw: { TIT2: "asdfghjÄÖP" }}
+            )
+        })
+
+       it('read tag with invalid size', function() {
+            let frame = NodeID3.create({ title: 'a' })
+            frame[9] = 128
+            assert.deepStrictEqual(
+                NodeID3.read(frame).raw,
+                {}
             )
         })
 
