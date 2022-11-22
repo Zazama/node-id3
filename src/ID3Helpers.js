@@ -241,8 +241,5 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
 }
 
 module.exports.getTagsFromID3Body = function(body) {
-    return getTagsFromFrames(
-        getFramesFromID3Body(body, 3 /*, 4, 10*/),
-        3
-    )
+    return getTagsFromFrames(getFramesFromID3Body(body, 3), 3)
 }
