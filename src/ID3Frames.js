@@ -399,9 +399,10 @@ module.exports.WXXX = {
 
 module.exports.ETCO = {
     create: (data) => {
-        const builder = new ID3FrameBuilder("ETCO").appendStaticNumber(data.timeStampFormat, 1)
-        data.keyEvents = data.keyEvents || []
-        data.keyEvents.forEach((keyEvent) => {
+        const builder = new ID3FrameBuilder("ETCO")
+            .appendStaticNumber(data.timeStampFormat, 1)
+        const keyEvents = data.keyEvents || []
+        keyEvents.forEach((keyEvent) => {
             builder
                 .appendStaticNumber(keyEvent.type, 1)
                 .appendStaticNumber(keyEvent.timeStamp, 4)
@@ -435,13 +436,13 @@ module.exports.COMR = {
         }
 
         return Buffer.concat(data.map(comr => {
-            comr.prices = comr.prices || {}
+            const prices = comr.prices || {}
             const builder = new ID3FrameBuilder("COMR")
 
             // Text encoding
             builder.appendStaticNumber(0x01, 1)
             // Price string
-            const priceString = Object.entries(comr.prices).map((price) => {
+            const priceString = Object.entries(prices).map((price) => {
                 return price[0].substring(0, 3) + price[1].toString()
             }).join('/')
             builder.appendNullTerminatedValue(priceString, 0x00)
