@@ -490,6 +490,7 @@ function removeTagsAsync(filepath, fn) {
     fs.readFile(filepath, (error, data) => {
         if(error) {
             fn(error)
+            return
         }
 
         const newData = removeTagsFromBuffer(data)
@@ -502,7 +503,7 @@ function removeTagsAsync(filepath, fn) {
             if(error) {
                 fn(error)
             } else {
-                fn(false)
+                fn(null)
             }
         })
     })
