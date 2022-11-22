@@ -381,11 +381,16 @@ describe('NodeID3', function () {
     })
 
     describe('#write()', function() {
+        const nonExistingFilepath = './hopefully-does-not-exist.mp3'
         it('sync not existing filepath', function() {
-            assert.throws(NodeID3.write.bind({}, './hopefullydoesnotexist.mp3'), Error)
+            chai.assert.isFalse(fs.existsSync(nonExistingFilepath))
+            chai.assert.instanceOf(
+                NodeID3.write({}, nonExistingFilepath), Error
+            )
         })
         it('async not existing filepath', function() {
-            NodeID3.write({}, './hopefullydoesnotexist.mp3', function(err) {
+            chai.assert.isFalse(fs.existsSync(nonExistingFilepath))
+            NodeID3.write({}, nonExistingFilepath, function(err) {
                 if(!(err instanceof Error)) {
                     assert.fail("No error thrown on non-existing filepath")
                 }
