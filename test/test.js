@@ -489,7 +489,9 @@ describe('NodeID3', function () {
 
         it('read tag with bigger size', function() {
             let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
-            frame[9] += 100
+            const newFrameSize = 127
+            frame[9] = 127
+            assert.ok(frame.length < newFrameSize + 10)
             assert.deepStrictEqual(
                 NodeID3.read(frame),
                 { title: "asdfghjÄÖP", album: "naBGZwssg", raw: { TIT2: "asdfghjÄÖP", TALB: "naBGZwssg" }}

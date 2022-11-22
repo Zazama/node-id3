@@ -80,10 +80,7 @@ module.exports.isValidID3Header = function(buffer) {
     if([0x02, 0x03, 0x04].indexOf(buffer[3]) === -1 || buffer[4] !== 0x00) {
         return false;
     }
-    if((buffer[6] | buffer[7] | buffer[8] | buffer[9]) & 128 === 1) {
-        return false
-    }
-    return true
+    return this.isValidEncodedSize(buffer.slice(6, 10))
 }
 
 module.exports.getFramePosition = function(buffer) {
