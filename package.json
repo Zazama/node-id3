@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "jsmediatags": "^3.9.3",
     "markdownlint-cli": "^0.32.2",
     "mocha": "8.1.3"
