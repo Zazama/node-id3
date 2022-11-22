@@ -3,6 +3,8 @@ const ID3FrameBuilder = require("./ID3FrameBuilder")
 const ID3FrameReader = require("./ID3FrameReader")
 const ID3Definitions = require("./ID3Definitions")
 const ID3Util = require("./ID3Util");
+const ID3Helpers = require('./ID3Helpers')
+const { isString } = require('./util')
 
 module.exports.GENERIC_TEXT = {
     create: (specName, data) => {
@@ -46,7 +48,7 @@ module.exports.APIC = {
                 data = {
                     imageBuffer: Buffer.from(data)
                 }
-            } else if (typeof data === 'string' || data instanceof String) {
+            } else if (isString(data)) {
                 data = {
                     imageBuffer: fs.readFileSync(data)
                 }
@@ -78,8 +80,8 @@ module.exports.APIC = {
               .appendNullTerminatedValue(description, encoding)
               .appendStaticValue(data.imageBuffer)
               .getBuffer()
-        } catch(e) {
-            return e
+        } catch(error) {
+            return error
         }
     },
     read: (buffer, version) => {
@@ -135,7 +137,7 @@ module.exports.COMM = {
 module.exports.USLT = {
     create: (data) => {
         data = data || {}
-        if(typeof data === 'string' || data instanceof String) {
+        if(isString(data)) {
             data = {
                 text: data
             }
@@ -279,7 +281,7 @@ module.exports.PRIV = {
 }
 
 module.exports.CHAP = {
-    create: (data, version, nodeId3) => {
+    create: (data) => {
         if (!(data instanceof Array)) {
             data = [data]
         }
@@ -294,11 +296,11 @@ module.exports.CHAP = {
                 .appendStaticNumber(chap.endTimeMs, 4)
                 .appendStaticNumber(chap.startOffsetBytes ? chap.startOffsetBytes : 0xFFFFFFFF, 4)
                 .appendStaticNumber(chap.endOffsetBytes ? chap.endOffsetBytes : 0xFFFFFFFF, 4)
-                .appendStaticValue(nodeId3.create(chap.tags).slice(10))
+                .appendStaticValue(ID3Helpers.createBufferFromTags(chap.tags))
                 .getBuffer()
         }).filter(chap => chap instanceof Buffer))
     },
-    read: (buffer, version, nodeId3) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer)
         let chap = {
             elementID: reader.consumeNullTerminatedValue('string'),
@@ -306,7 +308,7 @@ module.exports.CHAP = {
             endTimeMs: reader.consumeStaticValue('number', 4),
             startOffsetBytes: reader.consumeStaticValue('number', 4),
             endOffsetBytes: reader.consumeStaticValue('number', 4),
-            tags: nodeId3.getTagsFromFrames(nodeId3.getFramesFromID3Body(reader.consumeStaticValue(), 3, 4, 10), 3)
+            tags: ID3Helpers.getTagsFromID3Body(reader.consumeStaticValue())
         }
         if(chap.startOffsetBytes === 0xFFFFFFFF) {
             delete chap.startOffsetBytes
@@ -319,7 +321,7 @@ module.exports.CHAP = {
 }
 
 module.exports.CTOC = {
-    create: (data, version, nodeId3) => {
+    create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
@@ -348,12 +350,12 @@ module.exports.CTOC = {
                 builder.appendNullTerminatedValue(el)
             })
             if(toc.tags) {
-                builder.appendStaticValue(nodeId3.create(toc.tags).slice(10))
+                builder.appendStaticValue(ID3Helpers.createBufferFromTags(toc.tags))
             }
             return builder.getBuffer()
         }).filter((toc) => toc instanceof Buffer))
     },
-    read: (buffer, version, nodeId3) => {
+    read: (buffer) => {
         const reader = new ID3FrameReader(buffer)
         const elementID = reader.consumeNullTerminatedValue('string')
         const flags = reader.consumeStaticValue('number', 1)
@@ -362,7 +364,7 @@ module.exports.CTOC = {
         for(let i = 0; i < entries; i++) {
             elements.push(reader.consumeNullTerminatedValue('string'))
         }
-        const tags = nodeId3.getTagsFromFrames(nodeId3.getFramesFromID3Body(reader.consumeStaticValue(), 3, 4, 10), 3)
+        const tags = ID3Helpers.getTagsFromID3Body(reader.consumeStaticValue())
 
         return {
             elementID,
