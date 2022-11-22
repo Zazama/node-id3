@@ -403,8 +403,7 @@ module.exports.ETCO = {
     create: (data) => {
         const builder = new ID3FrameBuilder("ETCO")
             .appendStaticNumber(data.timeStampFormat, 1)
-        const keyEvents = data.keyEvents || []
-        keyEvents.forEach((keyEvent) => {
+        data.keyEvents.forEach((keyEvent) => {
             builder
                 .appendStaticNumber(keyEvent.type, 1)
                 .appendStaticNumber(keyEvent.timeStamp, 4)

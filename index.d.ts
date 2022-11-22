@@ -444,7 +444,7 @@ declare module "node-id3" {
              * {@link Constants.TimeStampFormat}
              */
             timeStampFormat: number,
-            keyEvents?: Array<{
+            keyEvents: Array<{
                /**
                 * {@link Constants.EventTimingCodes.EventType}
                 */
