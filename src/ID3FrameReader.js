@@ -3,7 +3,9 @@ module.exports = ID3FrameReader
 const ID3Util = require('./ID3Util')
 
 function ID3FrameReader(buffer, encodingBytePosition, consumeEncodingByte = true) {
-    if(!buffer || !(buffer instanceof Buffer)) buffer = Buffer.alloc(0)
+    if(!buffer || !(buffer instanceof Buffer)) {
+        buffer = Buffer.alloc(0)
+    }
     if(Number.isInteger(encodingBytePosition)) {
         this._encoding = buffer[encodingBytePosition] ? buffer[encodingBytePosition] : 0x00
         if(consumeEncodingByte) {
@@ -30,22 +32,27 @@ ID3FrameReader.prototype._consumeByFunction = function(fn, dataType, encoding) {
     this._splitBuffer = fn()
     if(dataType) {
         return convertValue(this._splitBuffer.value, dataType, encoding)
-    } else {
-        return this._splitBuffer.value
     }
+    return this._splitBuffer.value
 }
 
 function convertValue(buffer, dataType, encoding = 0x00) {
-    if(!buffer) return undefined
-    if(!(buffer instanceof Buffer)) return buffer
-    if(buffer.length === 0) return undefined
-    if(dataType === "number") {
-        return parseInt(buffer.toString('hex'), 16)
-    } else if (dataType === "string") {
-        return ID3Util.bufferToDecodedString(buffer, encoding)
-    } else {
+    if(!buffer) {
+        return undefined
+    }
+    if(!(buffer instanceof Buffer)) {
         return buffer
     }
+    if(buffer.length === 0) {
+        return undefined
+    }
+    if(dataType === "number") {
+        return parseInt(buffer.toString('hex'), 16)
+    }
+    if (dataType === "string") {
+        return ID3Util.bufferToDecodedString(buffer, encoding)
+    }
+    return buffer
 }
 
 function staticValueFromBuffer(buffer, size) {
@@ -54,9 +61,8 @@ function staticValueFromBuffer(buffer, size) {
     }
     if(buffer.length > size) {
         return new ID3Util.SplitBuffer(buffer.slice(0, size), buffer.slice(size))
-    } else {
-        return new ID3Util.SplitBuffer(buffer.slice(0), null)
     }
+    return new ID3Util.SplitBuffer(buffer.slice(0), null)
 }
 
 function nullTerminatedValueFromBuffer(buffer, encoding = 0x00) {
