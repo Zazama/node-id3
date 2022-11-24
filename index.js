@@ -316,7 +316,7 @@ function makePromise(
 const PromiseExport = {
     create: (tags) => makePromise(create.bind(null, tags), makeSwapParameters),
     write: (tags, file) => makePromise(write.bind(null, tags, file)),
-    update: (tags, file) => makePromise(update.bind(null, tags, file)),
+    update: (tags, file, options) => makePromise(update.bind(null, tags, file, options)),
     read: (file, options) => makePromise(read.bind(null, file, options)),
     removeTags: (filepath) => makePromise(removeTags.bind(null, filepath))
 }
