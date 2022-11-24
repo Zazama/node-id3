@@ -62,10 +62,10 @@ module.exports.APIC = {
                 mime_type = ID3Util.getPictureMimeTypeFromBuffer(data.imageBuffer)
             }
 
-            const Constants = ID3Definitions.Constants.AttachedPicture
+            const TagConstants = ID3Definitions.TagConstants.AttachedPicture
             const pictureType = data.type || {};
             const pictureTypeId = pictureType.id === undefined
-                ? Constants.PictureType.FRONT_COVER : pictureType.id
+                ? TagConstants.PictureType.FRONT_COVER : pictureType.id
 
             /*
              * Fix a bug in iTunes where the artwork is not recognized when the description is empty using UTF-16.

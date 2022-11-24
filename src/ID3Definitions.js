@@ -285,7 +285,7 @@ const ENCODINGS = [
  *
  * @see {@link https://id3.org/} for more information.
  */
-const Constants = {
+const TagConstants = {
     /**
      * Absolute time unit used by:
      * - Event timing codes (`ETCO` tag frame)
@@ -427,4 +427,4 @@ module.exports.ENCODINGS = ENCODINGS
 module.exports.FRAME_IDENTIFIERS = FRAME_IDENTIFIERS
 module.exports.FRAME_INTERNAL_IDENTIFIERS = FRAME_INTERNAL_IDENTIFIERS
 module.exports.ID3_FRAME_OPTIONS = ID3_FRAME_OPTIONS
-module.exports.Constants = Constants
+module.exports.TagConstants = TagConstants

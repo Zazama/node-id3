@@ -323,11 +323,11 @@ declare module "node-id3" {
             language: string,
             /**
              * Absolute time unit:
-             * {@link Constants.TimeStampFormat}
+             * {@link TagConstants.TimeStampFormat}
              */
             timeStampFormat: number,
             /**
-             * {@link Constants.SynchronisedLyrics.ContentType}
+             * {@link TagConstants.SynchronisedLyrics.ContentType}
              */
             contentType: number,
             /**
@@ -358,7 +358,7 @@ declare module "node-id3" {
              */
             type: {
                /**
-                * {@link Constants.AttachedPicture.PictureType }
+                * {@link TagConstants.AttachedPicture.PictureType }
                 */
                id: number,
                /**
@@ -441,12 +441,12 @@ declare module "node-id3" {
          eventTimingCodes?: {
             /**
              * Absolute time unit:
-             * {@link Constants.TimeStampFormat}
+             * {@link TagConstants.TimeStampFormat}
              */
             timeStampFormat: number,
             keyEvents: Array<{
                /**
-                * {@link Constants.EventTimingCodes.EventType}
+                * {@link TagConstants.EventTimingCodes.EventType}
                 */
                type: number,
                /**
@@ -475,7 +475,7 @@ declare module "node-id3" {
             contactUrl?: string,
             /**
              * Describes how the audio is delivered when bought
-             * {@link Constants.CommercialFrame.ReceivedAs}
+             * {@link TagConstants.CommercialFrame.ReceivedAs}
              */
             receivedAs: number,
             /**
@@ -508,7 +508,7 @@ declare module "node-id3" {
        *
        * @see {@link https://id3.org/} for more information.
        */
-      export const Constants: {
+      export const TagConstants: {
          /**
           * Absolute time unit used by:
           * - Event timing codes (`ETCO` tag frame)

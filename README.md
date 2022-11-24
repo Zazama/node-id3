@@ -205,8 +205,8 @@ unsynchronisedLyrics: {
 // See https://id3.org/ documentation for more details.
 synchronisedLyrics: [{
   language: "eng",
-  timeStampFormat: Constants.TimeStampFormat.MILLISECONDS,
-  contentType: Constants.SynchronisedLyrics.ContentType.LYRICS,
+  timeStampFormat: TagConstants.TimeStampFormat.MILLISECONDS,
+  contentType: TagConstants.SynchronisedLyrics.ContentType.LYRICS,
   shortText: "Content descriptor",
   synchronisedText: [{
     text: "part 1",
@@ -226,7 +226,7 @@ userDefinedText: [{
 image: {
   mime: "image/png",
   type: {
-    id: Constants.AttachedPicture.PictureType.FRONT_COVER
+    id: TagConstants.AttachedPicture.PictureType.FRONT_COVER
   }, // See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
   description: "image description",
   imageBuffer: (file buffer)
@@ -275,9 +275,9 @@ userDefinedUrl: [{
   url: "https://example.com/"
 }], // array or single object
 eventTimingCodes: {
-  timeStampFormat: Constants.TimeStampFormat.MILLISECONDS,
+  timeStampFormat: TagConstants.TimeStampFormat.MILLISECONDS,
   keyEvents: [
-    { type: Constants.EventTimingCodes.EventType.INTRO_START, timeStamp: 1000 }
+    { type: TagConstants.EventTimingCodes.EventType.INTRO_START, timeStamp: 1000 }
   ]
 },
 commercialFrame: [{
@@ -287,7 +287,7 @@ commercialFrame: [{
   },
   validUntil: { year: 2023, month: 9, day: 1},
   contactUrl: 'https://example.com',
-  receivedAs: Constants.CommercialFrame.ReceivedAs.OTHER,
+  receivedAs: TagConstants.CommercialFrame.ReceivedAs.OTHER,
   nameOfSeller: 'Someone',
   description: 'Something',
   sellerLogo: {

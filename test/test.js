@@ -132,7 +132,7 @@ describe('NodeID3', function () {
                     imageBuffer: Buffer.from('5B307836312C20307836322C20307836332C20307836345D', 'hex'),
                     mime: "image/jpeg",
                     type: {
-                        id: NodeID3.Constants.AttachedPicture.FRONT_COVER
+                        id: NodeID3.TagConstants.AttachedPicture.FRONT_COVER
                     }
                 }
             }
@@ -186,12 +186,12 @@ describe('NodeID3', function () {
         })
 
         it('create SYLT frame', function() {
-            const Constants = NodeID3.Constants
+            const TagConstants = NodeID3.TagConstants
             let tags = {
                 synchronisedLyrics: [{
                     language: "deu",
-                    timeStampFormat: Constants.TimeStampFormat.MILLISECONDS,
-                    contentType: Constants.SynchronisedLyrics.ContentType.LYRICS,
+                    timeStampFormat: TagConstants.TimeStampFormat.MILLISECONDS,
+                    contentType: TagConstants.SynchronisedLyrics.ContentType.LYRICS,
                     shortText: "Haiwsää#",
                     synchronisedText: [{
                         text: "askdh ashd olahs",
@@ -310,10 +310,10 @@ describe('NodeID3', function () {
             const frameBuf = Buffer.from('494433030000000000154554434F0000000B00000101000003E80500000539', 'hex')
             const tags = {
                 eventTimingCodes: {
-                    timeStampFormat: NodeID3.Constants.TimeStampFormat.MPEG_FRAMES,
+                    timeStampFormat: NodeID3.TagConstants.TimeStampFormat.MPEG_FRAMES,
                     keyEvents: [
-                        { type: NodeID3.Constants.EventTimingCodes.EventType.END_OF_INITIAL_SILENCE, timeStamp: 1000 },
-                        { type: NodeID3.Constants.EventTimingCodes.EventType.OUTRO_END, timeStamp: 1337 }
+                        { type: NodeID3.TagConstants.EventTimingCodes.EventType.END_OF_INITIAL_SILENCE, timeStamp: 1000 },
+                        { type: NodeID3.TagConstants.EventTimingCodes.EventType.OUTRO_END, timeStamp: 1337 }
                     ]
                 }
             }
@@ -334,7 +334,7 @@ describe('NodeID3', function () {
                     },
                     validUntil: { year: 999, month: 9, day: 1},
                     contactUrl: 'https://example.com',
-                    receivedAs: NodeID3.Constants.CommercialFrame.ReceivedAs.AS_NOTE_SHEETS,
+                    receivedAs: NodeID3.TagConstants.CommercialFrame.ReceivedAs.AS_NOTE_SHEETS,
                     nameOfSeller: 'Someone',
                     description: 'Something',
                     sellerLogo: {
@@ -578,11 +578,11 @@ describe('NodeID3', function () {
 
         it('read SYLT frame', function() {
             let frameBuf = Buffer.from('4944330300000000007c53594c54000000720000016465750201fffe48006100690077007300e400e40023000000fffe610073006b00640068002000610073006800640020006f006c00610068007300000000000000fffe65006c006f0077007a00200064006c006f0075006100690073006800200064006b0061006a0068000000000003e8', 'hex')
-            const Constants = NodeID3.Constants;
+            const TagConstants = NodeID3.TagConstants;
             const synchronisedLyrics = [{
                 language: "deu",
-                timeStampFormat: Constants.TimeStampFormat.MILLISECONDS,
-                contentType: Constants.SynchronisedLyrics.ContentType.LYRICS,
+                timeStampFormat: TagConstants.TimeStampFormat.MILLISECONDS,
+                contentType: TagConstants.SynchronisedLyrics.ContentType.LYRICS,
                 shortText: "Haiwsää#",
                 synchronisedText: [{
                     text: "askdh ashd olahs",

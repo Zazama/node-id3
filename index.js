@@ -322,7 +322,7 @@ const PromiseExport = {
 }
 
 module.exports = {
-    Constants: ID3Definitions.Constants,
+    TagConstants: ID3Definitions.TagConstants,
     create,
     write,
     update,
