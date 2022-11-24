@@ -197,7 +197,7 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
 
         let decoded
         if(ID3Frames[specName]) {
-            decoded = ID3Frames[specName].read(frame.body, ID3Version, module.exports)
+            decoded = ID3Frames[specName].read(frame.body, ID3Version)
         } else if(specName.startsWith('T')) {
             decoded = ID3Frames.GENERIC_TEXT.read(frame.body, ID3Version)
         } else if(specName.startsWith('W')) {
