@@ -36,44 +36,45 @@ function removeTagsFromBuffer(data) {
     return data
 }
 
-function writeInBuffer(tags, buffer, fn) {
+function writeInBuffer(tags, buffer) {
     buffer = removeTagsFromBuffer(buffer) || buffer
-    const completeBuffer = Buffer.concat([tags, buffer])
-    if(isFunction(fn)) {
-        fn(null, completeBuffer)
-        return undefined
-    }
-    return completeBuffer
+    return Buffer.concat([tags, buffer])
 }
 
-function writeAsync(tags, filename, fn) {
-    try {
-        fs.readFile(filename, (error, data) => {
-            if(error) {
-                fn(error)
-                return
-            }
-            data = removeTagsFromBuffer(data) || data
-            const newData = Buffer.concat([tags, data])
-            fs.writeFile(filename, newData, 'binary', (error) => {
-                fn(error)
+function writeAsync(tags, filebuffer, fn) {
+    if(isString(filebuffer)) {
+        try {
+            fs.readFile(filebuffer, (error, data) => {
+                if(error) {
+                    fn(error)
+                    return
+                }
+                const newData = writeInBuffer(tags, data)
+                fs.writeFile(filebuffer, newData, 'binary', (error) => {
+                    fn(error)
+                })
             })
-        })
-    } catch(error) {
-        fn(error)
+        } catch(error) {
+            fn(error)
+        }
+    } else {
+        fn(null, writeInBuffer(tags, filebuffer))
     }
 }
 
-function writeSync(tags, filename) {
-    try {
-        let data = fs.readFileSync(filename)
-        data = removeTagsFromBuffer(data) || data
-        const newData = Buffer.concat([tags, data])
-        fs.writeFileSync(filename, newData, 'binary')
-    } catch(error) {
-        return error
+function writeSync(tags, filebuffer) {
+    if(isString(filebuffer)) {
+        try {
+            let data = fs.readFileSync(filebuffer)
+            const newData = writeInBuffer(tags, data)
+            fs.writeFileSync(filebuffer, newData, 'binary')
+            return true
+        } catch(error) {
+            return error
+        }
     }
-    return true
+
+    return writeInBuffer(tags, filebuffer)
 }
 
 /**
@@ -86,9 +87,6 @@ function writeSync(tags, filename) {
 function write(tags, filebuffer, fn) {
     const completeTags = create(tags)
 
-    if(filebuffer instanceof Buffer) {
-        return writeInBuffer(completeTags, filebuffer, fn)
-    }
     if(isFunction(fn)) {
         return writeAsync(completeTags, filebuffer, fn)
     }
