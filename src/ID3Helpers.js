@@ -37,7 +37,7 @@ function createBuffersFromTags(tags) {
             return
         }
         if(ID3Frames[specName] !== undefined) {
-            frame = ID3Frames[specName].create(rawObject[specName], 3,)
+            frame = ID3Frames[specName].create(rawObject[specName], 3)
         } else if(specName.startsWith('T')) {
             frame = ID3Frames.GENERIC_TEXT.create(specName, rawObject[specName], 3)
         } else if(specName.startsWith('W')) {
