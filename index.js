@@ -216,7 +216,7 @@ function update(tags, filebuffer, options, fn) {
         return write(updateFn(read(filebuffer, options)), filebuffer)
     }
 
-    write(updateFn(read(filebuffer, options)), filebuffer, fn)
+    return write(updateFn(read(filebuffer, options)), filebuffer, fn)
 }
 
 /**
