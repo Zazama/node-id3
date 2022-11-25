@@ -1,0 +1,19 @@
+{
+    "root": true,
+    "extends": [
+        "eslint:recommended",
+        "plugin:mocha/recommended"
+    ],
+    "env": {
+        "node": true,
+        "amd": true,
+        "es6": true
+    },
+    "ignorePatterns": [ "./node_modules/**" ],
+    "plugins": [
+        "mocha"
+    ],
+    "rules": {
+        "prefer-const": "error"
+    }
+}
