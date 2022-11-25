@@ -13,16 +13,16 @@ describe('NodeID3', function () {
             assert.strictEqual(NodeID3.create({}).compare(Buffer.from([0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])), 0)
         })
         it('text frames', function () {
-            let tags = {
+            const tags = {
                 TIT2: "abcdeÜ看板かんばん",
                 album: "nasÖÄkdnasd",
                 notfound: "notfound",
                 year: 1990
             }
-            let buffer = NodeID3.create(tags)
-            let titleSize = 10 + 1 + iconv.encode(tags.TIT2, 'utf16').length
-            let albumSize = 10 + 1 + iconv.encode(tags.album, 'utf16').length
-            let yearSize = 10 + 1 + iconv.encode(tags.year, 'utf16').length
+            const buffer = NodeID3.create(tags)
+            const titleSize = 10 + 1 + iconv.encode(tags.TIT2, 'utf16').length
+            const albumSize = 10 + 1 + iconv.encode(tags.album, 'utf16').length
+            const yearSize = 10 + 1 + iconv.encode(tags.year, 'utf16').length
             assert.strictEqual(buffer.length,
                 10 + // ID3 frame header
                 titleSize + // TIT2 header + encoding byte + utf16 bytes + utf16 string
@@ -76,8 +76,8 @@ describe('NodeID3', function () {
                 }
             }
             let buffer = NodeID3.create(tags).slice(10)
-            let descEncoded = iconv.encode(tags.userDefinedText.description + "\0", "UTF-16")
-            let valueEncoded = iconv.encode(tags.userDefinedText.value, "UTF-16")
+            const descEncoded = iconv.encode(tags.userDefinedText.description + "\0", "UTF-16")
+            const valueEncoded = iconv.encode(tags.userDefinedText.value, "UTF-16")
 
             assert.strictEqual(Buffer.compare(
                 buffer,
@@ -101,10 +101,10 @@ describe('NodeID3', function () {
                 }]
             }
             buffer = NodeID3.create(tags).slice(10)
-            let desc1Encoded = iconv.encode(tags.userDefinedText[0].description + "\0", "UTF-16")
-            let value1Encoded = iconv.encode(tags.userDefinedText[0].value, "UTF-16")
-            let desc2Encoded = iconv.encode(tags.userDefinedText[1].description + "\0", "UTF-16")
-            let value2Encoded = iconv.encode(tags.userDefinedText[1].value, "UTF-16")
+            const desc1Encoded = iconv.encode(tags.userDefinedText[0].description + "\0", "UTF-16")
+            const value1Encoded = iconv.encode(tags.userDefinedText[0].value, "UTF-16")
+            const desc2Encoded = iconv.encode(tags.userDefinedText[1].description + "\0", "UTF-16")
+            const value2Encoded = iconv.encode(tags.userDefinedText[1].value, "UTF-16")
 
             assert.strictEqual(Buffer.compare(
                 buffer,
@@ -126,7 +126,7 @@ describe('NodeID3', function () {
         })
 
         it('create APIC frame', function() {
-            let tags = {
+            const tags = {
                 image: {
                     description: "asdf",
                     imageBuffer: Buffer.from('5B307836312C20307836322C20307836332C20307836345D', 'hex'),
@@ -171,7 +171,7 @@ describe('NodeID3', function () {
         })
 
         it('create USLT frame', function() {
-            let tags = {
+            const tags = {
                 unsynchronisedLyrics: {
                     language: "deu",
                     shortText: "Haiwsää#",
@@ -187,7 +187,7 @@ describe('NodeID3', function () {
 
         it('create SYLT frame', function() {
             const TagConstants = NodeID3.TagConstants
-            let tags = {
+            const tags = {
                 synchronisedLyrics: [{
                     language: "deu",
                     timeStampFormat: TagConstants.TimeStampFormat.MILLISECONDS,
@@ -217,7 +217,7 @@ describe('NodeID3', function () {
                     text: "askdh ashd olahs elowz dlouaish dkajh"
                 }
             }
-            let frameBuf = Buffer.from('4944330300000000006E434F4D4D00000064000001646575FFFE48006100690077007300E400E40023000000FFFE610073006B00640068002000610073006800640020006F006C00610068007300200065006C006F0077007A00200064006C006F0075006100690073006800200064006B0061006A006800', 'hex')
+            const frameBuf = Buffer.from('4944330300000000006E434F4D4D00000064000001646575FFFE48006100690077007300E400E40023000000FFFE610073006B00640068002000610073006800640020006F006C00610068007300200065006C006F0077007A00200064006C006F0075006100690073006800200064006B0061006A006800', 'hex')
 
             assert.strictEqual(Buffer.compare(
                 NodeID3.create(tags),
@@ -226,7 +226,7 @@ describe('NodeID3', function () {
         })
 
         it('create POPM frame', function() {
-            let frameBuf = Buffer.from('49443303000000000020504F504D0000001600006D61696C406578616D706C652E636F6D00C00000000C', 'hex')
+            const frameBuf = Buffer.from('49443303000000000020504F504D0000001600006D61696C406578616D706C652E636F6D00C00000000C', 'hex')
             const tags = {
                 popularimeter: {
                     email: "mail@example.com",
@@ -242,7 +242,7 @@ describe('NodeID3', function () {
         })
 
         it('create PRIV frame', function() {
-            let frameBuf = Buffer.from('4944330300000000003250524956000000140000416243006173646F61687764696F686177646177505249560000000A000041624353535300010205', 'hex')
+            const frameBuf = Buffer.from('4944330300000000003250524956000000140000416243006173646F61687764696F686177646177505249560000000A000041624353535300010205', 'hex')
             const tags = { PRIV: [{
                     ownerIdentifier: "AbC",
                     data: Buffer.from("asdoahwdiohawdaw")
@@ -259,7 +259,7 @@ describe('NodeID3', function () {
         })
 
         it('create CHAP frame', function() {
-            let frameBuf = Buffer.from('494433030000000000534348415000000049000048657921000000138800001F400000007B000001C8544954320000000F000001FFFE6100620063006400650066005450453100000011000001FFFE61006B0073006800640061007300', 'hex')
+            const frameBuf = Buffer.from('494433030000000000534348415000000049000048657921000000138800001F400000007B000001C8544954320000000F000001FFFE6100620063006400650066005450453100000011000001FFFE61006B0073006800640061007300', 'hex')
             const tags = { CHAP: [{
                     elementID: "Hey!", //THIS MUST BE UNIQUE!
                     startTimeMs: 5000,
@@ -326,7 +326,7 @@ describe('NodeID3', function () {
 
         it('create COMR frame', function() {
             const frameBufRandomImage = Buffer.from('49443303000000000076434f4d520000006c00000145555231352f444b4b31372e39323200303939393039303168747470733a2f2f6578616d706c652e636f6d0005fffe53006f006d0065006f006e0065000000fffe53006f006d0065007400680069006e0067000000696d6167652f00131313131313131313131313131313', 'hex')
-            let tags = {
+            const tags = {
                 commercialFrame: {
                     prices: {
                         'EUR': 15,
@@ -397,14 +397,14 @@ describe('NodeID3', function () {
             })
         })
 
-        let buffer = Buffer.from([0x02, 0x06, 0x12, 0x22])
+        const buffer = Buffer.from([0x02, 0x06, 0x12, 0x22])
         let tags = {title: "abc"}
-        let filepath = './testfile.mp3'
+        const filepath = './testfile.mp3'
 
         it('sync write file without id3 tag', function() {
             fs.writeFileSync(filepath, buffer, 'binary')
             NodeID3.write(tags, filepath)
-            let newFileBuffer = fs.readFileSync(filepath)
+            const newFileBuffer = fs.readFileSync(filepath)
             fs.unlinkSync(filepath)
             assert.strictEqual(Buffer.compare(
                 newFileBuffer,
@@ -414,7 +414,7 @@ describe('NodeID3', function () {
         it('async write file without id3 tag', function(done) {
             fs.writeFileSync(filepath, buffer, 'binary')
             NodeID3.write(tags, filepath, function() {
-                let newFileBuffer = fs.readFileSync(filepath)
+                const newFileBuffer = fs.readFileSync(filepath)
                 fs.unlinkSync(filepath)
                 if(Buffer.compare(
                     newFileBuffer,
@@ -427,13 +427,13 @@ describe('NodeID3', function () {
             })
         })
 
-        let bufferWithTag = Buffer.concat([NodeID3.create(tags), buffer])
+        const bufferWithTag = Buffer.concat([NodeID3.create(tags), buffer])
         tags = {album: "ix123"}
 
         it('sync write file with id3 tag', function() {
             fs.writeFileSync(filepath, bufferWithTag, 'binary')
             NodeID3.write(tags, filepath)
-            let newFileBuffer = fs.readFileSync(filepath)
+            const newFileBuffer = fs.readFileSync(filepath)
             fs.unlinkSync(filepath)
             assert.strictEqual(Buffer.compare(
                 newFileBuffer,
@@ -443,7 +443,7 @@ describe('NodeID3', function () {
         it('async write file with id3 tag', function(done) {
             fs.writeFileSync(filepath, bufferWithTag, 'binary')
             NodeID3.write(tags, filepath, function() {
-                let newFileBuffer = fs.readFileSync(filepath)
+                const newFileBuffer = fs.readFileSync(filepath)
                 fs.unlinkSync(filepath)
                 if(Buffer.compare(
                     newFileBuffer,
@@ -459,7 +459,7 @@ describe('NodeID3', function () {
 
     describe('#read()', function() {
         it('read empty id3 tag', function() {
-            let frame = NodeID3.create({})
+            const frame = NodeID3.create({})
             assert.deepStrictEqual(
                 NodeID3.read(frame),
                 {raw: {}}
@@ -467,7 +467,7 @@ describe('NodeID3', function () {
         })
 
         it('read text frames id3 tag', function() {
-            let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
+            const frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
             assert.deepStrictEqual(
                 NodeID3.read(frame),
                 { title: "asdfghjÄÖP", album: "naBGZwssg", raw: { TIT2: "asdfghjÄÖP", TALB: "naBGZwssg" }}
@@ -475,7 +475,7 @@ describe('NodeID3', function () {
         })
 
         it('read tag with broken frame', function() {
-            let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
+            const frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
             frame[10] = 0x99
             assert.deepStrictEqual(
                 NodeID3.read(frame),
@@ -484,7 +484,7 @@ describe('NodeID3', function () {
         })
 
         it('read tag with bigger size', function() {
-            let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
+            const frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
             const newFrameSize = 127
             frame[9] = 127
             assert.ok(frame.length < newFrameSize + 10)
@@ -495,7 +495,7 @@ describe('NodeID3', function () {
         })
 
         it('read tag with smaller size', function() {
-            let frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
+            const frame = NodeID3.create({ title: "asdfghjÄÖP", album: "naBGZwssg" })
             frame[9] -= 25
             assert.deepStrictEqual(
                 NodeID3.read(frame),
@@ -504,7 +504,7 @@ describe('NodeID3', function () {
         })
 
        it('read tag with invalid size', function() {
-            let frame = NodeID3.create({ title: 'a' })
+            const frame = NodeID3.create({ title: 'a' })
             frame[9] = 128
             assert.deepStrictEqual(
                 NodeID3.read(frame).raw,
@@ -513,8 +513,8 @@ describe('NodeID3', function () {
         })
 
         it('read TXXX frame', function() {
-            let tags = { userDefinedText: {description: "abc", value: "deg"} }
-            let frame = NodeID3.create(tags)
+            const tags = { userDefinedText: {description: "abc", value: "deg"} }
+            const frame = NodeID3.create(tags)
             assert.deepStrictEqual(
                 NodeID3.read(frame),
                 {
@@ -527,8 +527,8 @@ describe('NodeID3', function () {
         })
 
         it('read TXXX array frame', function() {
-            let tags = { userDefinedText: [{description: "abc", value: "deg"}, {description: "abcd", value: "efgh"}] }
-            let frame = NodeID3.create(tags)
+            const tags = { userDefinedText: [{description: "abc", value: "deg"}, {description: "abcd", value: "efgh"}] }
+            const frame = NodeID3.create(tags)
             assert.deepStrictEqual(
                 NodeID3.read(frame),
                 {
@@ -541,9 +541,9 @@ describe('NodeID3', function () {
         })
 
         it('read APIC frame', function() {
-            let withAll = Buffer.from("4944330300000000101C4150494300000016000000696D6167652F6A7065670003617364660061626364", "hex")
-            let noDesc = Buffer.from("494433030000000000264150494300000012000000696D6167652F6A70656700030061626364", "hex")
-            let obj = {
+            const withAll = Buffer.from("4944330300000000101C4150494300000016000000696D6167652F6A7065670003617364660061626364", "hex")
+            const noDesc = Buffer.from("494433030000000000264150494300000012000000696D6167652F6A70656700030061626364", "hex")
+            const obj = {
                 description: "asdf",
                 imageBuffer: Buffer.from([0x61, 0x62, 0x63, 0x64]),
                 mime: "image/jpeg",
@@ -563,7 +563,7 @@ describe('NodeID3', function () {
         })
 
         it('read USLT frame', function() {
-            let frameBuf = Buffer.from('4944330300000000006E55534C5400000064000001646575FFFE48006100690077007300E400E40023000000FFFE610073006B00640068002000610073006800640020006F006C00610068007300200065006C006F0077007A00200064006C006F0075006100690073006800200064006B0061006A006800', 'hex')
+            const frameBuf = Buffer.from('4944330300000000006E55534C5400000064000001646575FFFE48006100690077007300E400E40023000000FFFE610073006B00640068002000610073006800640020006F006C00610068007300200065006C006F0077007A00200064006C006F0075006100690073006800200064006B0061006A006800', 'hex')
             const unsynchronisedLyrics = {
                 language: "deu",
                 shortText: "Haiwsää#",
@@ -577,8 +577,8 @@ describe('NodeID3', function () {
         })
 
         it('read SYLT frame', function() {
-            let frameBuf = Buffer.from('4944330300000000007c53594c54000000720000016465750201fffe48006100690077007300e400e40023000000fffe610073006b00640068002000610073006800640020006f006c00610068007300000000000000fffe65006c006f0077007a00200064006c006f0075006100690073006800200064006b0061006a0068000000000003e8', 'hex')
-            const TagConstants = NodeID3.TagConstants;
+            const frameBuf = Buffer.from('4944330300000000007c53594c54000000720000016465750201fffe48006100690077007300e400e40023000000fffe610073006b00640068002000610073006800640020006f006c00610068007300000000000000fffe65006c006f0077007a00200064006c006f0075006100690073006800200064006b0061006a0068000000000003e8', 'hex')
+            const TagConstants = NodeID3.TagConstants
             const synchronisedLyrics = [{
                 language: "deu",
                 timeStampFormat: TagConstants.TimeStampFormat.MILLISECONDS,
@@ -599,7 +599,7 @@ describe('NodeID3', function () {
         })
 
         it('read COMM frame', function() {
-            let frameBuf = Buffer.from('4944330300000000006E434F4D4D00000064000001646575FFFE48006100690077007300E400E40023000000FFFE610073006B00640068002000610073006800640020006F006C00610068007300200065006C006F0077007A00200064006C006F0075006100690073006800200064006B0061006A006800', 'hex')
+            const frameBuf = Buffer.from('4944330300000000006E434F4D4D00000064000001646575FFFE48006100690077007300E400E40023000000FFFE610073006B00640068002000610073006800640020006F006C00610068007300200065006C006F0077007A00200064006C006F0075006100690073006800200064006B0061006A006800', 'hex')
             const comment = {
                 language: "deu",
                 shortText: "Haiwsää#",
@@ -613,7 +613,7 @@ describe('NodeID3', function () {
         })
 
         it('read POPM frame', function() {
-            let frameBuf = Buffer.from('49443303000000000020504F504D0000001600006D61696C406578616D706C652E636F6D00C00000000C', 'hex')
+            const frameBuf = Buffer.from('49443303000000000020504F504D0000001600006D61696C406578616D706C652E636F6D00C00000000C', 'hex')
             const popularimeter = {
                 email: "mail@example.com",
                 rating: 192,  // 1-255
@@ -627,7 +627,7 @@ describe('NodeID3', function () {
         })
 
         it('read PRIV frame', function() {
-            let frameBuf = Buffer.from('4944330300000000003250524956000000140000416243006173646F61687764696F686177646177505249560000000A000041624353535300010205', 'hex')
+            const frameBuf = Buffer.from('4944330300000000003250524956000000140000416243006173646F61687764696F686177646177505249560000000A000041624353535300010205', 'hex')
             const priv = [{
                 ownerIdentifier: "AbC",
                 data: Buffer.from("asdoahwdiohawdaw")
@@ -643,7 +643,7 @@ describe('NodeID3', function () {
         })
 
         it('read CHAP frame', function() {
-            let frameBuf = Buffer.from('494433030000000000534348415000000049000048657921000000138800001F400000007B000001C8544954320000000F000001FFFE6100620063006400650066005450453100000011000001FFFE61006B0073006800640061007300', 'hex')
+            const frameBuf = Buffer.from('494433030000000000534348415000000049000048657921000000138800001F400000007B000001C8544954320000000F000001FFFE6100620063006400650066005450453100000011000001FFFE61006B0073006800640061007300', 'hex')
             const chap = [{
                 elementID: "Hey!", //THIS MUST BE UNIQUE!
                 startTimeMs: 5000,
@@ -713,7 +713,7 @@ describe('NodeID3', function () {
 
         it('read COMR frame', function() {
             const frameBufRandomImage = Buffer.from('49443303000000000076434f4d520000006c00000145555231352f444b4b31372e39323200303939393039303168747470733a2f2f6578616d706c652e636f6d0005fffe53006f006d0065006f006e0065000000fffe53006f006d0065007400680069006e0067000000696d6167652f00131313131313131313131313131313', 'hex')
-            let tags = {
+            const tags = {
                 commercialFrame: {
                     prices: {
                         'EUR': 15,
@@ -764,14 +764,14 @@ describe('NodeID3', function () {
         })
 
         it('read exclude', function() {
-            let tags = {
+            const tags = {
                 TIT2: "abcdeÜ看板かんばん",
                 album: "nasÖÄkdnasd",
                 year: "1990"
             }
 
             const buffer = NodeID3.create(tags)
-            let read = NodeID3.read(buffer, { exclude: ['TIT2'] })
+            const read = NodeID3.read(buffer, { exclude: ['TIT2'] })
             delete read.raw
             delete tags.TIT2
             assert.deepStrictEqual(
@@ -781,14 +781,14 @@ describe('NodeID3', function () {
         })
 
         it('read include', function() {
-            let tags = {
+            const tags = {
                 title: "abcdeÜ看板かんばん",
                 album: "nasÖÄkdnasd",
                 year: "1990"
             }
 
             const buffer = NodeID3.create(tags)
-            let read = NodeID3.read(buffer, { include: ['TALB', 'TIT2'] })
+            const read = NodeID3.read(buffer, { include: ['TALB', 'TIT2'] })
             delete read.raw
             delete tags.year
             assert.deepStrictEqual(
@@ -798,13 +798,13 @@ describe('NodeID3', function () {
         })
 
         it('onlyRaw', function() {
-            let tags = {
+            const tags = {
                 TIT2: "abcdeÜ看板かんばん",
                 TALB: "nasÖÄkdnasd"
             }
 
             const buffer = NodeID3.create(tags)
-            let read = NodeID3.read(buffer, { onlyRaw: true })
+            const read = NodeID3.read(buffer, { onlyRaw: true })
             assert.deepStrictEqual(
                 read,
                 tags
@@ -812,13 +812,13 @@ describe('NodeID3', function () {
         })
 
         it('noRaw', function() {
-            let tags = {
+            const tags = {
                 title: "abcdeÜ看板かんばん",
                 album: "nasÖÄkdnasd"
             }
 
             const buffer = NodeID3.create(tags)
-            let read = NodeID3.read(buffer, { noRaw: true })
+            const read = NodeID3.read(buffer, { noRaw: true })
             assert.deepStrictEqual(
                 read,
                 tags
@@ -830,7 +830,7 @@ describe('NodeID3', function () {
 describe('ID3 helper functions', function () {
     describe('#removeTagsFromBuffer()', function () {
         it('no tags in buffer', function () {
-            let emptyBuffer = Buffer.from([0x12, 0x04, 0x05, 0x01, 0x76, 0x27, 0x76, 0x27, 0x76, 0x27, 0x76, 0x27])
+            const emptyBuffer = Buffer.from([0x12, 0x04, 0x05, 0x01, 0x76, 0x27, 0x76, 0x27, 0x76, 0x27, 0x76, 0x27])
             assert.strictEqual(Buffer.compare(
                 emptyBuffer,
                 NodeID3.removeTagsFromBuffer(emptyBuffer)
@@ -838,8 +838,8 @@ describe('ID3 helper functions', function () {
         })
 
         it('tags at start', function () {
-            let buffer = Buffer.from([0x22, 0x73, 0x72])
-            let bufferWithID3 = Buffer.concat([
+            const buffer = Buffer.from([0x22, 0x73, 0x72])
+            const bufferWithID3 = Buffer.concat([
                 NodeID3.create({title: "abc"}),
                 buffer
             ])
@@ -850,8 +850,8 @@ describe('ID3 helper functions', function () {
         })
 
         it('tags in middle/end', function () {
-            let buffer = Buffer.from([0x22, 0x73, 0x72])
-            let bufferWithID3 = Buffer.concat([
+            const buffer = Buffer.from([0x22, 0x73, 0x72])
+            const bufferWithID3 = Buffer.concat([
                 buffer,
                 NodeID3.create({title: "abc"}),
                 buffer
@@ -1062,7 +1062,7 @@ describe('Cross tests jsmediatags', function() {
 
     it('read from full self-created tags', function() {
         const tagsBuffer = NodeID3.create(nodeTagsFull)
-        let read = NodeID3.read(tagsBuffer)
+        const read = NodeID3.read(tagsBuffer)
 
         delete read.raw
         delete read.chapter[0].tags.raw
@@ -1076,7 +1076,7 @@ describe('Cross tests jsmediatags', function() {
 
     it('read from missing values self-created tags', function() {
         const tagsBuffer = NodeID3.create(nodeTagsMissingValues)
-        let read = NodeID3.read(tagsBuffer)
+        const read = NodeID3.read(tagsBuffer)
 
         delete read.raw
         assert.deepStrictEqual(read.chapter[0].tags.raw, {})
@@ -1101,7 +1101,7 @@ describe('Cross tests jsmediatags', function() {
 })
 
 function sizeToBuffer(totalSize) {
-    let buffer = Buffer.alloc(4)
+    const buffer = Buffer.alloc(4)
     buffer.writeUInt32BE(totalSize)
     return buffer
 }

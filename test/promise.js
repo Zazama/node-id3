@@ -2,7 +2,6 @@ const fs = require('fs')
 const NodeID3 = require('../index.js')
 const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
-const { test } = require('mocha')
 const { expect } = chai
 chai.use(chaiAsPromised)
 

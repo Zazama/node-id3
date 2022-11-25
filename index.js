@@ -65,7 +65,7 @@ function writeAsync(tags, filebuffer, fn) {
 function writeSync(tags, filebuffer) {
     if(isString(filebuffer)) {
         try {
-            let data = fs.readFileSync(filebuffer)
+            const data = fs.readFileSync(filebuffer)
             const newData = writeInBuffer(tags, data)
             fs.writeFileSync(filebuffer, newData, 'binary')
             return true
@@ -208,15 +208,13 @@ function update(tags, filebuffer, options, fn) {
                 currentTags[specName] = rawTags[specName]
             }
         })
-
         return currentTags
     }
 
-    if(!isFunction(fn)) {
-        return write(updateFn(read(filebuffer, options)), filebuffer)
+    if(isFunction(fn)) {
+        return write(updateFn(read(filebuffer, options)), filebuffer, fn)
     }
-
-    write(updateFn(read(filebuffer, options)), filebuffer, fn)
+    return write(updateFn(read(filebuffer, options)), filebuffer)
 }
 
 /**

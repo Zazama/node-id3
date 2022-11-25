@@ -9,7 +9,7 @@ const ID3Util = require('./ID3Util')
  * @returns {Array}
  */
 function createBuffersFromTags(tags) {
-    let frames = []
+    const frames = []
     if(!tags) {
         return frames
     }
@@ -37,14 +37,14 @@ function createBuffersFromTags(tags) {
             return
         }
         if(ID3Frames[specName] !== undefined) {
-            frame = ID3Frames[specName].create(rawObject[specName], 3,)
+            frame = ID3Frames[specName].create(rawObject[specName], 3)
         } else if(specName.startsWith('T')) {
             frame = ID3Frames.GENERIC_TEXT.create(specName, rawObject[specName], 3)
         } else if(specName.startsWith('W')) {
             if(ID3Util.getSpecOptions(specName, 3).multiple && rawObject[specName] instanceof Array && rawObject[specName].length > 0) {
                 frame = Buffer.alloc(0)
                 // deduplicate array
-                for(let url of [...new Set(rawObject[specName])]) {
+                for(const url of [...new Set(rawObject[specName])]) {
                     frame = Buffer.concat([frame, ID3Frames.GENERIC_URL.create(specName, url, 3)])
                 }
             } else {
@@ -70,15 +70,15 @@ module.exports.createBufferFromTags = function(tags) {
 }
 
 module.exports.getTagsFromBuffer = function(filebuffer, options) {
-    let framePosition = ID3Util.getFramePosition(filebuffer)
+    const framePosition = ID3Util.getFramePosition(filebuffer)
     if(framePosition === -1) {
         return getTagsFromFrames([], 3, options)
     }
     const frameSize = ID3Util.decodeSize(filebuffer.slice(framePosition + 6, framePosition + 10)) + 10
-    let ID3Frame = Buffer.alloc(frameSize + 1)
+    const ID3Frame = Buffer.alloc(frameSize + 1)
     filebuffer.copy(ID3Frame, 0, framePosition)
     //ID3 version e.g. 3 if ID3v2.3.0
-    let ID3Version = ID3Frame[3]
+    const ID3Version = ID3Frame[3]
     const tagFlags = ID3Util.parseTagHeaderFlags(ID3Frame)
     let extendedHeaderOffset = 0
     if(tagFlags.extendedHeader) {
@@ -88,17 +88,17 @@ module.exports.getTagsFromBuffer = function(filebuffer, options) {
             extendedHeaderOffset = ID3Util.decodeSize(filebuffer.slice(10, 14))
         }
     }
-    let ID3FrameBody = Buffer.alloc(frameSize - 10 - extendedHeaderOffset)
+    const ID3FrameBody = Buffer.alloc(frameSize - 10 - extendedHeaderOffset)
     filebuffer.copy(ID3FrameBody, 0, framePosition + 10 + extendedHeaderOffset)
 
-    let frames = getFramesFromID3Body(ID3FrameBody, ID3Version, options)
+    const frames = getFramesFromID3Body(ID3FrameBody, ID3Version, options)
 
     return getTagsFromFrames(frames, ID3Version, options)
 }
 
 function getFramesFromID3Body(ID3FrameBody, ID3Version, options = {}) {
     let currentPosition = 0
-    let frames = []
+    const frames = []
     if(!ID3FrameBody || !(ID3FrameBody instanceof Buffer)) {
         return frames
     }
@@ -111,14 +111,14 @@ function getFramesFromID3Body(ID3FrameBody, ID3Version, options = {}) {
     }
 
     while(currentPosition < ID3FrameBody.length && ID3FrameBody[currentPosition] !== 0x00) {
-        let bodyFrameHeader = Buffer.alloc(textframeHeaderSize)
+        const bodyFrameHeader = Buffer.alloc(textframeHeaderSize)
         ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
 
         let decodeSize = false
         if(ID3Version === 4) {
             decodeSize = true
         }
-        let bodyFrameSize = ID3Util.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
+        const bodyFrameSize = ID3Util.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
         if(bodyFrameSize + 10 > (ID3FrameBody.length - currentPosition)) {
             break
         }
@@ -128,7 +128,7 @@ function getFramesFromID3Body(ID3FrameBody, ID3Version, options = {}) {
             continue
         }
         const frameHeaderFlags = ID3Util.parseFrameHeaderFlags(bodyFrameHeader, ID3Version)
-        let bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
+        const bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
         ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + textframeHeaderSize + (frameHeaderFlags.dataLengthIndicator ? 4 : 0))
         //  Size of sub frame + its header
         currentPosition += bodyFrameSize + textframeHeaderSize
@@ -143,8 +143,8 @@ function getFramesFromID3Body(ID3FrameBody, ID3Version, options = {}) {
 }
 
 function getTagsFromFrames(frames, ID3Version, options = {}) {
-    let tags = { }
-    let raw = { }
+    const tags = { }
+    const raw = { }
 
     frames.forEach((frame) => {
         let specName

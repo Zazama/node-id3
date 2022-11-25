@@ -26,3 +26,13 @@ jobs:
           node-version: 'latest'
       - run: npm install -g markdownlint-cli
       - run: markdownlint '**/*.md' --ignore node_modules
+
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'latest'
+      - run: npm install eslint eslint-plugin-mocha
+      - run: npx eslint '**/*.js'

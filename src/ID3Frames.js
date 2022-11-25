@@ -2,7 +2,7 @@ const fs = require('fs')
 const ID3FrameBuilder = require("./ID3FrameBuilder")
 const ID3FrameReader = require("./ID3FrameReader")
 const ID3Definitions = require("./ID3Definitions")
-const ID3Util = require("./ID3Util");
+const ID3Util = require("./ID3Util")
 const ID3Helpers = require('./ID3Helpers')
 const { isString } = require('./util')
 
@@ -63,7 +63,7 @@ module.exports.APIC = {
             }
 
             const TagConstants = ID3Definitions.TagConstants.AttachedPicture
-            const pictureType = data.type || {};
+            const pictureType = data.type || {}
             const pictureTypeId = pictureType.id === undefined
                 ? TagConstants.PictureType.FRONT_COVER : pictureType.id
 
@@ -71,7 +71,7 @@ module.exports.APIC = {
              * Fix a bug in iTunes where the artwork is not recognized when the description is empty using UTF-16.
              * Instead, if the description is empty, use encoding 0x00 (ISO-8859-1).
              */
-            const { description = '' } = data;
+            const { description = '' } = data
             const encoding = description ? 0x01 : 0x00
             return new ID3FrameBuilder('APIC')
               .appendStaticNumber(encoding, 1)
@@ -170,7 +170,7 @@ module.exports.SYLT = {
             data = [data]
         }
 
-        const encoding = 1; // 16 bit unicode
+        const encoding = 1 // 16 bit unicode
         return Buffer.concat(data.map(lycics => {
             const frameBuilder = new ID3FrameBuilder("SYLT")
                 .appendStaticNumber(encoding, 1)
@@ -302,7 +302,7 @@ module.exports.CHAP = {
     },
     read: (buffer) => {
         const reader = new ID3FrameReader(buffer)
-        let chap = {
+        const chap = {
             elementID: reader.consumeNullTerminatedValue('string'),
             startTimeMs: reader.consumeStaticValue('number', 4),
             endTimeMs: reader.consumeStaticValue('number', 4),
@@ -334,7 +334,7 @@ module.exports.CTOC = {
                 toc.elements = []
             }
 
-            let ctocFlags = Buffer.alloc(1, 0)
+            const ctocFlags = Buffer.alloc(1, 0)
             if(index === 0) {
                 ctocFlags[0] += 2
             }
@@ -464,7 +464,7 @@ module.exports.COMR = {
             builder.appendNullTerminatedValue(comr.description, 0x01)
             // Seller logo
             if(comr.sellerLogo) {
-                let picture = comr.sellerLogo.picture;
+                let picture = comr.sellerLogo.picture
                 if(typeof comr.sellerLogo.picture === 'string' || comr.sellerLogo.picture instanceof String) {
                     picture = fs.readFileSync(comr.sellerLogo.picture)
                 }
@@ -483,14 +483,14 @@ module.exports.COMR = {
     read: (buffer) => {
         const reader = new ID3FrameReader(buffer, 0)
 
-        let tag = {}
+        const tag = {}
 
         // Price string
         const priceStrings = reader.consumeNullTerminatedValue('string', 0x00)
             .split('/')
             .filter((price) => price.length > 3)
         tag.prices = {}
-        for(let price of priceStrings) {
+        for(const price of priceStrings) {
             tag.prices[price.substring(0, 3)] = price.substring(3)
         }
         // Valid until

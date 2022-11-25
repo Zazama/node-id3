@@ -13,7 +13,7 @@ module.exports.SplitBuffer = class SplitBuffer {
 }
 
 module.exports.splitNullTerminatedBuffer = function(buffer, encodingByte = 0x00) {
-    let termination = { start: -1, size: 0 }
+    const termination = { start: -1, size: 0 }
     if(encodingByte === 0x01 || encodingByte === 0x02) {
         termination.start = buffer.indexOf(Buffer.from([0x00, 0x00]))
         termination.size = 2
@@ -62,7 +62,7 @@ module.exports.bufferToDecodedString = function(buffer, encodingByte) {
     return iconv.decode(buffer, this.encodingFromStringOrByte(encodingByte)).replace(/\0/g, '')
 }
 
-module.exports.getSpecOptions = function(specName, version) {
+module.exports.getSpecOptions = function(specName) {
     if(ID3Definitions.ID3_FRAME_OPTIONS[specName]) {
         return ID3Definitions.ID3_FRAME_OPTIONS[specName]
     }
@@ -72,35 +72,35 @@ module.exports.getSpecOptions = function(specName, version) {
 
 module.exports.isValidID3Header = function(buffer) {
     if(buffer.length < 10) {
-        return false;
+        return false
     }
     if(buffer.readUIntBE(0, 3) !== 0x494433) {
-        return false;
+        return false
     }
     if([0x02, 0x03, 0x04].indexOf(buffer[3]) === -1 || buffer[4] !== 0x00) {
-        return false;
+        return false
     }
     return this.isValidEncodedSize(buffer.slice(6, 10))
 }
 
 module.exports.getFramePosition = function(buffer) {
     /* Search Buffer for valid ID3 frame */
-    let framePosition = -1;
-    let frameHeaderValid = false;
+    let framePosition = -1
+    let frameHeaderValid = false
     do {
-        framePosition = buffer.indexOf("ID3", framePosition + 1);
+        framePosition = buffer.indexOf("ID3", framePosition + 1)
         if(framePosition !== -1) {
             /* It's possible that there is a "ID3" sequence without being an ID3 Frame,
              * so we need to check for validity of the next 10 bytes
              */
-            frameHeaderValid = this.isValidID3Header(buffer.slice(framePosition, framePosition + 10));
+            frameHeaderValid = this.isValidID3Header(buffer.slice(framePosition, framePosition + 10))
         }
-    } while (framePosition !== -1 && !frameHeaderValid);
+    } while (framePosition !== -1 && !frameHeaderValid)
 
     if(!frameHeaderValid) {
-        return -1;
+        return -1
     }
-    return framePosition;
+    return framePosition
 }
 
 /**
@@ -123,12 +123,12 @@ module.exports.isValidEncodedSize = function(encodedSize) {
  * @return {Buffer} Return a Buffer of 4 bytes with the encoded size
  */
 module.exports.encodeSize = function(size) {
-    const byte_3 = size & 0x7F;
-    const byte_2 = (size >> 7) & 0x7F;
-    const byte_1 = (size >> 14) & 0x7F;
-    const byte_0 = (size >> 21) & 0x7F;
-    return Buffer.from([byte_0, byte_1, byte_2, byte_3]);
-};
+    const byte_3 = size & 0x7F
+    const byte_2 = (size >> 7) & 0x7F
+    const byte_1 = (size >> 14) & 0x7F
+    const byte_0 = (size >> 21) & 0x7F
+    return Buffer.from([byte_0, byte_1, byte_2, byte_3])
+}
 
 /**
  * Decode the size encoded in the ID3 header
@@ -142,7 +142,7 @@ module.exports.decodeSize = function(encodedSize) {
         (encodedSize[2] << 7) +
         encodedSize[3]
     )
-};
+}
 
 module.exports.getFrameSize = function(buffer, decode, ID3Version) {
     let decodeBytes
@@ -232,6 +232,6 @@ module.exports.getPictureMimeTypeFromBuffer = function(pictureBuffer) {
     } else if (pictureBuffer > 8 && pictureBuffer.compare(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]), 0, 8, 0, 8) === 0) {
         return "image/png"
     } else {
-        return null;
+        return null
     }
 }
