@@ -62,7 +62,7 @@ module.exports.bufferToDecodedString = function(buffer, encodingByte) {
     return iconv.decode(buffer, this.encodingFromStringOrByte(encodingByte)).replace(/\0/g, '')
 }
 
-module.exports.getSpecOptions = function(specName, version) {
+module.exports.getSpecOptions = function(specName) {
     if(ID3Definitions.ID3_FRAME_OPTIONS[specName]) {
         return ID3Definitions.ID3_FRAME_OPTIONS[specName]
     }

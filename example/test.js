@@ -1,5 +1,5 @@
 const nodeID3 = require('../index.js')
-const fs = require('fs')
+//const fs = require('fs')
 
 
 //tags.image is the path to the image (only png/jpeg files allowed)
