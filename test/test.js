@@ -578,7 +578,7 @@ describe('NodeID3', function () {
 
         it('read SYLT frame', function() {
             const frameBuf = Buffer.from('4944330300000000007c53594c54000000720000016465750201fffe48006100690077007300e400e40023000000fffe610073006b00640068002000610073006800640020006f006c00610068007300000000000000fffe65006c006f0077007a00200064006c006f0075006100690073006800200064006b0061006a0068000000000003e8', 'hex')
-            const TagConstants = NodeID3.TagConstants;
+            const TagConstants = NodeID3.TagConstants
             const synchronisedLyrics = [{
                 language: "deu",
                 timeStampFormat: TagConstants.TimeStampFormat.MILLISECONDS,

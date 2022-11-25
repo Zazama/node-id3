@@ -49,8 +49,8 @@ const tags = {
   }]
 }
 
-const success = nodeID3.write(tags, "./example/test.mp3");
-console.log(success);
+const success = nodeID3.write(tags, "./example/test.mp3")
+console.log(success)
 
 console.log(nodeID3.read("./example/test.mp3").chapter[0].tags)
 
