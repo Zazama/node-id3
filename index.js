@@ -65,7 +65,7 @@ function writeAsync(tags, filebuffer, fn) {
 function writeSync(tags, filebuffer) {
     if(isString(filebuffer)) {
         try {
-            let data = fs.readFileSync(filebuffer)
+            const data = fs.readFileSync(filebuffer)
             const newData = writeInBuffer(tags, data)
             fs.writeFileSync(filebuffer, newData, 'binary')
             return true

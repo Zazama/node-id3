@@ -302,7 +302,7 @@ module.exports.CHAP = {
     },
     read: (buffer) => {
         const reader = new ID3FrameReader(buffer)
-        let chap = {
+        const chap = {
             elementID: reader.consumeNullTerminatedValue('string'),
             startTimeMs: reader.consumeStaticValue('number', 4),
             endTimeMs: reader.consumeStaticValue('number', 4),
@@ -334,7 +334,7 @@ module.exports.CTOC = {
                 toc.elements = []
             }
 
-            let ctocFlags = Buffer.alloc(1, 0)
+            const ctocFlags = Buffer.alloc(1, 0)
             if(index === 0) {
                 ctocFlags[0] += 2
             }
@@ -483,14 +483,14 @@ module.exports.COMR = {
     read: (buffer) => {
         const reader = new ID3FrameReader(buffer, 0)
 
-        let tag = {}
+        const tag = {}
 
         // Price string
         const priceStrings = reader.consumeNullTerminatedValue('string', 0x00)
             .split('/')
             .filter((price) => price.length > 3)
         tag.prices = {}
-        for(let price of priceStrings) {
+        for(const price of priceStrings) {
             tag.prices[price.substring(0, 3)] = price.substring(3)
         }
         // Valid until

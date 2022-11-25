@@ -13,7 +13,7 @@ module.exports.SplitBuffer = class SplitBuffer {
 }
 
 module.exports.splitNullTerminatedBuffer = function(buffer, encodingByte = 0x00) {
-    let termination = { start: -1, size: 0 }
+    const termination = { start: -1, size: 0 }
     if(encodingByte === 0x01 || encodingByte === 0x02) {
         termination.start = buffer.indexOf(Buffer.from([0x00, 0x00]))
         termination.size = 2
