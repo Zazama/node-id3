@@ -14,6 +14,7 @@
         "mocha"
     ],
     "rules": {
-        "prefer-const": "error"
+        "prefer-const": "error",
+        "mocha/no-setup-in-describe": "off"
     }
 }
