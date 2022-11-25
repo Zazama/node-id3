@@ -208,15 +208,13 @@ function update(tags, filebuffer, options, fn) {
                 currentTags[specName] = rawTags[specName]
             }
         })
-
         return currentTags
     }
 
-    if(!isFunction(fn)) {
-        return write(updateFn(read(filebuffer, options)), filebuffer)
+    if(isFunction(fn)) {
+        return write(updateFn(read(filebuffer, options)), filebuffer, fn)
     }
-
-    return write(updateFn(read(filebuffer, options)), filebuffer, fn)
+    return write(updateFn(read(filebuffer, options)), filebuffer)
 }
 
 /**
