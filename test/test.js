@@ -824,6 +824,16 @@ describe('NodeID3', function () {
                 tags
             )
         })
+
+        it('compressed frame', function() {
+            const frameBuf = Buffer.from('4944330400000000001c5449543200000011000900000005789c6328492d2e0100045e01c1', 'hex')
+            const tags = { TIT2: 'test' }
+
+            assert.deepStrictEqual(
+                NodeID3.read(frameBuf).raw,
+                tags
+            )
+        })
     })
 })
 

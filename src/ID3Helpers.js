@@ -118,7 +118,7 @@ function getFramesFromID3Body(ID3FrameBody, ID3Version, options = {}) {
         if(ID3Version === 4) {
             decodeSize = true
         }
-        const bodyFrameSize = ID3Util.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
+        let bodyFrameSize = ID3Util.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
         if(bodyFrameSize + 10 > (ID3FrameBody.length - currentPosition)) {
             break
         }
@@ -128,18 +128,58 @@ function getFramesFromID3Body(ID3FrameBody, ID3Version, options = {}) {
             continue
         }
         const frameHeaderFlags = ID3Util.parseFrameHeaderFlags(bodyFrameHeader, ID3Version)
+        if(frameHeaderFlags.dataLengthIndicator) {
+            bodyFrameSize -= 4
+        }
         const bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
         ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + textframeHeaderSize + (frameHeaderFlags.dataLengthIndicator ? 4 : 0))
-        //  Size of sub frame + its header
-        currentPosition += bodyFrameSize + textframeHeaderSize
-        frames.push({
+        let frame = {
             name: specName,
             flags: frameHeaderFlags,
             body: frameHeaderFlags.unsynchronisation ? ID3Util.processUnsynchronisedBuffer(bodyFrameBuffer) : bodyFrameBuffer
-        })
+        }
+        if(frameHeaderFlags.dataLengthIndicator) {
+            frame['dataLengthIndicator'] = ID3FrameBody.readInt32BE(currentPosition + textframeHeaderSize)
+        }
+        frames.push(frame)
+
+        //  Size of sub frame + its header
+        currentPosition += bodyFrameSize + textframeHeaderSize
     }
 
     return frames
+}
+
+function decompressFrame(frame) {
+    if(frame.body.length < 5 || frame.dataLengthIndicator === undefined) {
+        return null
+    }
+
+    /*
+    * ID3 spec defines that compression is stored in ZLIB format, but doesn't specify if header is present or not.
+    * ZLIB has a 2-byte header.
+    * 1. try if header + body decompression
+    * 2. else try if header is not stored (assume that all content is deflated "body")
+    * 3. else try if inflation works if the header is omitted (implementation dependent)
+    * */
+    let decompressedBody;
+    try {
+        decompressedBody = zlib.inflateSync(frame.body)
+    } catch (e) {
+        try {
+            decompressedBody = zlib.inflateRawSync(frame.body)
+        } catch (e) {
+            try {
+                decompressedBody = zlib.inflateRawSync(frame.body.slice(2))
+            } catch (e) {
+                return null
+            }
+        }
+    }
+    if(decompressedBody.length !== frame.dataLengthIndicator) {
+        return null
+    }
+    return decompressedBody
 }
 
 function getTagsFromFrames(frames, ID3Version, options = {}) {
@@ -166,33 +206,11 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
         }
 
         if(frame.flags.compression) {
-            if(frame.body.length < 5) {
+            let decompressedBody = decompressFrame(frame)
+            if(!decompressedBody) {
                 return
             }
-            const inflatedSize = frame.body.readInt32BE()
-            /*
-            * ID3 spec defines that compression is stored in ZLIB format, but doesn't specify if header is present or not.
-            * ZLIB has a 2-byte header.
-            * 1. try if header + body decompression
-            * 2. else try if header is not stored (assume that all content is deflated "body")
-            * 3. else try if inflation works if the header is omitted (implementation dependent)
-            * */
-            try {
-                frame.body = zlib.inflateSync(frame.body.slice(4))
-            } catch (e) {
-                try {
-                    frame.body = zlib.inflateRawSync(frame.body.slice(4))
-                } catch (e) {
-                    try {
-                        frame.body = zlib.inflateRawSync(frame.body.slice(6))
-                    } catch (e) {
-                        return
-                    }
-                }
-            }
-            if(frame.body.length !== inflatedSize) {
-                return
-            }
+            frame.body = decompressedBody
         }
 
         let decoded
@@ -204,27 +222,29 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
             decoded = ID3Frames.GENERIC_URL.read(frame.body, ID3Version)
         }
 
-        if(decoded) {
-            if(ID3Util.getSpecOptions(specName, ID3Version).multiple) {
-                if(!options.onlyRaw) {
-                    if(!tags[identifier]) {
-                        tags[identifier] = []
-                    }
-                    tags[identifier].push(decoded)
+        if(!decoded) {
+            return
+        }
+
+        if(ID3Util.getSpecOptions(specName, ID3Version).multiple) {
+            if(!options.onlyRaw) {
+                if(!tags[identifier]) {
+                    tags[identifier] = []
                 }
-                if(!options.noRaw) {
-                    if(!raw[specName]) {
-                        raw[specName] = []
-                    }
-                    raw[specName].push(decoded)
+                tags[identifier].push(decoded)
+            }
+            if(!options.noRaw) {
+                if(!raw[specName]) {
+                    raw[specName] = []
                 }
-            } else {
-                if(!options.onlyRaw) {
-                    tags[identifier] = decoded
-                }
-                if(!options.noRaw) {
-                    raw[specName] = decoded
-                }
+                raw[specName].push(decoded)
+            }
+        } else {
+            if(!options.onlyRaw) {
+                tags[identifier] = decoded
+            }
+            if(!options.noRaw) {
+                raw[specName] = decoded
             }
         }
     })
