@@ -30,25 +30,25 @@ function createBuffersFromTags(tags) {
         return acc
     }, {})
 
-    Object.keys(rawObject).forEach((specName) => {
+    Object.keys(rawObject).forEach((frameIdentifier) => {
         let frame
-        // Check if invalid specName
-        if(specName.length !== 4) {
+        // Check if invalid frameIdentifier
+        if(frameIdentifier.length !== 4) {
             return
         }
-        if(ID3Frames[specName] !== undefined) {
-            frame = ID3Frames[specName].create(rawObject[specName], 3)
-        } else if(specName.startsWith('T')) {
-            frame = ID3Frames.GENERIC_TEXT.create(specName, rawObject[specName], 3)
-        } else if(specName.startsWith('W')) {
-            if(ID3Util.getSpecOptions(specName, 3).multiple && rawObject[specName] instanceof Array && rawObject[specName].length > 0) {
+        if(ID3Frames[frameIdentifier] !== undefined) {
+            frame = ID3Frames[frameIdentifier].create(rawObject[frameIdentifier], 3)
+        } else if(frameIdentifier.startsWith('T')) {
+            frame = ID3Frames.GENERIC_TEXT.create(frameIdentifier, rawObject[frameIdentifier], 3)
+        } else if(frameIdentifier.startsWith('W')) {
+            if(ID3Util.getSpecOptions(frameIdentifier, 3).multiple && rawObject[frameIdentifier] instanceof Array && rawObject[frameIdentifier].length > 0) {
                 frame = Buffer.alloc(0)
                 // deduplicate array
-                for(const url of [...new Set(rawObject[specName])]) {
-                    frame = Buffer.concat([frame, ID3Frames.GENERIC_URL.create(specName, url, 3)])
+                for(const url of [...new Set(rawObject[frameIdentifier])]) {
+                    frame = Buffer.concat([frame, ID3Frames.GENERIC_URL.create(frameIdentifier, url, 3)])
                 }
             } else {
-                frame = ID3Frames.GENERIC_URL.create(specName, rawObject[specName], 3)
+                frame = ID3Frames.GENERIC_URL.create(frameIdentifier, rawObject[frameIdentifier], 3)
             }
         }
 
@@ -96,55 +96,61 @@ module.exports.getTagsFromBuffer = function(filebuffer, options) {
     return getTagsFromFrames(frames, ID3Version, options)
 }
 
-function getFramesFromID3Body(ID3FrameBody, ID3Version, options = {}) {
+function isFrameDiscardedByOptions(frameIdentifier, options) {
+    if(options.exclude instanceof Array && options.exclude.includes(frameIdentifier)) {
+        return true
+    }
+
+    return options.include instanceof Array && !options.include.includes(frameIdentifier)
+}
+
+function getFramesFromID3Body(ID3TagBody, ID3Version, options = {}) {
     let currentPosition = 0
     const frames = []
-    if(!ID3FrameBody || !(ID3FrameBody instanceof Buffer)) {
+    if(!ID3TagBody || !(ID3TagBody instanceof Buffer)) {
         return frames
     }
 
-    let identifierSize = 4
-    let textframeHeaderSize = 10
-    if(ID3Version === 2) {
-        identifierSize = 3
-        textframeHeaderSize = 6
-    }
+    const frameIdentifierSize = (ID3Version === 2) ? 3 : 4
+    const frameHeaderSize = (ID3Version === 2) ? 6 : 10
 
-    while(currentPosition < ID3FrameBody.length && ID3FrameBody[currentPosition] !== 0x00) {
-        const bodyFrameHeader = Buffer.alloc(textframeHeaderSize)
-        ID3FrameBody.copy(bodyFrameHeader, 0, currentPosition)
+    while(currentPosition < ID3TagBody.length && ID3TagBody[currentPosition] !== 0x00) {
+        const frameHeader = Buffer.alloc(frameHeaderSize)
+        ID3TagBody.copy(frameHeader, 0, currentPosition)
 
-        let decodeSize = false
-        if(ID3Version === 4) {
-            decodeSize = true
-        }
-        let bodyFrameSize = ID3Util.getFrameSize(bodyFrameHeader, decodeSize, ID3Version)
-        if(bodyFrameSize + 10 > (ID3FrameBody.length - currentPosition)) {
-            break
-        }
-        const specName = bodyFrameHeader.toString('utf8', 0, identifierSize)
-        if(options.exclude instanceof Array && options.exclude.includes(specName) || options.include instanceof Array && !options.include.includes(specName)) {
-            currentPosition += bodyFrameSize + textframeHeaderSize
+        const frameIdentifier = frameHeader.toString('utf8', 0, frameIdentifierSize)
+        const decodeSize = ID3Version === 4
+        const frameBodySize = ID3Util.getFrameSize(frameHeader, decodeSize, ID3Version)
+        // It's possible to discard frames via options.exclude/options.include
+        // If that is the case, skip this frame and continue with the next
+        if(isFrameDiscardedByOptions(frameIdentifier, options)) {
+            currentPosition += frameBodySize + frameHeaderSize
             continue
         }
-        const frameHeaderFlags = ID3Util.parseFrameHeaderFlags(bodyFrameHeader, ID3Version)
-        if(frameHeaderFlags.dataLengthIndicator) {
-            bodyFrameSize -= 4
+        // Prevent errors when the current frame's size exceeds the remaining tags size (e.g. due to broken size bytes).
+        if(frameBodySize + frameHeaderSize > (ID3TagBody.length - currentPosition)) {
+            break
         }
-        const bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
-        ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + textframeHeaderSize + (frameHeaderFlags.dataLengthIndicator ? 4 : 0))
+
+        const frameHeaderFlags = ID3Util.parseFrameHeaderFlags(frameHeader, ID3Version)
+        // Frames may have a 32-bit data length indicator appended after their header,
+        // if that is the case, the real body starts after those 4 bytes.
+        const frameBodyOffset = frameHeaderFlags.dataLengthIndicator ? 4 : 0
+        const bodyFrameBuffer = Buffer.alloc(frameBodySize - frameBodyOffset)
+        ID3TagBody.copy(bodyFrameBuffer, 0, currentPosition + frameHeaderSize + frameBodyOffset)
+
         const frame = {
-            name: specName,
+            name: frameIdentifier,
             flags: frameHeaderFlags,
             body: frameHeaderFlags.unsynchronisation ? ID3Util.processUnsynchronisedBuffer(bodyFrameBuffer) : bodyFrameBuffer
         }
         if(frameHeaderFlags.dataLengthIndicator) {
-            frame['dataLengthIndicator'] = ID3FrameBody.readInt32BE(currentPosition + textframeHeaderSize)
+            frame.dataLengthIndicator = ID3TagBody.readInt32BE(currentPosition + frameHeaderSize)
         }
         frames.push(frame)
 
-        //  Size of sub frame + its header
-        currentPosition += bodyFrameSize + textframeHeaderSize
+        //  Size of frame body + its header
+        currentPosition += frameBodySize + frameHeaderSize
     }
 
     return frames
@@ -187,21 +193,21 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
     const raw = { }
 
     frames.forEach((frame) => {
-        let specName
+        let frameIdentifier
         let identifier
         if(ID3Version === 2) {
-            specName = ID3Definitions.FRAME_IDENTIFIERS.v3[ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]]
+            frameIdentifier = ID3Definitions.FRAME_IDENTIFIERS.v3[ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]]
             identifier = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]
         } else if(ID3Version === 3 || ID3Version === 4) {
             /**
              * Due to their similarity, it's possible to mix v3 and v4 frames even if they don't exist in their corrosponding spec.
              * Programs like Mp3tag allow you to do so, so we should allow reading e.g. v4 frames from a v3 ID3 Tag
              */
-            specName = frame.name
+            frameIdentifier = frame.name
             identifier = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.name] || ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v4[frame.name]
         }
 
-        if(!specName || !identifier || frame.flags.encryption) {
+        if(!frameIdentifier || !identifier || frame.flags.encryption) {
             return
         }
 
@@ -214,11 +220,11 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
         }
 
         let decoded
-        if(ID3Frames[specName]) {
-            decoded = ID3Frames[specName].read(frame.body, ID3Version)
-        } else if(specName.startsWith('T')) {
+        if(ID3Frames[frameIdentifier]) {
+            decoded = ID3Frames[frameIdentifier].read(frame.body, ID3Version)
+        } else if(frameIdentifier.startsWith('T')) {
             decoded = ID3Frames.GENERIC_TEXT.read(frame.body, ID3Version)
-        } else if(specName.startsWith('W')) {
+        } else if(frameIdentifier.startsWith('W')) {
             decoded = ID3Frames.GENERIC_URL.read(frame.body, ID3Version)
         }
 
@@ -226,7 +232,7 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
             return
         }
 
-        if(ID3Util.getSpecOptions(specName, ID3Version).multiple) {
+        if(ID3Util.getSpecOptions(frameIdentifier, ID3Version).multiple) {
             if(!options.onlyRaw) {
                 if(!tags[identifier]) {
                     tags[identifier] = []
@@ -234,17 +240,17 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
                 tags[identifier].push(decoded)
             }
             if(!options.noRaw) {
-                if(!raw[specName]) {
-                    raw[specName] = []
+                if(!raw[frameIdentifier]) {
+                    raw[frameIdentifier] = []
                 }
-                raw[specName].push(decoded)
+                raw[frameIdentifier].push(decoded)
             }
         } else {
             if(!options.onlyRaw) {
                 tags[identifier] = decoded
             }
             if(!options.noRaw) {
-                raw[specName] = decoded
+                raw[frameIdentifier] = decoded
             }
         }
     })

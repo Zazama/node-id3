@@ -7,12 +7,12 @@ const ID3Helpers = require('./ID3Helpers')
 const { isString } = require('./util')
 
 module.exports.GENERIC_TEXT = {
-    create: (specName, data) => {
-        if(!specName || !data) {
+    create: (frameIdentifier, data) => {
+        if(!frameIdentifier || !data) {
             return null
         }
 
-        return new ID3FrameBuilder(specName)
+        return new ID3FrameBuilder(frameIdentifier)
             .appendStaticNumber(0x01, 0x01)
             .appendStaticValue(data, null, 0x01)
             .getBuffer()
@@ -25,12 +25,12 @@ module.exports.GENERIC_TEXT = {
 }
 
 module.exports.GENERIC_URL = {
-    create: (specName, data) => {
-        if(!specName || !data) {
+    create: (frameIdentifier, data) => {
+        if(!frameIdentifier || !data) {
             return null
         }
 
-        return new ID3FrameBuilder(specName)
+        return new ID3FrameBuilder(frameIdentifier)
             .appendStaticValue(data)
             .getBuffer()
     },
