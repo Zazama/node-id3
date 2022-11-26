@@ -133,7 +133,7 @@ function getFramesFromID3Body(ID3FrameBody, ID3Version, options = {}) {
         }
         const bodyFrameBuffer = Buffer.alloc(bodyFrameSize)
         ID3FrameBody.copy(bodyFrameBuffer, 0, currentPosition + textframeHeaderSize + (frameHeaderFlags.dataLengthIndicator ? 4 : 0))
-        let frame = {
+        const frame = {
             name: specName,
             flags: frameHeaderFlags,
             body: frameHeaderFlags.unsynchronisation ? ID3Util.processUnsynchronisedBuffer(bodyFrameBuffer) : bodyFrameBuffer
@@ -162,7 +162,7 @@ function decompressFrame(frame) {
     * 2. else try if header is not stored (assume that all content is deflated "body")
     * 3. else try if inflation works if the header is omitted (implementation dependent)
     * */
-    let decompressedBody;
+    let decompressedBody
     try {
         decompressedBody = zlib.inflateSync(frame.body)
     } catch (e) {
@@ -206,7 +206,7 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
         }
 
         if(frame.flags.compression) {
-            let decompressedBody = decompressFrame(frame)
+            const decompressedBody = decompressFrame(frame)
             if(!decompressedBody) {
                 return
             }
