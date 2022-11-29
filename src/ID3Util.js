@@ -62,9 +62,9 @@ module.exports.bufferToDecodedString = function(buffer, encodingByte) {
     return iconv.decode(buffer, this.encodingFromStringOrByte(encodingByte)).replace(/\0/g, '')
 }
 
-module.exports.getSpecOptions = function(specName) {
-    if(ID3Definitions.ID3_FRAME_OPTIONS[specName]) {
-        return ID3Definitions.ID3_FRAME_OPTIONS[specName]
+module.exports.getSpecOptions = function(frameIdentifier) {
+    if(ID3Definitions.ID3_FRAME_OPTIONS[frameIdentifier]) {
+        return ID3Definitions.ID3_FRAME_OPTIONS[frameIdentifier]
     }
 
     return {}
@@ -195,7 +195,8 @@ module.exports.parseFrameHeaderFlags = function(header, ID3Version) {
             readOnly: !!(flagsFirstByte & 32),
             compression: !!(flagsSecondByte & 128),
             encryption: !!(flagsSecondByte & 64),
-            groupingIdentity: !!(flagsSecondByte & 32)
+            groupingIdentity: !!(flagsSecondByte & 32),
+            dataLengthIndicator: !!(flagsSecondByte & 128)
         }
     }
     if(ID3Version === 4) {

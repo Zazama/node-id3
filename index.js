@@ -183,29 +183,29 @@ function update(tags, filebuffer, options, fn) {
 
     const updateFn = (currentTags) => {
         currentTags = currentTags.raw || {}
-        Object.keys(rawTags).map((specName) => {
-            const options = ID3Util.getSpecOptions(specName, 3)
+        Object.keys(rawTags).map((frameIdentifier) => {
+            const options = ID3Util.getSpecOptions(frameIdentifier, 3)
             const cCompare = {}
-            if(options.multiple && currentTags[specName] && rawTags[specName]) {
+            if(options.multiple && currentTags[frameIdentifier] && rawTags[frameIdentifier]) {
                 if(options.updateCompareKey) {
-                    currentTags[specName].forEach((cTag, index) => {
+                    currentTags[frameIdentifier].forEach((cTag, index) => {
                         cCompare[cTag[options.updateCompareKey]] = index
                     })
 
                 }
-                if (!(rawTags[specName] instanceof Array)) {
-                    rawTags[specName] = [rawTags[specName]]
+                if (!(rawTags[frameIdentifier] instanceof Array)) {
+                    rawTags[frameIdentifier] = [rawTags[frameIdentifier]]
                 }
-                rawTags[specName].forEach((rTag) => {
+                rawTags[frameIdentifier].forEach((rTag) => {
                     const comparison = cCompare[rTag[options.updateCompareKey]]
                     if (comparison !== undefined) {
-                        currentTags[specName][comparison] = rTag
+                        currentTags[frameIdentifier][comparison] = rTag
                     } else {
-                        currentTags[specName].push(rTag)
+                        currentTags[frameIdentifier].push(rTag)
                     }
                 })
             } else {
-                currentTags[specName] = rawTags[specName]
+                currentTags[frameIdentifier] = rawTags[frameIdentifier]
             }
         })
         return currentTags
