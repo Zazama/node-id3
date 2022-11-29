@@ -280,6 +280,29 @@ module.exports.PRIV = {
     }
 }
 
+module.exports.UFID = {
+    create: (data) => {
+        if (!(data instanceof Array)) {
+            data = [data]
+        }
+
+        return Buffer.concat(data.map(ufid => new ID3FrameBuilder("UFID")
+            .appendNullTerminatedValue(ufid.ownerIdentifier)
+            .appendStaticValue(
+                ufid.identifier instanceof Buffer ?
+                ufid.identifier : Buffer.from(ufid.identifier, "utf8")
+            )
+            .getBuffer()))
+    },
+    read: (buffer) => {
+        const reader = new ID3FrameReader(buffer)
+        return {
+            ownerIdentifier: reader.consumeNullTerminatedValue('string'),
+            identifier: reader.consumeStaticValue()
+        }
+    }
+}
+
 module.exports.CHAP = {
     create: (data) => {
         if (!(data instanceof Array)) {

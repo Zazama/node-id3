@@ -258,6 +258,21 @@ describe('NodeID3', function () {
             )
         })
 
+        it("create UFID frame", function () {
+            const frameBuf = Buffer.from('49443303000000000042554649440000001700006f776e65722d69642d31006964656e7469666965722d31554649440000001700006f776e65722d69642d32006964656e7469666965722d32', 'hex')
+            const tags = {
+                UFID: [{
+                    ownerIdentifier: "owner-id-1",
+                    identifier: Buffer.from("identifier-1")
+                }, {
+                    ownerIdentifier: "owner-id-2",
+                    identifier: Buffer.from("identifier-2")
+                }],
+            }
+
+            assert.deepStrictEqual(NodeID3.create(tags), frameBuf)
+        })
+
         it('create CHAP frame', function() {
             const frameBuf = Buffer.from('494433030000000000534348415000000049000048657921000000138800001F400000007B000001C8544954320000000F000001FFFE6100620063006400650066005450453100000011000001FFFE61006B0073006800640061007300', 'hex')
             const tags = { CHAP: [{
@@ -639,6 +654,22 @@ describe('NodeID3', function () {
             assert.deepStrictEqual(
                 NodeID3.read(frameBuf).private,
                 priv
+            )
+        })
+
+        it("read UFID frame", function () {
+            const frameBuf = Buffer.from('49443303000000000042554649440000001700006f776e65722d69642d31006964656e7469666965722d31554649440000001700006f776e65722d69642d32006964656e7469666965722d32', 'hex')
+            const ufid = [{
+                ownerIdentifier: "owner-id-1",
+                identifier: Buffer.from("identifier-1")
+            }, {
+                ownerIdentifier: "owner-id-2",
+                identifier: Buffer.from("identifier-2")
+            }]
+
+            assert.deepStrictEqual(
+                NodeID3.read(frameBuf).uniqueFileIdentifier,
+                ufid
             )
         })
 

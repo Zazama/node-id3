@@ -102,7 +102,8 @@ const FRAME_IDENTIFIERS = {
         paymentUrl:             "WPAY",
         publisherUrl:           "WPUB",
         eventTimingCodes:       "ETCO",
-        commercialFrame:        "COMR"
+        commercialFrame:        "COMR",
+        uniqueFileIdentifier:   "UFID"
     },
     /**
      * v4 removes some text frames compared to v3: TDAT, TIME, TRDA, TSIZ, TYER
@@ -245,6 +246,9 @@ const ID3_FRAME_OPTIONS = {
         multiple: false
     },
     "COMR": {
+        multiple: true
+    },
+    "UFID": {
         multiple: true
     }
 }
