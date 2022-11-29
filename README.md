@@ -243,6 +243,13 @@ private: [{
   ownerIdentifier: "AbCSSS",
   data: Buffer.from([0x01, 0x02, 0x05])
 }],
+uniqueFileIdentifier: [{
+  ownerIdentifier: "owner-id-1",
+  identifier: Buffer.from("identifier-1")
+}], {
+  ownerIdentifier: "owner-id-2",
+  identifier: Buffer.from("identifier-2")
+},
 chapter: [{
   elementID: "Hey!", // THIS MUST BE UNIQUE!
   startTimeMs: 5000,
@@ -360,6 +367,7 @@ synchronisedLyrics    "SYLT"
 userDefinedText       "TXXX"
 popularimeter         "POPM"
 private               "PRIV"
+uniqueFileIdentifier  "UFID"
 chapter               "CHAP"
 tableOfContents       "CTOC"
 commercialUrl         "WCOM"

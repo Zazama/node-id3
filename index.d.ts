@@ -382,6 +382,33 @@ declare module "node-id3" {
             ownerIdentifier: string,
             data: string
          }],
+         /**
+          * This frame's purpose is to be able to identify the audio file in a
+          * database that may contain more information relevant to the content.
+          * Since standardisation of such a database is beyond this document,
+          * all frames begin with a null-terminated string with a URL
+          * containing an email address, or a link to a location where an email
+          * address can be found, that belongs to the organisation responsible
+          * for this specific database implementation. Questions regarding the
+          * database should be sent to the indicated email address. The URL
+          * should not be used for the actual database queries. The string
+          * "http://www.id3.org/dummy/ufid.html" should be used for tests.
+          * Software that isn't told otherwise may safely remove such frames.
+          *
+          * There may be more than one "UFID" frame in a tag, but only one with
+          * the same `ownerIdentifier`.
+          */
+         uniqueFileIdentifier?: Array<{
+            /**
+             * Must be non-empty.
+             */
+            ownerIdentifier: string,
+            /**
+             * Up to 64 bytes of binary data.
+             * Providing more data will result in an undefined behaviour.
+             */
+            identifier: Buffer
+         }>,
          chapter?: Array<{
             elementID: string,
             endTimeMs: number,
