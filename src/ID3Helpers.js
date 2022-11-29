@@ -115,8 +115,7 @@ function getFramesFromID3Body(ID3TagBody, ID3Version, options = {}) {
     const frameHeaderSize = (ID3Version === 2) ? 6 : 10
 
     while(currentPosition < ID3TagBody.length && ID3TagBody[currentPosition] !== 0x00) {
-        const frameHeader = Buffer.alloc(frameHeaderSize)
-        ID3TagBody.copy(frameHeader, 0, currentPosition)
+        const frameHeader = ID3TagBody.subarray(currentPosition, currentPosition + frameHeaderSize)
 
         const frameIdentifier = frameHeader.toString('utf8', 0, frameIdentifierSize)
         const decodeSize = ID3Version === 4
@@ -136,13 +135,13 @@ function getFramesFromID3Body(ID3TagBody, ID3Version, options = {}) {
         // Frames may have a 32-bit data length indicator appended after their header,
         // if that is the case, the real body starts after those 4 bytes.
         const frameBodyOffset = frameHeaderFlags.dataLengthIndicator ? 4 : 0
-        const bodyFrameBuffer = Buffer.alloc(frameBodySize - frameBodyOffset)
-        ID3TagBody.copy(bodyFrameBuffer, 0, currentPosition + frameHeaderSize + frameBodyOffset)
+        const frameBodyStart = currentPosition + frameHeaderSize + frameBodyOffset
+        const frameBody = ID3TagBody.subarray(frameBodyStart, frameBodyStart + frameBodySize - frameBodyOffset)
 
         const frame = {
             name: frameIdentifier,
             flags: frameHeaderFlags,
-            body: frameHeaderFlags.unsynchronisation ? ID3Util.processUnsynchronisedBuffer(bodyFrameBuffer) : bodyFrameBuffer
+            body: frameHeaderFlags.unsynchronisation ? ID3Util.processUnsynchronisedBuffer(frameBody) : frameBody
         }
         if(frameHeaderFlags.dataLengthIndicator) {
             frame.dataLengthIndicator = ID3TagBody.readInt32BE(currentPosition + frameHeaderSize)
