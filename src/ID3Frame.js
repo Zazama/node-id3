@@ -12,7 +12,7 @@ class ID3Frame {
     }
 
     static createFromBuffer(frameBuffer, version) {
-        const frameHeaderSize = ID3FrameHeader.getSizeByVersion(version)
+        const frameHeaderSize = ID3FrameHeader.getHeaderSize(version)
         // Specification requirement
         if(frameBuffer < frameHeaderSize + 1) {
             return null
@@ -25,7 +25,7 @@ class ID3Frame {
 
         const frameBodyOffset = frameHeader.flags.dataLengthIndicator ? 4 : 0
         const frameBodyStart = frameHeaderSize + frameBodyOffset
-        let frameBody = frameBuffer.subarray(frameBodyStart, frameBodyStart + frameHeader.frameSize - frameBodyOffset)
+        let frameBody = frameBuffer.subarray(frameBodyStart, frameBodyStart + frameHeader.bodySize - frameBodyOffset)
         if(frameHeader.flags.unsynchronisation) {
             // This method should stay in ID3Util for now because it's also used in the Tag's header which we don't have a class for.
             frameBody = ID3Util.processUnsynchronisedBuffer(frameBody)
@@ -34,7 +34,7 @@ class ID3Frame {
             this.dataLengthIndicator = frameBuffer.readInt32BE(frameHeaderSize)
         }
         if(frameHeader.flags.compression) {
-            const uncompressedFrameBody = this.decompressBodyBuffer(frameBody, this.dataLengthIndicator)
+            const uncompressedFrameBody = decompressBodyBuffer(frameBody, this.dataLengthIndicator)
             if(!uncompressedFrameBody) {
                 return null
             }
@@ -73,38 +73,38 @@ class ID3Frame {
     getValue() {
         return this.value
     }
+}
 
-    static decompressBodyBuffer(bodyBuffer, dataLengthIndicator) {
-        if(bodyBuffer.length < 5 || dataLengthIndicator === undefined) {
-            return null
-        }
+function decompressBodyBuffer(bodyBuffer, dataLengthIndicator) {
+    if(bodyBuffer.length < 5 || dataLengthIndicator === undefined) {
+        return null
+    }
 
-        /*
-        * ID3 spec defines that compression is stored in ZLIB format, but doesn't specify if header is present or not.
-        * ZLIB has a 2-byte header.
-        * 1. try if header + body decompression
-        * 2. else try if header is not stored (assume that all content is deflated "body")
-        * 3. else try if inflation works if the header is omitted (implementation dependent)
-        * */
-        let decompressedBody
+    /*
+    * ID3 spec defines that compression is stored in ZLIB format, but doesn't specify if header is present or not.
+    * ZLIB has a 2-byte header.
+    * 1. try if header + body decompression
+    * 2. else try if header is not stored (assume that all content is deflated "body")
+    * 3. else try if inflation works if the header is omitted (implementation dependent)
+    * */
+    let decompressedBody
+    try {
+        decompressedBody = zlib.inflateSync(bodyBuffer)
+    } catch (e) {
         try {
-            decompressedBody = zlib.inflateSync(bodyBuffer)
+            decompressedBody = zlib.inflateRawSync(bodyBuffer)
         } catch (e) {
             try {
-                decompressedBody = zlib.inflateRawSync(bodyBuffer)
+                decompressedBody = zlib.inflateRawSync(bodyBuffer.subarray(2))
             } catch (e) {
-                try {
-                    decompressedBody = zlib.inflateRawSync(bodyBuffer.subarray(2))
-                } catch (e) {
-                    return null
-                }
+                return null
             }
         }
-        if(decompressedBody.length !== dataLengthIndicator) {
-            return null
-        }
-        return decompressedBody
     }
+    if(decompressedBody.length !== dataLengthIndicator) {
+        return null
+    }
+    return decompressedBody
 }
 
 module.exports = ID3Frame

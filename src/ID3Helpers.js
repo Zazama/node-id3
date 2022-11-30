@@ -92,12 +92,12 @@ module.exports.getTagsFromBuffer = function(filebuffer, options) {
     const ID3FrameBody = Buffer.alloc(frameSize - 10 - extendedHeaderOffset)
     filebuffer.copy(ID3FrameBody, 0, framePosition + 10 + extendedHeaderOffset)
 
-    const frames = getFramesFromID3Body(ID3FrameBody, ID3Version, options)
+    const frames = getFramesFromTagBody(ID3FrameBody, ID3Version, options)
 
     return getTagsFromFrames(frames, ID3Version, options)
 }
 
-function isFrameDiscardedByOptions(frameIdentifier, options) {
+function isFrameDiscarded(frameIdentifier, options) {
     if(options.exclude instanceof Array && options.exclude.includes(frameIdentifier)) {
         return true
     }
@@ -105,38 +105,32 @@ function isFrameDiscardedByOptions(frameIdentifier, options) {
     return options.include instanceof Array && !options.include.includes(frameIdentifier)
 }
 
-function getFramesFromID3Body(ID3TagBody, ID3Version, options = {}) {
-    let currentPosition = 0
-    const frames = []
-    if(!ID3TagBody || !(ID3TagBody instanceof Buffer)) {
-        return frames
+function getFramesFromTagBody(tagBody, version, options = {}) {
+    if(!(tagBody instanceof Buffer)) {
+        return []
     }
 
-    while(currentPosition < ID3TagBody.length && ID3TagBody[currentPosition] !== 0x00) {
-        const frameSize = ID3FrameHeader.getFrameSizeFromBuffer(ID3TagBody.subarray(currentPosition)) + ID3FrameHeader.getSizeByVersion(ID3Version)
-        const frameBuffer = ID3TagBody.subarray(currentPosition, currentPosition + frameSize)
-        const frame = ID3Frame.createFromBuffer(frameBuffer, ID3Version)
-        // It's possible to discard frames via options.exclude/options.include
-        // If that is the case, skip this frame and continue with the next
-        if(!frame || isFrameDiscardedByOptions(frame.identifier, options)) {
-            currentPosition += frameSize
-            continue
-        }
-        // Prevent errors when the current frame's size exceeds the remaining tags size (e.g. due to broken size bytes).
-        if(frameSize > (ID3TagBody.length - currentPosition)) {
+    const frames = []
+    while(tagBody.length && tagBody[0] !== 0x00) {
+        const frameSize = ID3FrameHeader.getFrameSize(tagBody, version)
+
+        // Prevent errors due to broken data.
+        if (frameSize > tagBody.length) {
             break
         }
 
-        frames.push(frame)
+        const frameBuffer = tagBody.subarray(0, frameSize)
+        const frame = ID3Frame.createFromBuffer(frameBuffer, version)
+        if(frame && !isFrameDiscarded(frame.identifier, options)) {
+            frames.push(frame)
+        }
 
-        //  Size of frame body + its header
-        currentPosition += frameSize
+        tagBody = tagBody.subarray(frameSize)
     }
-
     return frames
 }
 
-function getTagsFromFrames(frames, ID3Version, options = {}) {
+function getTagsFromFrames(frames, version, options = {}) {
     const tags = { }
     const raw = { }
 
@@ -144,7 +138,7 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
         const frameValue = frame.getValue()
         const frameAlias = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.identifier] || ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v4[frame.identifier]
 
-        if(ID3Util.getSpecOptions(frame.identifier, ID3Version).multiple) {
+        if(ID3Util.getSpecOptions(frame.identifier, version).multiple) {
             if(!options.onlyRaw) {
                 if(!tags[frameAlias]) {
                     tags[frameAlias] = []
@@ -179,5 +173,5 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
 }
 
 module.exports.getTagsFromID3Body = function(body) {
-    return getTagsFromFrames(getFramesFromID3Body(body, 3), 3)
+    return getTagsFromFrames(getFramesFromTagBody(body, 3), 3)
 }
