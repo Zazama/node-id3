@@ -141,10 +141,6 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
     const raw = { }
 
     frames.forEach((frame) => {
-        if(frame.flags.encryption) {
-            return
-        }
-
         const frameValue = frame.getValue()
         const frameAlias = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.identifier] || ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v4[frame.identifier]
 

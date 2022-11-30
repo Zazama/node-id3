@@ -19,6 +19,9 @@ class ID3Frame {
         }
         const frameHeaderBuffer = frameBuffer.subarray(0, frameHeaderSize)
         const frameHeader = ID3FrameHeader.createFromBuffer(frameHeaderBuffer, version)
+        if(frameHeader.flags.encryption) {
+            return null
+        }
 
         const frameBodyOffset = frameHeader.flags.dataLengthIndicator ? 4 : 0
         const frameBodyStart = frameHeaderSize + frameBodyOffset
