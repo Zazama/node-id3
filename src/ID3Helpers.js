@@ -1,7 +1,8 @@
-const zlib = require('zlib')
 const ID3Definitions = require("./ID3Definitions")
 const ID3Frames = require('./ID3Frames')
 const ID3Util = require('./ID3Util')
+const ID3Frame = require('./ID3Frame')
+const ID3FrameHeader = require('./ID3FrameHeader')
 
 /**
  * Returns array of buffers created by tags specified in the tags argument
@@ -111,80 +112,28 @@ function getFramesFromID3Body(ID3TagBody, ID3Version, options = {}) {
         return frames
     }
 
-    const frameIdentifierSize = (ID3Version === 2) ? 3 : 4
-    const frameHeaderSize = (ID3Version === 2) ? 6 : 10
-
     while(currentPosition < ID3TagBody.length && ID3TagBody[currentPosition] !== 0x00) {
-        const frameHeader = ID3TagBody.subarray(currentPosition, currentPosition + frameHeaderSize)
-
-        const frameIdentifier = frameHeader.toString('utf8', 0, frameIdentifierSize)
-        const decodeSize = ID3Version === 4
-        const frameBodySize = ID3Util.getFrameSize(frameHeader, decodeSize, ID3Version)
+        const frameSize = ID3FrameHeader.getFrameSizeFromBuffer(ID3TagBody.subarray(currentPosition)) + ID3FrameHeader.getSizeByVersion(ID3Version)
+        const frameBuffer = ID3TagBody.subarray(currentPosition, currentPosition + frameSize)
+        const frame = ID3Frame.createFromBuffer(frameBuffer, ID3Version)
         // It's possible to discard frames via options.exclude/options.include
         // If that is the case, skip this frame and continue with the next
-        if(isFrameDiscardedByOptions(frameIdentifier, options)) {
-            currentPosition += frameBodySize + frameHeaderSize
+        if(!frame || isFrameDiscardedByOptions(frame.identifier, options)) {
+            currentPosition += frameSize
             continue
         }
         // Prevent errors when the current frame's size exceeds the remaining tags size (e.g. due to broken size bytes).
-        if(frameBodySize + frameHeaderSize > (ID3TagBody.length - currentPosition)) {
+        if(frameSize > (ID3TagBody.length - currentPosition)) {
             break
         }
 
-        const frameHeaderFlags = ID3Util.parseFrameHeaderFlags(frameHeader, ID3Version)
-        // Frames may have a 32-bit data length indicator appended after their header,
-        // if that is the case, the real body starts after those 4 bytes.
-        const frameBodyOffset = frameHeaderFlags.dataLengthIndicator ? 4 : 0
-        const frameBodyStart = currentPosition + frameHeaderSize + frameBodyOffset
-        const frameBody = ID3TagBody.subarray(frameBodyStart, frameBodyStart + frameBodySize - frameBodyOffset)
-
-        const frame = {
-            name: frameIdentifier,
-            flags: frameHeaderFlags,
-            body: frameHeaderFlags.unsynchronisation ? ID3Util.processUnsynchronisedBuffer(frameBody) : frameBody
-        }
-        if(frameHeaderFlags.dataLengthIndicator) {
-            frame.dataLengthIndicator = ID3TagBody.readInt32BE(currentPosition + frameHeaderSize)
-        }
         frames.push(frame)
 
         //  Size of frame body + its header
-        currentPosition += frameBodySize + frameHeaderSize
+        currentPosition += frameSize
     }
 
     return frames
-}
-
-function decompressFrame(frame) {
-    if(frame.body.length < 5 || frame.dataLengthIndicator === undefined) {
-        return null
-    }
-
-    /*
-    * ID3 spec defines that compression is stored in ZLIB format, but doesn't specify if header is present or not.
-    * ZLIB has a 2-byte header.
-    * 1. try if header + body decompression
-    * 2. else try if header is not stored (assume that all content is deflated "body")
-    * 3. else try if inflation works if the header is omitted (implementation dependent)
-    * */
-    let decompressedBody
-    try {
-        decompressedBody = zlib.inflateSync(frame.body)
-    } catch (e) {
-        try {
-            decompressedBody = zlib.inflateRawSync(frame.body)
-        } catch (e) {
-            try {
-                decompressedBody = zlib.inflateRawSync(frame.body.slice(2))
-            } catch (e) {
-                return null
-            }
-        }
-    }
-    if(decompressedBody.length !== frame.dataLengthIndicator) {
-        return null
-    }
-    return decompressedBody
 }
 
 function getTagsFromFrames(frames, ID3Version, options = {}) {
@@ -192,64 +141,32 @@ function getTagsFromFrames(frames, ID3Version, options = {}) {
     const raw = { }
 
     frames.forEach((frame) => {
-        let frameIdentifier
-        let identifier
-        if(ID3Version === 2) {
-            frameIdentifier = ID3Definitions.FRAME_IDENTIFIERS.v3[ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]]
-            identifier = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[frame.name]
-        } else if(ID3Version === 3 || ID3Version === 4) {
-            /**
-             * Due to their similarity, it's possible to mix v3 and v4 frames even if they don't exist in their corrosponding spec.
-             * Programs like Mp3tag allow you to do so, so we should allow reading e.g. v4 frames from a v3 ID3 Tag
-             */
-            frameIdentifier = frame.name
-            identifier = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.name] || ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v4[frame.name]
-        }
-
-        if(!frameIdentifier || !identifier || frame.flags.encryption) {
+        if(frame.flags.encryption) {
             return
         }
 
-        if(frame.flags.compression) {
-            const decompressedBody = decompressFrame(frame)
-            if(!decompressedBody) {
-                return
-            }
-            frame.body = decompressedBody
-        }
+        const frameValue = frame.getValue()
+        const frameAlias = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.identifier] || ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v4[frame.identifier]
 
-        let decoded
-        if(ID3Frames[frameIdentifier]) {
-            decoded = ID3Frames[frameIdentifier].read(frame.body, ID3Version)
-        } else if(frameIdentifier.startsWith('T')) {
-            decoded = ID3Frames.GENERIC_TEXT.read(frame.body, ID3Version)
-        } else if(frameIdentifier.startsWith('W')) {
-            decoded = ID3Frames.GENERIC_URL.read(frame.body, ID3Version)
-        }
-
-        if(!decoded) {
-            return
-        }
-
-        if(ID3Util.getSpecOptions(frameIdentifier, ID3Version).multiple) {
+        if(ID3Util.getSpecOptions(frame.identifier, ID3Version).multiple) {
             if(!options.onlyRaw) {
-                if(!tags[identifier]) {
-                    tags[identifier] = []
+                if(!tags[frameAlias]) {
+                    tags[frameAlias] = []
                 }
-                tags[identifier].push(decoded)
+                tags[frameAlias].push(frameValue)
             }
             if(!options.noRaw) {
-                if(!raw[frameIdentifier]) {
-                    raw[frameIdentifier] = []
+                if(!raw[frame.identifier]) {
+                    raw[frame.identifier] = []
                 }
-                raw[frameIdentifier].push(decoded)
+                raw[frame.identifier].push(frameValue)
             }
         } else {
             if(!options.onlyRaw) {
-                tags[identifier] = decoded
+                tags[frameAlias] = frameValue
             }
             if(!options.noRaw) {
-                raw[frameIdentifier] = decoded
+                raw[frame.identifier] = frameValue
             }
         }
     })
