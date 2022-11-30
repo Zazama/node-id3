@@ -1,6 +1,7 @@
 const zlib = require('zlib')
 const ID3FrameHeader = require('./ID3FrameHeader')
 const ID3Frames = require('./ID3Frames')
+const ID3Util = require('./ID3Util')
 
 class ID3Frame {
     constructor(identifier, value, flags = {}) {

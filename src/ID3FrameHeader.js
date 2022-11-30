@@ -18,7 +18,7 @@ class ID3FrameHeader {
         if(version === 2) {
             const alias = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[identifier]
             if(alias) {
-                frameIdentifier = ID3Definitions.FRAME_IDENTIFIERS.v3[alias]
+                identifier = ID3Definitions.FRAME_IDENTIFIERS.v3[alias]
             }
         }
 
