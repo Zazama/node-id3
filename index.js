@@ -9,9 +9,9 @@ const { isFunction, isString } = require('./src/util')
 */
 
 /**
- * Checks and removes already written ID3-Frames from a buffer
+ * Check and remove already written ID3-Frames from a buffer
  * @param {Buffer} data
- * @returns {boolean|Buffer}
+ * @returns {false|Buffer}
  */
 function removeTagsFromBuffer(data) {
     const framePosition = ID3Util.getFramePosition(data)
@@ -79,10 +79,10 @@ function writeSync(tags, filebuffer) {
 
 /**
  * Write passed tags to a file/buffer
- * @param tags - Object containing tags to be written
- * @param filebuffer - Can contain a filepath string or buffer
- * @param fn - (optional) Function for async version
- * @returns {boolean|Buffer|Error}
+ * @param {object} tags - Object containing tags to be written
+ * @param {string|Buffer} filebuffer - Filepath or buffer
+ * @param {WriteCallback} [fn] - Function for async version
+ * @returns {boolean|Buffer|Error|void}
  */
 function write(tags, filebuffer, fn) {
     const completeTags = create(tags)
@@ -94,10 +94,10 @@ function write(tags, filebuffer, fn) {
 }
 
 /**
- * Creates a buffer containing the ID3 Tag
- * @param tags - Object containing tags to be written
- * @param fn fn - (optional) Function for async version
- * @returns {Buffer}
+ * Create a buffer containing the ID3 Tag
+ * @param {object} tags - Object containing tags to be written
+ * @param {CreateCallback} [fn] - Function for async version
+ * @returns {Buffer|undefined}
  */
 function create(tags, fn) {
     const frames = ID3Helpers.createBufferFromTags(tags)
@@ -119,6 +119,12 @@ function create(tags, fn) {
     return id3Data
 }
 
+/**
+ * Read ID3-Tags from passed buffer/filepath
+ * @param {string|Buffer} filebuffer - Filepath or buffer
+ * @param {Options} options - Object containing options
+ * @returns {object} - Return the read tags
+ */
 function readSync(filebuffer, options) {
     if(isString(filebuffer)) {
         filebuffer = fs.readFileSync(filebuffer)
@@ -126,7 +132,14 @@ function readSync(filebuffer, options) {
     return ID3Helpers.getTagsFromBuffer(filebuffer, options)
 }
 
-function readAsync(filebuffer, options, fn) {
+/**
+ * Read ID3-Tags from passed buffer/filepath
+ * @param {string|Buffer} filebuffer - Filepath or buffer
+ * @param {Options} options - Object containing options
+ * @param {ReadCallback} fn - Function for async version
+ * @returns {void} - Return the read tags
+ */
+ function readAsync(filebuffer, options, fn) {
     if(isString(filebuffer)) {
         fs.readFile(filebuffer, (error, data) => {
             if(error) {
@@ -142,10 +155,10 @@ function readAsync(filebuffer, options, fn) {
 
 /**
  * Read ID3-Tags from passed buffer/filepath
- * @param filebuffer - Can contain a filepath string or buffer
- * @param options - (optional) Object containing options
- * @param fn - (optional) Function for async version
- * @returns {boolean}
+ * @param {string|Buffer} filebuffer - Filepath or buffer
+ * @param {Options} [options] - Object containing options
+ * @param {ReadCallback} [fn] - Function for async version
+ * @returns {boolean} - Return the read tags
  */
 function read(filebuffer, options, fn) {
     if(!options || typeof options === 'function') {
@@ -160,10 +173,10 @@ function read(filebuffer, options, fn) {
 
 /**
  * Update ID3-Tags from passed buffer/filepath
- * @param tags - Object containing tags to be written
- * @param filebuffer - Can contain a filepath string or buffer
- * @param options - (optional) Object containing options
- * @param fn - (optional) Function for async version
+ * @param {object} tags - Object containing tags to be written
+ * @param {string|Buffer} filebuffer - A filepath string or buffer
+ * @param {Options} [options] - Object containing options
+ * @param {WriteCallback} [fn] - Function for async version
  * @returns {boolean|Buffer|Error}
  */
 function update(tags, filebuffer, options, fn) {
@@ -245,7 +258,7 @@ function removeTagsSync(filepath) {
 
 /**
  * @param {string} filepath - Filepath to file
- * @param {(error: Error) => void} fn - Function for async usage
+ * @param {WriteCallback} fn - Function for async usage
  * @returns {void}
  */
 function removeTagsAsync(filepath, fn) {
@@ -272,10 +285,10 @@ function removeTagsAsync(filepath, fn) {
 }
 
 /**
- * Checks and removes already written ID3-Frames from a file
+ * Check and remove already written ID3-Frames from a file
  * @param {string} filepath - Filepath to file
- * @param fn - (optional) Function for async usage
- * @returns {boolean|Error}
+ * @param {WriteCallback} [fn] - Function for async usage
+ * @returns {boolean|Error|void}
  */
 function removeTags(filepath, fn) {
     if(isFunction(fn)) {

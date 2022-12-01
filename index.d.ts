@@ -671,24 +671,106 @@ declare module "node-id3" {
             }
          }
       }
-      export function write(tags: Tags, filebuffer: Buffer): Buffer
-      export function write(tags: Tags, filebuffer: Buffer, fun: (err: null, buffer: Buffer) => void): void
-      export function write(tags: Tags, filepath: string): true | Error
-      export function write(tags: Tags, filepath: string, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
-      export function create(tags: Tags): Buffer
-      export function create(tags: Tags, fn: (buffer: Buffer) => void): void
-      export function read(filebuffer: string | Buffer): Tags
-      export function read(filebuffer: string | Buffer, options: Object): Tags
-      export function read(filebuffer: string | Buffer, fn: (err: NodeJS.ErrnoException | null, tags: Tags | null) => void): void
-      export function read(filebuffer: string | Buffer, options: Object, fn: (err: NodeJS.ErrnoException | null, tags: Tags | null) => void): void
-      export function update(tags: Tags, filebuffer: Buffer, options?: Object): Buffer
-      export function update(tags: Tags, filepath: string, options?: Object): true | Error
-      export function update(tags: Tags, filepath: string, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
-      export function update(tags: Tags, filepath: string, options: Object, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
-      export function update(tags: Tags, filebuffer: Buffer, fn: (err: NodeJS.ErrnoException | null, buffer?: Buffer) => void): void
-      export function update(tags: Tags, filebuffer: Buffer, options: Object, fn: (err: NodeJS.ErrnoException | null, buffer?: Buffer) => void): void
-      export function removeTags(filepath: string): true | Error
-      export function removeTags(filepath: string, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
+      export interface Options {
+         /**
+          * Only read the specified tag identifiers, defaults to all.
+          */
+         include?: ['TALB', 'TIT2'],
+         /**
+          * Do not read the specified tag identifiers, defaults to none.
+          */
+         exclude?: ['APIC'],
+         /**
+          * Only return the `raw` object, defaults to false.
+          */
+         onlyRaw?: boolean,
+         /**
+          * Do not generate the `raw` object, defaults to false.
+          */
+         noRaw?: boolean
+      }
+
+      export function write(
+         tags: Tags,
+         filebuffer: Buffer,
+         fn: (err: null, buffer: Buffer) => void
+      ): void
+      export function write(
+         tags: Tags,
+         filepath: string
+      ): true | Error
+      export function write(
+         tags: Tags,
+         filepath: string,
+         fn: (err: NodeJS.ErrnoException | Error | null) => void
+      ): void
+
+      export function create(
+         tags: Tags
+      ): Buffer
+      export function create(
+         tags: Tags,
+         fn: (buffer: Buffer) => void
+      ): void
+
+      export function read(
+         filebuffer: string | Buffer
+      ): Tags
+      export function read(
+         filebuffer: string | Buffer,
+         options: Options
+      ): Tags
+      export function read(
+         filebuffer: string | Buffer,
+         fn: (err: NodeJS.ErrnoException | null, tags: Tags | null) => void
+      ): void
+      export function read(
+         filebuffer: string | Buffer,
+         options: Options,
+         fn: (err: NodeJS.ErrnoException | null, tags: Tags | null
+      ) => void): void
+
+      export function update(
+         tags: Tags,
+         filebuffer: Buffer,
+         options?: Options
+      ): Buffer
+      export function update(
+         tags: Tags,
+         filepath: string,
+         options?: Options
+      ): true | Error
+      export function update(
+         tags: Tags,
+         filepath: string,
+         fn: (err: NodeJS.ErrnoException | Error | null) => void
+      ): void
+      export function update(
+         tags: Tags,
+         filepath: string,
+         options: Options,
+         fn: (err: NodeJS.ErrnoException | Error | null) => void
+      ): void
+      export function update(
+         tags: Tags,
+         filebuffer: Buffer,
+         fn: (err: NodeJS.ErrnoException | null, buffer?: Buffer
+      ) => void): void
+      export function update(
+         tags: Tags,
+         filebuffer: Buffer,
+         options: Object,
+         fn: (err: NodeJS.ErrnoException | null, buffer?: Buffer) => void
+      ): void
+
+      export function removeTags(
+         filepath: string
+      ): true | Error
+      export function removeTags(
+         filepath: string,
+         fn: (err: NodeJS.ErrnoException | Error | null) => void
+      ): void
+
       export const Promise: {
          write(tags: Tags, filebuffer: Buffer) : Promise<Buffer>,
          write(tags: Tags, filepath: string) : Promise<boolean>,

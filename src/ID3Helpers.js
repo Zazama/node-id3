@@ -69,7 +69,13 @@ module.exports.createBufferFromTags = function(tags) {
     return Buffer.concat(createBuffersFromTags(tags))
 }
 
-module.exports.getTagsFromBuffer = function(filebuffer, options) {
+/**
+ * Return a buffer with the frames for the specified tags
+ * @param {object} tags - Object containing tags to be written
+ * @param {Options} options
+ * @returns {Buffer}
+ */
+ module.exports.getTagsFromBuffer = function(filebuffer, options) {
     const framePosition = ID3Util.getFramePosition(filebuffer)
     if(framePosition === -1) {
         return getTagsFromFrames([], 3, options)
