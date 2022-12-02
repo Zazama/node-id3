@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.5] - 2022-12-02
+
+### Added
+
+- Add ETCO and COMR frames
+- Add constants for usage in tags (by @pbricout)
+- Add ID3v2.4.0 text frames
+- Allow mixing of ID3v2.3.0 and ID3v2.4.0 frames
+
+### Changed
+
+- Internal refactor of code to simplify functions (by @pbricout)
+
+### Fixed
+
+- Frame compression is now handled correctly
+
 ## [0.2.4] - 2022-11-09
 
 - Add synchronised lyrics (SYLT frame) (by @pbricout)
@@ -248,7 +265,8 @@
 
 - Fix node v6
 
-[unreleased](https://github.com/Zazama/node-id3/compare/0.2.4...HEAD)
+[unreleased](https://github.com/Zazama/node-id3/compare/0.2.5...HEAD)
+[0.2.5](https://github.com/Zazama/node-id3/compare/0.2.4...0.2.5)
 [0.2.4](https://github.com/Zazama/node-id3/compare/0.2.3...0.2.4)
 [0.2.3](https://github.com/Zazama/node-id3/compare/0.2.2...0.2.3)
 [0.2.2](https://github.com/Zazama/node-id3/compare/0.2.1...0.2.2)
