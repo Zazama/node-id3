@@ -1,8 +1,8 @@
 module.exports = ID3FrameBuilder
 
-const ID3Util = require('./ID3Util')
+import * as ID3Util from "./ID3Util"
 
-function ID3FrameBuilder(identifier) {
+export function ID3FrameBuilder(identifier) {
     this._identifier = identifier
     this._buffer = Buffer.alloc(0)
 }

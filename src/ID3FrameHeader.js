@@ -17,7 +17,7 @@ class ID3FrameHeader {
 
 }
 
-function createFromBuffer(headerBuffer, version) {
+export function createFromBuffer(headerBuffer, version) {
     const identifierSize = (version === 2) ? 3 : 4
     let identifier = headerBuffer.toString('utf8', 0, identifierSize)
     const frameSize = getBodySize(headerBuffer, version)
@@ -25,9 +25,9 @@ function createFromBuffer(headerBuffer, version) {
 
     // Try to convert identifier for older versions
     if(version === 2) {
-        const alias = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v2[identifier]
+        const alias = ID3Definitions.FRAME_ALIASES.v2[identifier]
         if(alias) {
-            identifier = ID3Definitions.FRAME_IDENTIFIERS.v3[alias]
+            identifier = ID3Definitions.FRAME_IDENTIFIERS.v34[alias]
         }
     }
 
@@ -67,7 +67,7 @@ function extractFlags(statusFlag, encodingFlag, version) {
     return {}
 }
 
-function getHeaderSize(version) {
+export function getHeaderSize(version) {
     return (version === 2) ? 6 : 10
 }
 
@@ -86,12 +86,6 @@ function getBodySize(headerBuffer, version) {
     return Buffer.from(bytes).readUIntBE(0, bytes.length)
 }
 
-function getFrameSize(buffer, version) {
+export function getFrameSize(buffer, version) {
     return getHeaderSize(version) + getBodySize(buffer)
-}
-
-module.exports = {
-    createFromBuffer,
-    getHeaderSize,
-    getFrameSize
 }

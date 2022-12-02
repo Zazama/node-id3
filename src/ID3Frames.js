@@ -1,12 +1,13 @@
 const fs = require('fs')
 const ID3FrameBuilder = require("./ID3FrameBuilder")
 const ID3FrameReader = require("./ID3FrameReader")
-const ID3Definitions = require("./ID3Definitions")
+import * as ID3Definitions from './ID3Definitions'
+import { TagConstants } from './TagConstants'
 const ID3Util = require("./ID3Util")
 const ID3Helpers = require('./ID3Helpers')
 const { isString } = require('./util')
 
-module.exports.GENERIC_TEXT = {
+export const GENERIC_TEXT = {
     create: (frameIdentifier, data) => {
         if(!frameIdentifier || !data) {
             return null
@@ -24,7 +25,7 @@ module.exports.GENERIC_TEXT = {
     }
 }
 
-module.exports.GENERIC_URL = {
+export const GENERIC_URL = {
     create: (frameIdentifier, data) => {
         if(!frameIdentifier || !data) {
             return null
@@ -41,7 +42,7 @@ module.exports.GENERIC_URL = {
     }
 }
 
-module.exports.APIC = {
+export const APIC = {
     create: (data) => {
         try {
             if (data instanceof Buffer) {
@@ -62,10 +63,10 @@ module.exports.APIC = {
                 mime_type = ID3Util.getPictureMimeTypeFromBuffer(data.imageBuffer)
             }
 
-            const TagConstants = ID3Definitions.TagConstants.AttachedPicture
             const pictureType = data.type || {}
             const pictureTypeId = pictureType.id === undefined
-                ? TagConstants.PictureType.FRONT_COVER : pictureType.id
+                ? TagConstants.AttachedPicture.PictureType.FRONT_COVER
+                : pictureType.id
 
             /*
              * Fix a bug in iTunes where the artwork is not recognized when the description is empty using UTF-16.
@@ -109,7 +110,7 @@ module.exports.APIC = {
     }
 }
 
-module.exports.COMM = {
+export const COMM = {
     create: (data) => {
         data = data || {}
         if(!data.text) {
@@ -134,7 +135,7 @@ module.exports.COMM = {
     }
 }
 
-module.exports.USLT = {
+export const USLT = {
     create: (data) => {
         data = data || {}
         if(isString(data)) {
@@ -164,7 +165,7 @@ module.exports.USLT = {
     }
 }
 
-module.exports.SYLT = {
+export const SYLT = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -207,7 +208,7 @@ module.exports.SYLT = {
     }
 }
 
-module.exports.TXXX = {
+export const TXXX = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -229,7 +230,7 @@ module.exports.TXXX = {
     }
 }
 
-module.exports.POPM = {
+export const POPM = {
     create: (data) => {
         const email = data.email
         let rating = Math.trunc(data.rating)
@@ -260,7 +261,7 @@ module.exports.POPM = {
     }
 }
 
-module.exports.PRIV = {
+export const PRIV = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -280,7 +281,7 @@ module.exports.PRIV = {
     }
 }
 
-module.exports.UFID = {
+export const UFID = {
     create: (data) => {
         if (!(data instanceof Array)) {
             data = [data]
@@ -303,7 +304,7 @@ module.exports.UFID = {
     }
 }
 
-module.exports.CHAP = {
+export const CHAP = {
     create: (data) => {
         if (!(data instanceof Array)) {
             data = [data]
@@ -343,7 +344,7 @@ module.exports.CHAP = {
     }
 }
 
-module.exports.CTOC = {
+export const CTOC = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -398,7 +399,7 @@ module.exports.CTOC = {
     }
 }
 
-module.exports.WXXX = {
+export const WXXX = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -422,7 +423,7 @@ module.exports.WXXX = {
     }
 }
 
-module.exports.ETCO = {
+export const ETCO = {
     create: (data) => {
         const builder = new ID3FrameBuilder("ETCO")
             .appendStaticNumber(data.timeStampFormat, 1)
@@ -453,7 +454,7 @@ module.exports.ETCO = {
     }
 }
 
-module.exports.COMR = {
+export const COMR = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -487,17 +488,19 @@ module.exports.COMR = {
             builder.appendNullTerminatedValue(comr.description, 0x01)
             // Seller logo
             if(comr.sellerLogo) {
-                let picture = comr.sellerLogo.picture
-                if(typeof comr.sellerLogo.picture === 'string' || comr.sellerLogo.picture instanceof String) {
-                    picture = fs.readFileSync(comr.sellerLogo.picture)
-                }
+                const pictureFilenameOrBuffer = comr.sellerLogo.picture
+                const picture = isString(pictureFilenameOrBuffer)
+                    ? fs.readFileSync(comr.sellerLogo.picture)
+                    : pictureFilenameOrBuffer
+
                 let mimeType = comr.sellerLogo.mimeType || ID3Util.getPictureMimeTypeFromBuffer(picture)
+
                 // Only image/png and image/jpeg allowed
-                if(mimeType !== 'image/png' && 'image/jpeg') {
+                if (mimeType !== 'image/png' && 'image/jpeg') {
                     mimeType = 'image/'
                 }
 
-                builder.appendNullTerminatedValue(mimeType ? mimeType : '', 0x00)
+                builder.appendNullTerminatedValue(mimeType || '', 0x00)
                 builder.appendStaticValue(picture)
             }
             return builder.getBuffer()

@@ -133,11 +133,11 @@ let bufferWithoutID3Frame = NodeID3.removeTagsFromBuffer(filebuffer)  //  Return
 ```javascript
 const NodeID3Promise = require('node-id3').Promise
 
-NodeID3.write(tags, fileOrBuffer)
-NodeID3.update(tags, fileOrBuffer)
-NodeID3.create(tags)
-NodeID3.read(filepath)
-NodeID3.removeTags(filepath)
+NodeID3Promise.write(tags, fileOrBuffer).then((buffer) => /*...*/).catch(/*...*/)
+NodeID3Promise.update(tags, fileOrBuffer).then(/*...*/.catch(/*...*/)
+NodeID3Promise.create(tags).then((buffer) => /*...*/)
+NodeID3Promise.read(filepath).then(/*...*/.catch(/*...*/)
+NodeID3Promise.removeTags(filepath).then(/*...*/.catch(/*...*/)
 ```
 
 ## Supported aliases/fields
@@ -362,23 +362,23 @@ setSubtitle:          "TSST"
 year:                 "TYER"
 comment:              "COMM"
 image:                "APIC"
-unsynchronisedLyrics  "USLT"
-synchronisedLyrics    "SYLT"
-userDefinedText       "TXXX"
-popularimeter         "POPM"
-private               "PRIV"
-uniqueFileIdentifier  "UFID"
-chapter               "CHAP"
-tableOfContents       "CTOC"
-commercialUrl         "WCOM"
-copyrightUrl          "WCOP"
-fileUrl               "WOAF"
-artistUrl             "WOAR"
-audioSourceUrl        "WOAS"
-radioStationUrl       "WORS"
-paymentUrl            "WPAY"
-publisherUrl          "WPUB"
-userDefinedUrl        "WXXX"
-eventTimingCodes      "ETCO"
-commercialFrame       "COMR"
+unsynchronisedLyrics: "USLT"
+synchronisedLyrics:   "SYLT"
+userDefinedText:      "TXXX"
+popularimeter:        "POPM"
+private:              "PRIV"
+uniqueFileIdentifier: "UFID"
+chapter:              "CHAP"
+tableOfContents:      "CTOC"
+commercialUrl:        "WCOM"
+copyrightUrl:         "WCOP"
+fileUrl:              "WOAF"
+artistUrl:            "WOAR"
+audioSourceUrl:       "WOAS"
+radioStationUrl:      "WORS"
+paymentUrl:           "WPAY"
+publisherUrl:         "WPUB"
+userDefinedUrl:       "WXXX"
+eventTimingCodes:     "ETCO"
+commercialFrame:      "COMR"
 ```

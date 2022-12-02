@@ -1,9 +1,9 @@
 const zlib = require('zlib')
-const ID3FrameHeader = require('./ID3FrameHeader')
-const ID3Frames = require('./ID3Frames')
+import * as ID3FrameHeader from './ID3FrameHeader'
+import * as ID3Frames from './ID3Frames'
 const ID3Util = require('./ID3Util')
 
-class ID3Frame {
+export class ID3Frame {
     constructor(identifier, value, flags = {}) {
         this.identifier = identifier
         this.value = value
@@ -106,5 +106,3 @@ function decompressBodyBuffer(bodyBuffer, dataLengthIndicator) {
     }
     return decompressedBody
 }
-
-module.exports = ID3Frame

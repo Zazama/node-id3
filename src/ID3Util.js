@@ -1,18 +1,18 @@
 const iconv = require('iconv-lite')
-const ID3Definitions = require('./ID3Definitions')
+import * as ID3Definitions from './ID3Definitions'
 
 const ENCODINGS = [
     'ISO-8859-1', 'UTF-16', 'UTF-16BE', 'UTF-8'
 ]
 
-module.exports.SplitBuffer = class SplitBuffer {
+export class SplitBuffer {
     constructor(value = null, remainder = null) {
         this.value = value
         this.remainder = remainder
     }
 }
 
-module.exports.splitNullTerminatedBuffer = function(buffer, encodingByte = 0x00) {
+export function splitNullTerminatedBuffer(buffer, encodingByte = 0x00) {
     const termination = { start: -1, size: 0 }
     if(encodingByte === 0x01 || encodingByte === 0x02) {
         termination.start = buffer.indexOf(Buffer.from([0x00, 0x00]))
@@ -36,14 +36,14 @@ module.exports.splitNullTerminatedBuffer = function(buffer, encodingByte = 0x00)
     return new this.SplitBuffer(buffer.slice(0, termination.start), buffer.slice(termination.start + termination.size))
 }
 
-module.exports.terminationBuffer = function(encodingByte = 0x00) {
+export function terminationBuffer(encodingByte = 0x00) {
     if(encodingByte === 0x01 || encodingByte === 0x02) {
         return Buffer.alloc(2, 0x00)
     }
     return Buffer.alloc(1, 0x00)
 }
 
-module.exports.encodingFromStringOrByte = function(encoding) {
+export function encodingFromStringOrByte(encoding) {
     if(ENCODINGS.indexOf(encoding) !== -1) {
         return encoding
     } else if(encoding > -1 && encoding < ENCODINGS.length) {
@@ -54,15 +54,15 @@ module.exports.encodingFromStringOrByte = function(encoding) {
     return encoding
 }
 
-module.exports.stringToEncodedBuffer = function(str, encodingByte) {
+export function stringToEncodedBuffer(str, encodingByte) {
     return iconv.encode(str, this.encodingFromStringOrByte(encodingByte))
 }
 
-module.exports.bufferToDecodedString = function(buffer, encodingByte) {
+export function bufferToDecodedString(buffer, encodingByte) {
     return iconv.decode(buffer, this.encodingFromStringOrByte(encodingByte)).replace(/\0/g, '')
 }
 
-module.exports.getSpecOptions = function(frameIdentifier) {
+export function getSpecOptions(frameIdentifier) {
     if(ID3Definitions.ID3_FRAME_OPTIONS[frameIdentifier]) {
         return ID3Definitions.ID3_FRAME_OPTIONS[frameIdentifier]
     }
@@ -70,7 +70,7 @@ module.exports.getSpecOptions = function(frameIdentifier) {
     return {}
 }
 
-module.exports.isValidID3Header = function(buffer) {
+export function isValidID3Header(buffer) {
     if(buffer.length < 10) {
         return false
     }
@@ -83,7 +83,7 @@ module.exports.isValidID3Header = function(buffer) {
     return this.isValidEncodedSize(buffer.slice(6, 10))
 }
 
-module.exports.getFramePosition = function(buffer) {
+export function getFramePosition(buffer) {
     /* Search Buffer for valid ID3 frame */
     let framePosition = -1
     let frameHeaderValid = false
@@ -107,7 +107,7 @@ module.exports.getFramePosition = function(buffer) {
  * @param {Buffer} encodedSize
  * @return {boolean} Return if the header contains a valid encoded size
  */
-module.exports.isValidEncodedSize = function(encodedSize) {
+ export function isValidEncodedSize(encodedSize) {
     // The size must not have the bit 7 set
     return ((
         encodedSize[0] |
@@ -122,7 +122,7 @@ module.exports.isValidEncodedSize = function(encodedSize) {
  * @param {number} size
  * @return {Buffer} Return a Buffer of 4 bytes with the encoded size
  */
-module.exports.encodeSize = function(size) {
+ export function encodeSize(size) {
     const byte_3 = size & 0x7F
     const byte_2 = (size >> 7) & 0x7F
     const byte_1 = (size >> 14) & 0x7F
@@ -135,7 +135,7 @@ module.exports.encodeSize = function(size) {
  * @param {Buffer} encodedSize
  * @return {number} Return the decoded size
  */
-module.exports.decodeSize = function(encodedSize) {
+ export function decodeSize(encodedSize) {
     return (
         (encodedSize[0] << 21) +
         (encodedSize[1] << 14) +
@@ -144,7 +144,7 @@ module.exports.decodeSize = function(encodedSize) {
     )
 }
 
-module.exports.getFrameSize = function(buffer, decode, ID3Version) {
+export function getFrameSize(buffer, decode, ID3Version) {
     let decodeBytes
     if(ID3Version > 2) {
         decodeBytes = [buffer[4], buffer[5], buffer[6], buffer[7]]
@@ -158,7 +158,7 @@ module.exports.getFrameSize = function(buffer, decode, ID3Version) {
     }
 }
 
-module.exports.parseTagHeaderFlags = function(header) {
+export function parseTagHeaderFlags(header) {
     if(!(header instanceof Buffer && header.length >= 10)) {
         return {}
     }
@@ -182,7 +182,7 @@ module.exports.parseTagHeaderFlags = function(header) {
     return {}
 }
 
-module.exports.parseFrameHeaderFlags = function(header, ID3Version) {
+export function parseFrameHeaderFlags(header, ID3Version) {
     if(!(header instanceof Buffer && header.length === 10)) {
         return {}
     }
@@ -214,7 +214,7 @@ module.exports.parseFrameHeaderFlags = function(header, ID3Version) {
     return {}
 }
 
-module.exports.processUnsynchronisedBuffer = function(buffer) {
+export function processUnsynchronisedBuffer(buffer) {
     const newDataArr = []
     if(buffer.length > 0) {
         newDataArr.push(buffer[0])
@@ -227,7 +227,7 @@ module.exports.processUnsynchronisedBuffer = function(buffer) {
     return Buffer.from(newDataArr)
 }
 
-module.exports.getPictureMimeTypeFromBuffer = function(pictureBuffer) {
+export function getPictureMimeTypeFromBuffer(pictureBuffer) {
     if (pictureBuffer.length > 3 && pictureBuffer.compare(Buffer.from([0xff, 0xd8, 0xff]), 0, 3, 0, 3) === 0) {
         return "image/jpeg"
     } else if (pictureBuffer > 8 && pictureBuffer.compare(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]), 0, 8, 0, 8) === 0) {

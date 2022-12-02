@@ -1,6 +1,6 @@
 module.exports = ID3FrameReader
 
-const ID3Util = require('./ID3Util')
+import * as ID3Util from "./ID3Util"
 
 function ID3FrameReader(buffer, encodingBytePosition, consumeEncodingByte = true) {
     if(!buffer || !(buffer instanceof Buffer)) {

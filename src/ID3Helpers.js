@@ -1,7 +1,7 @@
-const ID3Definitions = require("./ID3Definitions")
+import * as ID3Definitions from './ID3Definitions'
 const ID3Frames = require('./ID3Frames')
 const ID3Util = require('./ID3Util')
-const ID3Frame = require('./ID3Frame')
+import { ID3Frame } from './ID3Frame'
 const ID3FrameHeader = require('./ID3FrameHeader')
 
 /**
@@ -66,11 +66,11 @@ function createBuffersFromTags(tags) {
  * @param tags - Object containing tags to be written
  * @returns {Buffer}
  */
-module.exports.createBufferFromTags = function(tags) {
+export function createBufferFromTags(tags) {
     return Buffer.concat(createBuffersFromTags(tags))
 }
 
-module.exports.getTagsFromBuffer = function(filebuffer, options) {
+export function getTagsFromBuffer(filebuffer, options) {
     const framePosition = ID3Util.getFramePosition(filebuffer)
     if(framePosition === -1) {
         return getTagsFromFrames([], 3, options)
@@ -136,7 +136,7 @@ function getTagsFromFrames(frames, version, options = {}) {
 
     frames.forEach((frame) => {
         const frameValue = frame.getValue()
-        const frameAlias = ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v3[frame.identifier] || ID3Definitions.FRAME_INTERNAL_IDENTIFIERS.v4[frame.identifier]
+        const frameAlias = ID3Definitions.FRAME_ALIASES.v34[frame.identifier]
 
         if(ID3Util.getSpecOptions(frame.identifier, version).multiple) {
             if(!options.onlyRaw) {
@@ -172,6 +172,6 @@ function getTagsFromFrames(frames, version, options = {}) {
     return tags
 }
 
-module.exports.getTagsFromID3Body = function(body) {
+export function getTagsFromID3Body(body) {
     return getTagsFromFrames(getFramesFromTagBody(body, 3), 3)
 }
