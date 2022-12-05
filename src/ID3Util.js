@@ -227,6 +227,10 @@ export function processUnsynchronisedBuffer(buffer) {
     return Buffer.from(newDataArr)
 }
 
+/**
+ * @param {Buffer} pictureBuffer
+ * @returns string | null
+ */
 export function getPictureMimeTypeFromBuffer(pictureBuffer) {
     if (pictureBuffer.length > 3 && pictureBuffer.compare(Buffer.from([0xff, 0xd8, 0xff]), 0, 3, 0, 3) === 0) {
         return "image/jpeg"

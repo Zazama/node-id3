@@ -314,7 +314,7 @@ export interface TagAliases {
      *
      * @see {@link https://id3.org/d3v2.3.0 4.10. Synchronised lyrics/text}
      */
-    synchronisedLyrics?: Array<{
+    synchronisedLyrics?: {
         /**
          * 3 letter ISO 639-2 language code, for example: eng
          * @see {@link https://id3.org/ISO%20639-2 ISO 639-2}
@@ -333,14 +333,14 @@ export interface TagAliases {
          * Content descriptor
          */
         shortText?: string,
-        synchronisedText: Array<{
+        synchronisedText: {
             text: string,
             /**
              * Absolute time in unit according to `timeStampFormat`.
              */
             timeStamp: number
-        }>
-    }>,
+        }[]
+    }[],
     userDefinedText?: [{
         description: string,
         value: string
@@ -397,7 +397,7 @@ export interface TagAliases {
      * There may be more than one "UFID" frame in a tag, but only one with
      * the same `ownerIdentifier`.
      */
-    uniqueFileIdentifier?: Array<{
+    uniqueFileIdentifier?: {
         /**
          * Must be non-empty.
          */
@@ -407,23 +407,23 @@ export interface TagAliases {
          * Providing more data will result in an undefined behaviour.
          */
         identifier: Buffer
-    }>,
-    chapter?: Array<{
+    }[],
+    chapter?: {
         elementID: string,
         endTimeMs: number,
         startTimeMs: number,
         tags?: Tags
-    }>,
-    tableOfContents?: Array<{
+    }[],
+    tableOfContents?: {
         elementID: string,
         isOrdered?: boolean,
-        elements?: Array<string>
+        elements?: string[]
         tags?: Tags
-    }>,
+    }[],
     /**
      * The 'Commercial information' frame is a URL pointing at a webpage with information such as where the album can be bought. There may be more than one "WCOM" frame in a tag, but not with the same content.
      */
-    commercialUrl?: Array<string>,
+    commercialUrl?: string[],
     /**
      * The 'Copyright/Legal information' frame is a URL pointing at a webpage where the terms of use and ownership of the file is described.
      */
@@ -435,7 +435,7 @@ export interface TagAliases {
     /**
      * The 'Official artist/performer webpage' frame is a URL pointing at the artists official webpage. There may be more than one "WOAR" frame in a tag if the audio contains more than one performer, but not with the same content.
      */
-    artistUrl?: Array<string>,
+    artistUrl?: string[],
     /**
      * The 'Official audio source webpage' frame is a URL pointing at the official webpage for the source of the audio file, e.g. a movie.
      */
@@ -455,10 +455,10 @@ export interface TagAliases {
     /**
      * The 'User-defined URL link' frame is intended for URL links concerning the audiofile in a similar way to the other "W"-frames. There may be more than one "WXXX" frame in each tag, but only one with the same description.
      */
-    userDefinedUrl?: Array<{
+    userDefinedUrl?: {
         description: string,
         url: string
-    }>,
+    }[],
     /**
      * ETCO frame
      *
@@ -470,7 +470,7 @@ export interface TagAliases {
          * {@link TagConstants.TimeStampFormat}
          */
         timeStampFormat: number,
-        keyEvents: Array<{
+        keyEvents: {
             /**
              * {@link TagConstants.EventTimingCodes.EventType}
              */
@@ -479,9 +479,9 @@ export interface TagAliases {
              * Absolute time in unit according to `timeStampFormat`.
              */
             timeStamp: number
-        }>
+        }[]
     },
-    commercialFrame?: Array<{
+    commercialFrame?: {
         /**
          * Object containing price information.
          * Key is a three letter currency code according to ISO-4217 (e.g. EUR).
@@ -526,7 +526,7 @@ export interface TagAliases {
              */
             picture: string | Buffer
         }
-    }>
+    }[]
 }
 
 export interface RawTags {

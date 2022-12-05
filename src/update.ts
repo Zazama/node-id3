@@ -7,49 +7,67 @@ import {
 import * as ID3Util from "./ID3Util"
 
 
-// TODO: Convertion to typescript need to be cleaned up, it has been quickly
-// hacked for now.
 export function updateTags(newTags: WriteTags, currentTags: Tags): RawTags {
-
     const newRawTags = makeRawTags(newTags)
 
-    // eslint-disable-next-line
-    const read = <T extends {}>
-        (object: T, index: string) => object[index as keyof T]
-
-    // eslint-disable-next-line
-    const currentRawTags: Record<string, any> = currentTags.raw ?? {}
-    Object.entries(newRawTags).map(([frameIdentifierString, frame]) => {
+    const currentRawTags = currentTags.raw ?? {}
+    Object.keys(newRawTags).map(frameIdentifierString => {
         const frameIdentifier = frameIdentifierString as keyof RawTags
-        const options: FrameOptions = ID3Util.getSpecOptions(frameIdentifier)
-        const newTag = newRawTags[frameIdentifier]
-        const currentTag = currentRawTags[frameIdentifier]
-        if (options.multiple && newTag && currentTag) {
-            const cCompare: Record<string, number> = {}
-            if (options.updateCompareKey) {
-                (currentTag as []).forEach((cTag, index) => {
-                    // eslint-disable-next-line
-                    cCompare[cTag[options.updateCompareKey!]] = index
-                })
-
-            }
-            const newTagArray = newTag instanceof Array ? newTag : [newTag]
-            newTagArray.forEach((tagValue) => {
-                const tagProperty =
-                    // eslint-disable-next-line
-                    read(tagValue, options.updateCompareKey!) as string
-                if (tagProperty in cCompare) {
-                    const comparison = cCompare[tagProperty]
-                    currentRawTags[frameIdentifier][comparison] = tagValue
-                } else {
-                    currentRawTags[frameIdentifier].push(tagValue)
-                }
-            })
-        } else {
-            currentRawTags[frameIdentifier] = frame
-        }
+        const newFrame = newRawTags[frameIdentifier]
+        const updatedFrame = updateFrameIfMultiple(
+            ID3Util.getSpecOptions(frameIdentifier),
+            newFrame,
+            currentRawTags[frameIdentifier]
+        )
+        // eslint-disable-next-line
+        currentRawTags[frameIdentifier] = (updatedFrame || newFrame) as any
     })
     return currentRawTags
+}
+
+function updateFrameIfMultiple(
+    options: FrameOptions,
+    newTag: RawTags[keyof RawTags],
+    currentTag: RawTags[keyof RawTags],
+) {
+    if (
+        !options.multiple ||
+        !newTag ||
+        !currentTag ||
+        !Array.isArray(currentTag)
+    ) {
+        return null
+    }
+
+    const newTagArray = newTag instanceof Array ? newTag : [newTag]
+    const compareKey = options.updateCompareKey
+    if (!compareKey) {
+        return [...currentTag, ...newTagArray]
+    }
+
+    const compareValueToFrameIndex: Record<string, number> = {}
+    currentTag.forEach((tag, index) => {
+        if (typeof tag === "object") {
+              const compareValue = tag[compareKey as keyof typeof tag]
+            compareValueToFrameIndex[compareValue] = index
+        }
+    })
+
+    newTagArray.forEach((tagValue) => {
+        // eslint-disable-next-line
+        const assignableTagValue = tagValue as any
+        if (
+            typeof tagValue === "object" &&
+            tagValue[compareKey as keyof typeof tagValue] in compareValueToFrameIndex
+        ) {
+            const tagProperty = tagValue[compareKey as keyof typeof tagValue]
+            const frameIndex = compareValueToFrameIndex[tagProperty]
+            currentTag[frameIndex] = assignableTagValue
+        } else {
+            currentTag.push(assignableTagValue)
+        }
+    })
+    return currentTag
 }
 
 function makeRawTags(tags: WriteTags): RawTags {
