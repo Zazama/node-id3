@@ -311,7 +311,7 @@ function makePromise<T>(callback: (settle: Settle<T>) => void) {
     })
 }
 
-const Promises = {
+export const Promises = {
     create: (tags: Tags) =>
         makePromise((settle: Settle<Buffer>) =>
             create(tags, result => settle(null, result)),
@@ -337,4 +337,8 @@ const Promises = {
         )
 } as const
 
+/**
+ * @deprecated consider using `Promises` instead, `Promise` creates conflict
+ *             with the Javascript native promise.
+ */
 export { Promises as Promise }
