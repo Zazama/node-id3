@@ -175,38 +175,6 @@ export function parseTagHeaderFlags(header) {
     return {}
 }
 
-export function parseFrameHeaderFlags(header, ID3Version) {
-    if(!(header instanceof Buffer && header.length === 10)) {
-        return {}
-    }
-    const flagsFirstByte = header[8]
-    const flagsSecondByte = header[9]
-    if(ID3Version === 3) {
-        return {
-            tagAlterPreservation: !!(flagsFirstByte & 128),
-            fileAlterPreservation: !!(flagsFirstByte & 64),
-            readOnly: !!(flagsFirstByte & 32),
-            compression: !!(flagsSecondByte & 128),
-            encryption: !!(flagsSecondByte & 64),
-            groupingIdentity: !!(flagsSecondByte & 32),
-            dataLengthIndicator: !!(flagsSecondByte & 128)
-        }
-    }
-    if(ID3Version === 4) {
-        return {
-            tagAlterPreservation: !!(flagsFirstByte & 64),
-            fileAlterPreservation: !!(flagsFirstByte & 32),
-            readOnly: !!(flagsFirstByte & 16),
-            groupingIdentity: !!(flagsSecondByte & 64),
-            compression: !!(flagsSecondByte & 8),
-            encryption: !!(flagsSecondByte & 4),
-            unsynchronisation: !!(flagsSecondByte & 2),
-            dataLengthIndicator: !!(flagsSecondByte & 1)
-        }
-    }
-    return {}
-}
-
 export function processUnsynchronisedBuffer(buffer) {
     const newDataArr = []
     if(buffer.length > 0) {

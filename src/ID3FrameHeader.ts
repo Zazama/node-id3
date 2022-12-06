@@ -1,11 +1,25 @@
-const ID3Util = require('./ID3Util')
+import * as ID3Util from './ID3Util'
 import {
     FRAME_IDENTIFIERS,
     FRAME_ALIASES }
 from "./definitions/FrameIdentifiers"
 
+type Flags = {
+    tagAlterPreservation?: boolean
+    fileAlterPreservation?: boolean
+    readOnly?: boolean
+    compression?: boolean
+    encryption?: boolean
+    groupingIdentity?: boolean
+    unsynchronisation?: boolean
+    dataLengthIndicator?: boolean
+}
+
 class ID3FrameHeader {
-    constructor(identifier, bodySize, flags = {}) {
+    private identifier: string
+    private bodySize: number
+    private flags: Flags
+    constructor(identifier: string, bodySize: number, flags: Flags = {}) {
         this.identifier = identifier
         this.bodySize = bodySize
         this.flags = flags
@@ -20,29 +34,31 @@ class ID3FrameHeader {
 
 }
 
-export function createFromBuffer(headerBuffer, version) {
-    const identifierSize = (version === 2) ? 3 : 4
+export function createFromBuffer(headerBuffer: Buffer, version: number) {
+    const identifierSize = version === 2 ? 3 : 4
     let identifier = headerBuffer.toString('utf8', 0, identifierSize)
     const frameSize = getBodySize(headerBuffer, version)
     const flags = extractFlags(headerBuffer[8], headerBuffer[9], version)
 
     // Try to convert identifier for older versions
-    if(version === 2) {
-        const alias = FRAME_ALIASES.v2[identifier]
-        if(alias) {
-            identifier = FRAME_IDENTIFIERS.v34[alias]
+    if (version === 2) {
+        const aliasesV2: Record<string, string> = FRAME_ALIASES.v2
+        const alias = aliasesV2[identifier]
+        if (alias) {
+            const identifiers: Record<string, string> = FRAME_IDENTIFIERS.v34
+            identifier = identifiers[alias]
         }
     }
 
     return new ID3FrameHeader(identifier, frameSize, flags)
 }
 
-function extractFlags(statusFlag, encodingFlag, version) {
-    if(version === 2) {
-        return {}
-    }
-
-    if(version === 3) {
+function extractFlags(
+    statusFlag: number,
+    encodingFlag: number,
+    version: number
+) {
+    if (version === 3) {
         return {
             tagAlterPreservation: !!(statusFlag & 128),
             fileAlterPreservation: !!(statusFlag & 64),
@@ -53,8 +69,7 @@ function extractFlags(statusFlag, encodingFlag, version) {
             dataLengthIndicator: !!(encodingFlag & 128)
         }
     }
-
-    if(version === 4) {
+    if (version === 4) {
         return {
             tagAlterPreservation: !!(statusFlag & 64),
             fileAlterPreservation: !!(statusFlag & 32),
@@ -66,29 +81,26 @@ function extractFlags(statusFlag, encodingFlag, version) {
             dataLengthIndicator: !!(encodingFlag & 1)
         }
     }
-
     return {}
 }
 
-export function getHeaderSize(version) {
-    return (version === 2) ? 6 : 10
+export function getHeaderSize(version: number) {
+    return version === 2 ? 6 : 10
 }
 
-function getBodySize(headerBuffer, version) {
-    const isDecoded = version === 4
-    let bytes
-    if(version === 2) {
-        bytes = [headerBuffer[3], headerBuffer[4], headerBuffer[5]]
-    } else {
-        bytes = [headerBuffer[4], headerBuffer[5], headerBuffer[6], headerBuffer[7]]
-    }
-    if(isDecoded) {
+function getBodySize(headerBuffer: Buffer, version: number) {
+    const isEncoded = version === 4
+
+    const bytes = version === 2 ?
+        [headerBuffer[3], headerBuffer[4], headerBuffer[5]] :
+        [headerBuffer[4], headerBuffer[5], headerBuffer[6], headerBuffer[7]]
+
+    if (isEncoded) {
         return ID3Util.decodeSize(Buffer.from(bytes))
     }
-
     return Buffer.from(bytes).readUIntBE(0, bytes.length)
 }
 
-export function getFrameSize(buffer, version) {
-    return getHeaderSize(version) + getBodySize(buffer)
+export function getFrameSize(buffer: Buffer, version: number) {
+    return getHeaderSize(version) + getBodySize(buffer, version)
 }
