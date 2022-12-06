@@ -1,3 +1,49 @@
+const FrameIdentifiersV2 = {
+    album:                  "TAL",
+    bpm:                    "TBP",
+    composer:               "TCM",
+    genre:                  "TCO",
+    copyright:              "TCR",
+    date:                   "TDA",
+    playlistDelay:          "TDY",
+    encodedBy:              "TEN",
+    textWriter:             "TEXT",
+    fileType:               "TFT",
+    time:                   "TIM",
+    contentGroup:           "TT1",
+    title:                  "TT2",
+    subtitle:               "TT3",
+    initialKey:             "TKE",
+    language:               "TLA",
+    length:                 "TLE",
+    mediaType:              "TMT",
+    originalTitle:          "TOT",
+    originalFilename:       "TOF",
+    originalTextwriter:     "TOL",
+    originalArtist:         "TOA",
+    originalYear:           "TOR",
+    artist:                 "TP1",
+    performerInfo:          "TP2",
+    conductor:              "TP3",
+    remixArtist:            "TP4",
+    partOfSet:              "TPA",
+    publisher:              "TPB",
+    trackNumber:            "TRK",
+    recordingDates:         "TRD",
+    size:                   "TSI",
+    ISRC:                   "TRC",
+    encodingTechnology:     "TSS",
+    year:                   "TYE",
+    image:                  "PIC",
+    commercialUrl:          "WCM",
+    copyrightUrl:           "WCP",
+    fileUrl:                "WAF",
+    artistUrl:              "WAR",
+    audioSourceUrl:         "WAS",
+    publisherUrl:           "WPB",
+    userDefinedUrl:         "WXX"
+} as const
+
 const FrameIdentifiersV3 = {
     album:                  "TALB",
     bpm:                    "TBPM",
@@ -137,51 +183,7 @@ const FrameIdentifiersV4 = {
  * Alias to identifier
  */
 export const FRAME_IDENTIFIERS = {
-    v2: {
-        album:                  "TAL",
-        bpm:                    "TBP",
-        composer:               "TCM",
-        genre:                  "TCO",
-        copyright:              "TCR",
-        date:                   "TDA",
-        playlistDelay:          "TDY",
-        encodedBy:              "TEN",
-        textWriter:             "TEXT",
-        fileType:               "TFT",
-        time:                   "TIM",
-        contentGroup:           "TT1",
-        title:                  "TT2",
-        subtitle:               "TT3",
-        initialKey:             "TKE",
-        language:               "TLA",
-        length:                 "TLE",
-        mediaType:              "TMT",
-        originalTitle:          "TOT",
-        originalFilename:       "TOF",
-        originalTextwriter:     "TOL",
-        originalArtist:         "TOA",
-        originalYear:           "TOR",
-        artist:                 "TP1",
-        performerInfo:          "TP2",
-        conductor:              "TP3",
-        remixArtist:            "TP4",
-        partOfSet:              "TPA",
-        publisher:              "TPB",
-        trackNumber:            "TRK",
-        recordingDates:         "TRD",
-        size:                   "TSI",
-        ISRC:                   "TRC",
-        encodingTechnology:     "TSS",
-        year:                   "TYE",
-        image:                  "PIC",
-        commercialUrl:          "WCM",
-        copyrightUrl:           "WCP",
-        fileUrl:                "WAF",
-        artistUrl:              "WAR",
-        audioSourceUrl:         "WAS",
-        publisherUrl:           "WPB",
-        userDefinedUrl:         "WXX"
-    },
+    v2: FrameIdentifiersV2,
     v3: FrameIdentifiersV3,
     v4: FrameIdentifiersV4,
     v34: {
@@ -193,21 +195,22 @@ export const FRAME_IDENTIFIERS = {
 /**
  * Identifier to Alias
  */
-export const FRAME_ALIASES =
-    Object.entries(FRAME_IDENTIFIERS).reduce<
-        Record<string, Record<string,string>>
-    >(
-        (acc, [versionKey, frameIdentifiers]) => {
-            acc[versionKey] = Object.entries(frameIdentifiers).reduce<
-                Record<string, string>
-            >(
-                (acc, [tagKey, frameIdentifier]) => {
-                    acc[frameIdentifier] = tagKey
-                    return acc
-                },
-                {}
-            )
-            return acc
-        },
+export const FRAME_ALIASES = {
+    v2: swapKeyValue(FrameIdentifiersV2),
+    v3: swapKeyValue(FrameIdentifiersV3),
+    v4: swapKeyValue(FrameIdentifiersV4),
+    v34: {
+        ...swapKeyValue(FrameIdentifiersV3),
+        ...swapKeyValue(FrameIdentifiersV4)
+    }
+} as const
+
+function swapKeyValue<
+    T extends Record<string, string>,
+    R = { [K in keyof T as T[K]]: K }
+>(object: T): R {
+    return Object.entries(object).reduce<Record<string, string>>(
+        (result, [key, value])  => (result[value] = key, result),
         {}
-    )
+    ) as unknown as R
+}
