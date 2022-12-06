@@ -12,7 +12,7 @@
     "parserOptions": {
         "sourceType": "module"
     },
-    "ignorePatterns": [ "/dist/**" ],
+    "ignorePatterns": [ "/lib/**" ],
     "overrides": [
         {
             "files": ["**/*.ts"],
