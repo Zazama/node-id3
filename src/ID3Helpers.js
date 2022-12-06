@@ -5,7 +5,7 @@ import {
 const ID3Frames = require('./ID3Frames')
 const ID3Util = require('./ID3Util')
 import { ID3Frame } from './ID3Frame'
-const ID3FrameHeader = require('./ID3FrameHeader')
+import { getFrameSize } from './FrameHeader'
 
 /**
  * Returns array of buffers created by tags specified in the tags argument
@@ -115,7 +115,7 @@ function getFramesFromTagBody(tagBody, version, options = {}) {
 
     const frames = []
     while(tagBody.length && tagBody[0] !== 0x00) {
-        const frameSize = ID3FrameHeader.getFrameSize(tagBody, version)
+        const frameSize = getFrameSize(tagBody, version)
 
         // Prevent errors due to broken data.
         if (frameSize > tagBody.length) {

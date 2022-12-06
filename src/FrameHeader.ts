@@ -15,7 +15,7 @@ type Flags = {
     dataLengthIndicator?: boolean
 }
 
-class ID3FrameHeader {
+class FrameHeader {
     private identifier: string
     private bodySize: number
     private flags: Flags
@@ -50,7 +50,7 @@ export function createFromBuffer(headerBuffer: Buffer, version: number) {
         }
     }
 
-    return new ID3FrameHeader(identifier, frameSize, flags)
+    return new FrameHeader(identifier, frameSize, flags)
 }
 
 function extractFlags(

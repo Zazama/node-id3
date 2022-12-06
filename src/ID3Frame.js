@@ -1,5 +1,5 @@
 const zlib = require('zlib')
-import * as ID3FrameHeader from './ID3FrameHeader'
+import * as FrameHeader from './FrameHeader'
 import * as ID3Frames from './ID3Frames'
 const ID3Util = require('./ID3Util')
 
@@ -12,13 +12,13 @@ export class ID3Frame {
     }
 
     static createFromBuffer(frameBuffer, version) {
-        const frameHeaderSize = ID3FrameHeader.getHeaderSize(version)
+        const frameHeaderSize = FrameHeader.getHeaderSize(version)
         // Specification requirement
         if(frameBuffer < frameHeaderSize + 1) {
             return null
         }
         const frameHeaderBuffer = frameBuffer.subarray(0, frameHeaderSize)
-        const frameHeader = ID3FrameHeader.createFromBuffer(frameHeaderBuffer, version)
+        const frameHeader = FrameHeader.createFromBuffer(frameHeaderBuffer, version)
         if(frameHeader.flags.encryption) {
             return null
         }
