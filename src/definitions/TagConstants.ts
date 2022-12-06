@@ -1,3 +1,7 @@
+
+
+export type TagConstants = typeof TagConstants
+
 /**
  * Documented constants used in tag frames.
  *

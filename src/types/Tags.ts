@@ -1,3 +1,4 @@
+import { TagConstants } from "../definitions/TagConstants"
 
 export interface TagAliases {
     /**
@@ -100,6 +101,7 @@ export interface TagAliases {
     initialKey?: string,
     /**
      * The 'Language(s)' frame should contain the languages of the text or lyrics spoken or sung in the audio. The language is represented with three characters according to ISO-639-2. If more than one language is used in the text their language codes should follow according to their usage.
+     * @see {@link https://id3.org/ISO%20639-2 ISO 639-2}
      */
     language?: string,
     /**
@@ -302,10 +304,18 @@ export interface TagAliases {
      */
     year?: string,
     comment?: {
+        /**
+         * 3 letter ISO 639-2 language code, for example: eng
+         * @see {@link https://id3.org/ISO%20639-2 ISO 639-2}
+         */
         language: string,
         text: string,
     },
     unsynchronisedLyrics?: {
+        /**
+         * 3 letter ISO 639-2 language code, for example: eng
+         * @see {@link https://id3.org/ISO%20639-2 ISO 639-2}
+         */
         language: string,
         text: string
     },
@@ -324,7 +334,7 @@ export interface TagAliases {
          * Absolute time unit:
          * {@link TagConstants.TimeStampFormat}
          */
-        timeStampFormat: number,
+        timeStampFormat: TagConstants['TimeStampFormat'],
         /**
          * {@link TagConstants.SynchronisedLyrics.ContentType}
          */
@@ -408,13 +418,27 @@ export interface TagAliases {
          */
         identifier: Buffer
     }[],
+    /**
+     * @see {@link https://id3.org/id3v2-chapters-1.0#Chapter_frame Chapter frame}
+     */
     chapter?: {
+        /**
+         * Must be unique
+         */
         elementID: string,
         endTimeMs: number,
         startTimeMs: number,
+        startOffsetBytes?: number,
+        endOffsetBytes?: number,
         tags?: Tags
     }[],
-    tableOfContents?: {
+    /**
+     * @see {@link https://id3.org/id3v2-chapters-1.0#Table_of_contents_frame Table of contents frame}
+     */
+     tableOfContents?: {
+        /**
+         * Must be unique
+         */
         elementID: string,
         isOrdered?: boolean,
         elements?: string[]
@@ -469,7 +493,7 @@ export interface TagAliases {
          * Absolute time unit:
          * {@link TagConstants.TimeStampFormat}
          */
-        timeStampFormat: number,
+        timeStampFormat: TagConstants['TimeStampFormat'],
         keyEvents: {
             /**
              * {@link TagConstants.EventTimingCodes.EventType}
@@ -604,6 +628,10 @@ export interface RawTags {
     COMR?: TagAliases["commercialFrame"]
 }
 
+/**
+ * On write either a tag alias or tag identifier can be be specified.
+ * This is undefined behaviour when both are specified.
+ */
 export interface WriteTags extends TagAliases, RawTags {
 }
 

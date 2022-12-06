@@ -6,7 +6,7 @@
 ![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability-percentage/Zazama/node-id3?style=flat-square)
 ![npm](https://img.shields.io/npm/dt/node-id3?style=flat-square)
 
-node-id3 is an ID3-Tag library written in JavaScript.
+node-id3 is an ID3-Tag library written in Typescript and JavaScript.
 
 ## Installation
 
@@ -141,6 +141,8 @@ NodeID3Promise.removeTags(filepath).then(/*...*/.catch(/*...*/)
 ```
 
 ## Supported aliases/fields
+
+For full specifications, see tag aliases [type definitions](src/types/Tags.ts).
 
 ```text
 album:
@@ -289,8 +291,8 @@ eventTimingCodes: {
 },
 commercialFrame: [{
   prices: {
-    'EUR': 15,
-    'DKK': 17.922
+    EUR: 15,
+    DKK: 17.922
   },
   validUntil: { year: 2023, month: 9, day: 1},
   contactUrl: 'https://example.com',
@@ -307,6 +309,8 @@ commercialFrame: [{
 ### Supported raw IDs
 
 You can also use the currently supported raw tags like TALB instead of album etc.
+
+For full specifications, see tag identifiers [type definitions](src/types/Tags.ts).
 
 ```text
 album:                "TALB"
