@@ -34,11 +34,11 @@
   },
   "scripts": {
     "build": "tsc --build --incremental",
-    "clean": "tsc --build --clean",
+    "clean": "rm -rf dist",
     "build-watch": "tsc --build --watch --incremental",
     "test": "mocha --require source-map-support/register dist/test",
     "test-watch": "mocha --watch --require source-map-support/register dist/test",
-    "prepublish": "tsc",
+    "prepare": "tsc",
     "markdownlint-ci": "markdownlint README.md CHANGELOG.md",
     "markdownlint": "markdownlint --fix README.md CHANGELOG.md",
     "eslint": "eslint **/*.js **/*.ts",
