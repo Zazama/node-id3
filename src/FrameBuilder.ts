@@ -4,7 +4,7 @@ import { TextEncoding } from "./definitions/Encoding"
 
 type Value = Buffer | number | string
 
-export class ID3FrameBuilder {
+export class FrameBuilder {
     private identifier: string
     private buffer = Buffer.alloc(0)
 

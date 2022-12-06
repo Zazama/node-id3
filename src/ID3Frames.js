@@ -1,5 +1,5 @@
 const fs = require('fs')
-import { ID3FrameBuilder } from "./ID3FrameBuilder"
+import { FrameBuilder } from "./FrameBuilder"
 const ID3FrameReader = require("./ID3FrameReader")
 import { APIC_TYPES } from './definitions/PictureTypes'
 import { TagConstants } from './definitions/TagConstants'
@@ -13,7 +13,7 @@ export const GENERIC_TEXT = {
             return null
         }
 
-        return new ID3FrameBuilder(frameIdentifier)
+        return new FrameBuilder(frameIdentifier)
             .appendNumber(0x01, 0x01)
             .appendValue(data, null, 0x01)
             .getBuffer()
@@ -31,7 +31,7 @@ export const GENERIC_URL = {
             return null
         }
 
-        return new ID3FrameBuilder(frameIdentifier)
+        return new FrameBuilder(frameIdentifier)
             .appendValue(data)
             .getBuffer()
     },
@@ -74,7 +74,7 @@ export const APIC = {
              */
             const { description = '' } = data
             const encoding = description ? 0x01 : 0x00
-            return new ID3FrameBuilder('APIC')
+            return new FrameBuilder('APIC')
               .appendNumber(encoding, 1)
               .appendNullTerminatedValue(mime_type)
               .appendNumber(pictureTypeId, 1)
@@ -117,7 +117,7 @@ export const COMM = {
             return null
         }
 
-        return new ID3FrameBuilder("COMM")
+        return new FrameBuilder("COMM")
             .appendNumber(0x01, 1)
             .appendValue(data.language)
             .appendNullTerminatedValue(data.shortText, 0x01)
@@ -147,7 +147,7 @@ export const USLT = {
             return null
         }
 
-        return new ID3FrameBuilder("USLT")
+        return new FrameBuilder("USLT")
             .appendNumber(0x01, 1)
             .appendValue(data.language)
             .appendNullTerminatedValue(data.shortText, 0x01)
@@ -173,7 +173,7 @@ export const SYLT = {
 
         const encoding = 1 // 16 bit unicode
         return Buffer.concat(data.map(lycics => {
-            const frameBuilder = new ID3FrameBuilder("SYLT")
+            const frameBuilder = new FrameBuilder("SYLT")
                 .appendNumber(encoding, 1)
                 .appendValue(lycics.language, 3)
                 .appendNumber(lycics.timeStampFormat, 1)
@@ -214,7 +214,7 @@ export const TXXX = {
             data = [data]
         }
 
-        return Buffer.concat(data.map(udt => new ID3FrameBuilder("TXXX")
+        return Buffer.concat(data.map(udt => new FrameBuilder("TXXX")
             .appendNumber(0x01, 1)
             .appendNullTerminatedValue(udt.description, 0x01)
             .appendValue(udt.value, null, 0x01)
@@ -245,7 +245,7 @@ export const POPM = {
             counter = 0
         }
 
-        return new ID3FrameBuilder("POPM")
+        return new FrameBuilder("POPM")
             .appendNullTerminatedValue(email)
             .appendNumber(rating, 1)
             .appendNumber(counter, 4)
@@ -267,7 +267,7 @@ export const PRIV = {
             data = [data]
         }
 
-        return Buffer.concat(data.map(priv => new ID3FrameBuilder("PRIV")
+        return Buffer.concat(data.map(priv => new FrameBuilder("PRIV")
             .appendNullTerminatedValue(priv.ownerIdentifier)
             .appendValue(priv.data instanceof Buffer ? priv.data : Buffer.from(priv.data, "utf8"))
             .getBuffer()))
@@ -287,7 +287,7 @@ export const UFID = {
             data = [data]
         }
 
-        return Buffer.concat(data.map(ufid => new ID3FrameBuilder("UFID")
+        return Buffer.concat(data.map(ufid => new FrameBuilder("UFID")
             .appendNullTerminatedValue(ufid.ownerIdentifier)
             .appendValue(
                 ufid.identifier instanceof Buffer ?
@@ -314,7 +314,7 @@ export const CHAP = {
             if (!chap || !chap.elementID || typeof chap.startTimeMs === "undefined" || !chap.endTimeMs) {
                 return null
             }
-            return new ID3FrameBuilder("CHAP")
+            return new FrameBuilder("CHAP")
                 .appendNullTerminatedValue(chap.elementID)
                 .appendNumber(chap.startTimeMs, 4)
                 .appendNumber(chap.endTimeMs, 4)
@@ -366,7 +366,7 @@ export const CTOC = {
                 ctocFlags[0] += 1
             }
 
-            const builder = new ID3FrameBuilder("CTOC")
+            const builder = new FrameBuilder("CTOC")
                 .appendNullTerminatedValue(toc.elementID)
                 .appendValue(ctocFlags, 1)
                 .appendNumber(toc.elements.length, 1)
@@ -406,7 +406,7 @@ export const WXXX = {
         }
 
         return Buffer.concat(data.map((udu) => {
-            return new ID3FrameBuilder("WXXX")
+            return new FrameBuilder("WXXX")
                 .appendNumber(0x01, 1)
                 .appendNullTerminatedValue(udu.description, 0x01)
                 .appendValue(udu.url, null)
@@ -425,7 +425,7 @@ export const WXXX = {
 
 export const ETCO = {
     create: (data) => {
-        const builder = new ID3FrameBuilder("ETCO")
+        const builder = new FrameBuilder("ETCO")
             .appendNumber(data.timeStampFormat, 1)
         data.keyEvents.forEach((keyEvent) => {
             builder
@@ -462,7 +462,7 @@ export const COMR = {
 
         return Buffer.concat(data.map(comr => {
             const prices = comr.prices || {}
-            const builder = new ID3FrameBuilder("COMR")
+            const builder = new FrameBuilder("COMR")
 
             // Text encoding
             builder.appendNumber(0x01, 1)
