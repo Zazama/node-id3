@@ -36,13 +36,6 @@ export function splitNullTerminatedBuffer(buffer, encodingByte = 0x00) {
     return new this.SplitBuffer(buffer.slice(0, termination.start), buffer.slice(termination.start + termination.size))
 }
 
-export function terminationBuffer(encodingByte = 0x00) {
-    if(encodingByte === 0x01 || encodingByte === 0x02) {
-        return Buffer.alloc(2, 0x00)
-    }
-    return Buffer.alloc(1, 0x00)
-}
-
 export function encodingFromStringOrByte(encoding) {
     if(ENCODINGS.indexOf(encoding) !== -1) {
         return encoding
