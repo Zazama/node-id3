@@ -1,9 +1,9 @@
-import { Tags, TagAliases, RawTags, WriteTags  } from "./Tags"
+import { Tags, TagAliases, RawTags, WriteTags  } from "./types/Tags"
+import { FrameOptions } from "./definitions/FrameOptions"
 import {
-    FrameOptions,
     FRAME_IDENTIFIERS,
     FRAME_ALIASES
-} from "./ID3Definitions"
+} from "./definitions/FrameIdentifiers"
 import * as ID3Util from "./ID3Util"
 
 

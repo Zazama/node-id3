@@ -1,4 +1,7 @@
-import * as ID3Definitions from './ID3Definitions'
+import {
+    FRAME_IDENTIFIERS,
+    FRAME_ALIASES
+} from "./definitions/FrameIdentifiers"
 const ID3Frames = require('./ID3Frames')
 const ID3Util = require('./ID3Util')
 import { ID3Frame } from './ID3Frame'
@@ -15,16 +18,16 @@ function createBuffersFromTags(tags) {
         return frames
     }
     const rawObject = Object.keys(tags).reduce((acc, val) => {
-        if(ID3Definitions.FRAME_IDENTIFIERS.v3[val] !== undefined) {
-            acc[ID3Definitions.FRAME_IDENTIFIERS.v3[val]] = tags[val]
-        } else if(ID3Definitions.FRAME_IDENTIFIERS.v4[val] !== undefined) {
+        if(FRAME_IDENTIFIERS.v3[val] !== undefined) {
+            acc[FRAME_IDENTIFIERS.v3[val]] = tags[val]
+        } else if(FRAME_IDENTIFIERS.v4[val] !== undefined) {
             /**
              * Currently, node-id3 always writes ID3 version 3.
              * However, version 3 and 4 are very similar, and node-id3 can also read version 4 frames.
              * Until version 4 is fully supported, as a workaround, allow writing version 4 frames into a version 3 tag.
              * If a reader does not support a v4 frame, it's (per spec) supposed to skip it, so it should not be a problem.
              */
-            acc[ID3Definitions.FRAME_IDENTIFIERS.v4[val]] = tags[val]
+            acc[FRAME_IDENTIFIERS.v4[val]] = tags[val]
         } else {
             acc[val] = tags[val]
         }
@@ -136,7 +139,7 @@ function getTagsFromFrames(frames, version, options = {}) {
 
     frames.forEach((frame) => {
         const frameValue = frame.getValue()
-        const frameAlias = ID3Definitions.FRAME_ALIASES.v34[frame.identifier]
+        const frameAlias = FRAME_ALIASES.v34[frame.identifier]
 
         if(ID3Util.getSpecOptions(frame.identifier, version).multiple) {
             if(!options.onlyRaw) {

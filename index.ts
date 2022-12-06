@@ -2,13 +2,13 @@ import * as fs from 'fs'
 import * as ID3Util from './src/ID3Util'
 import * as ID3Helpers from './src/ID3Helpers'
 import { isFunction, isString } from './src/util'
-import { Tags, WriteTags } from './src/Tags'
-import { Options } from './src/Options'
+import { Tags, WriteTags } from './src/types/Tags'
+import { Options } from './src/types/Options'
 import { updateTags } from './src/update'
 
-export { Tags, WriteTags } from "./src/Tags"
-export { Options } from "./src/Options"
-export { TagConstants } from './src/TagConstants'
+export { Tags, WriteTags } from "./src/types/Tags"
+export { Options } from "./src/types/Options"
+export { TagConstants } from './src/definitions/TagConstants'
 
 // Used specification: http://id3.org/id3v2.3.0
 

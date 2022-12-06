@@ -1,5 +1,5 @@
 const iconv = require('iconv-lite')
-import * as ID3Definitions from './ID3Definitions'
+import { ID3_FRAME_OPTIONS } from './definitions/FrameOptions'
 
 const ENCODINGS = [
     'ISO-8859-1', 'UTF-16', 'UTF-16BE', 'UTF-8'
@@ -63,8 +63,8 @@ export function bufferToDecodedString(buffer, encodingByte) {
 }
 
 export function getSpecOptions(frameIdentifier) {
-    if(ID3Definitions.ID3_FRAME_OPTIONS[frameIdentifier]) {
-        return ID3Definitions.ID3_FRAME_OPTIONS[frameIdentifier]
+    if (ID3_FRAME_OPTIONS[frameIdentifier]) {
+        return ID3_FRAME_OPTIONS[frameIdentifier]
     }
 
     return {}

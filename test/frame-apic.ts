@@ -3,7 +3,7 @@ import assert = require('assert')
 import fs = require('fs')
 import path = require('path')
 import { smallPngImageData, smallJpegImageData } from './small-image'
-import { APIC_TYPES } from '../src/ID3Definitions'
+import { APIC_TYPES } from '../src/definitions/PictureTypes'
 
 const smallImagePath = path.join(__dirname, 'smallImage.png')
 const PictureType = NodeID3.TagConstants.AttachedPicture.PictureType

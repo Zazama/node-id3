@@ -1,8 +1,8 @@
 const fs = require('fs')
 const ID3FrameBuilder = require("./ID3FrameBuilder")
 const ID3FrameReader = require("./ID3FrameReader")
-import * as ID3Definitions from './ID3Definitions'
-import { TagConstants } from './TagConstants'
+import { APIC_TYPES } from './definitions/PictureTypes'
+import { TagConstants } from './definitions/TagConstants'
 const ID3Util = require("./ID3Util")
 const ID3Helpers = require('./ID3Helpers')
 const { isString } = require('./util')
@@ -102,7 +102,7 @@ export const APIC = {
             mime: mime,
             type: {
                 id: typeId,
-                name: ID3Definitions.APIC_TYPES[typeId]
+                name: APIC_TYPES[typeId]
             },
             description: description,
             imageBuffer: imageBuffer

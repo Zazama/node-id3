@@ -1,5 +1,8 @@
 const ID3Util = require('./ID3Util')
-const ID3Definitions = require("./ID3Definitions")
+import {
+    FRAME_IDENTIFIERS,
+    FRAME_ALIASES }
+from "./definitions/FrameIdentifiers"
 
 class ID3FrameHeader {
     constructor(identifier, bodySize, flags = {}) {
@@ -25,9 +28,9 @@ export function createFromBuffer(headerBuffer, version) {
 
     // Try to convert identifier for older versions
     if(version === 2) {
-        const alias = ID3Definitions.FRAME_ALIASES.v2[identifier]
+        const alias = FRAME_ALIASES.v2[identifier]
         if(alias) {
-            identifier = ID3Definitions.FRAME_IDENTIFIERS.v34[alias]
+            identifier = FRAME_IDENTIFIERS.v34[alias]
         }
     }
 
