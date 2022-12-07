@@ -37,19 +37,6 @@ export class Frame {
     }
 }
 
-function makeFrameBuffer(identifier: string, value: unknown) {
-    if (isKeyOf(identifier, Frames.Frames)) {
-        return Frames.Frames[identifier].create(value)
-    }
-    if (identifier.startsWith('T')) {
-        return Frames.GENERIC_TEXT.create(identifier, value)
-    }
-    if (identifier.startsWith('W')) {
-        return Frames.GENERIC_URL.create(identifier, value)
-    }
-    return null
-}
-
 function createFromBuffer(
     frameBuffer: Buffer,
     version: number
@@ -78,6 +65,19 @@ function createFromBuffer(
         if (value) {
             return new Frame(header.identifier, value, header.flags)
         }
+    }
+    return null
+}
+
+function makeFrameBuffer(identifier: string, value: unknown) {
+    if (isKeyOf(identifier, Frames.Frames)) {
+        return Frames.Frames[identifier].create(value)
+    }
+    if (identifier.startsWith('T')) {
+        return Frames.GENERIC_TEXT.create(identifier, value)
+    }
+    if (identifier.startsWith('W')) {
+        return Frames.GENERIC_URL.create(identifier, value)
     }
     return null
 }
