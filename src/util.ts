@@ -6,7 +6,11 @@ export const isFunction =
 export const isString = (value: unknown): value is string =>
     typeof value === 'string' || value instanceof String
 
-export const isKeyOf = <T extends Record<string, unknown>>(
+/**
+ * @remarks Use only for objects defined as const when known that
+ * object keyof sets are defined by the object definitions themselves.
+ */
+export const isKeyOf = <T extends Readonly<Record<string, unknown>>>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     key: keyof any,
     object: T
