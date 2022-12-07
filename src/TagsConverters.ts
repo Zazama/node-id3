@@ -1,4 +1,4 @@
-import { RawTags, TagAliases, WriteTags } from "./types/Tags"
+import { TagIdentifiers, TagAliases, WriteTags } from "./types/Tags"
 import {
     FRAME_IDENTIFIERS,
     FRAME_ALIASES
@@ -9,8 +9,8 @@ import { isKeyOf } from "./util"
  * Convert tag aliases from WriteTags to identifiers in RawTags and
  * filter out unknown aliases and identifiers.
  */
-export function convertWriteTagsToRawTags(tags: WriteTags): RawTags {
-    return Object.entries(tags).reduce<RawTags>((rawTags, [key, value]) => {
+export function convertWriteTagsToRawTags(tags: WriteTags): TagIdentifiers {
+    return Object.entries(tags).reduce<TagIdentifiers>((rawTags, [key, value]) => {
         if (isKeyOf(key, FRAME_IDENTIFIERS.v3)) {
             rawTags[FRAME_IDENTIFIERS.v3[key]] = value
         } else if (isKeyOf(key, FRAME_IDENTIFIERS.v4)) {
@@ -29,7 +29,7 @@ export function convertWriteTagsToRawTags(tags: WriteTags): RawTags {
     }, {})
 }
 
-export function convertRawTagsToTagAliases(tags: RawTags): TagAliases {
+export function convertRawTagsToTagAliases(tags: TagIdentifiers): TagAliases {
     return Object.entries(tags).reduce<TagAliases>((aliases, [key, value]) => {
         if (isKeyOf(key, FRAME_ALIASES.v34)) {
             aliases[FRAME_ALIASES.v34[key]] = value

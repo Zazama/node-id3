@@ -2,7 +2,7 @@ import * as ID3Util from './ID3Util'
 import { makeFrameBuffer, Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
 import { Options } from "./types/Options"
-import { Tags, RawTags, WriteTags } from './types/Tags'
+import { Tags, TagIdentifiers, WriteTags } from './types/Tags'
 import { isBuffer } from "./util"
 import {
     convertWriteTagsToRawTags,
@@ -106,7 +106,7 @@ function getTagsFromFrames(
     frames: Frame[],
     _version: number,
     options: Options = {}
-): Tags | RawTags {
+): Tags | TagIdentifiers {
     const pushValue = (dest: unknown, value: unknown) => {
         const destArray = Array.isArray(dest) ? dest : []
         destArray.push(value)
@@ -114,8 +114,8 @@ function getTagsFromFrames(
     }
     const getValue = (_dest: unknown, value: unknown) => value
 
-    const rawTags = frames.reduce<RawTags>((tags, frame) => {
-        const frameId = frame.identifier as keyof RawTags
+    const rawTags = frames.reduce<TagIdentifiers>((tags, frame) => {
+        const frameId = frame.identifier as keyof TagIdentifiers
         const isMultiple = ID3Util.getSpecOptions(frameId).multiple
         const makeValue = isMultiple ? pushValue : getValue
         tags[frameId] = makeValue(tags[frameId], frame.getValue()) as never

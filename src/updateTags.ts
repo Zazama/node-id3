@@ -1,15 +1,15 @@
-import { Tags, RawTags, WriteTags  } from "./types/Tags"
+import { Tags, TagIdentifiers, WriteTags  } from "./types/Tags"
 import { FrameOptions } from "./definitions/FrameOptions"
 import { convertWriteTagsToRawTags } from "./TagsConverters"
 import * as ID3Util from "./ID3Util"
 
 
-export function updateTags(newTags: WriteTags, currentTags: Tags): RawTags {
+export function updateTags(newTags: WriteTags, currentTags: Tags): TagIdentifiers {
     const newRawTags = convertWriteTagsToRawTags(newTags)
 
     const currentRawTags = currentTags.raw ?? {}
     Object.keys(newRawTags).map(frameIdentifierString => {
-        const frameIdentifier = frameIdentifierString as keyof RawTags
+        const frameIdentifier = frameIdentifierString as keyof TagIdentifiers
         const newFrame = newRawTags[frameIdentifier]
         const updatedFrame = updateFrameIfMultiple(
             ID3Util.getSpecOptions(frameIdentifier),
@@ -24,8 +24,8 @@ export function updateTags(newTags: WriteTags, currentTags: Tags): RawTags {
 
 function updateFrameIfMultiple(
     options: FrameOptions,
-    newTag: RawTags[keyof RawTags],
-    currentTag: RawTags[keyof RawTags],
+    newTag: TagIdentifiers[keyof TagIdentifiers],
+    currentTag: TagIdentifiers[keyof TagIdentifiers],
 ) {
     if (
         !options.multiple ||
