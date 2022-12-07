@@ -6,6 +6,10 @@ const ENCODINGS = [
 ]
 
 export class SplitBuffer {
+    /**
+     * @param {Buffer | null} value
+     * @param {Buffer | null} remainder
+     */
     constructor(value = null, remainder = null) {
         this.value = value
         this.remainder = remainder
