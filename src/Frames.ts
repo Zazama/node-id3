@@ -320,12 +320,13 @@ const CHAP = {
             if (!chap || !chap.elementID || typeof chap.startTimeMs === "undefined" || !chap.endTimeMs) {
                 return null
             }
+            const getOffset = (offset?: number) => offset ?? 0xFFFFFFFF
             return new FrameBuilder("CHAP")
                 .appendNullTerminatedValue(chap.elementID)
                 .appendNumber(chap.startTimeMs, 4)
                 .appendNumber(chap.endTimeMs, 4)
-                .appendNumber(chap.startOffsetBytes ? chap.startOffsetBytes : 0xFFFFFFFF, 4)
-                .appendNumber(chap.endOffsetBytes ? chap.endOffsetBytes : 0xFFFFFFFF, 4)
+                .appendNumber(getOffset(chap.startOffsetBytes), 4)
+                .appendNumber(getOffset(chap.endOffsetBytes), 4)
                 .appendValue(TagsHelpers.createBufferFromTags(chap.tags))
                 .getBuffer()
         }).filter((chap: Data) => chap instanceof Buffer))
