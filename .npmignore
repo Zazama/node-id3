@@ -1,0 +1,7 @@
+node_modules
+test
+example
+dist/example
+dist/test
+.nyc_output
+coverage
