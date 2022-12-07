@@ -4,7 +4,7 @@ import {
 } from "./definitions/FrameIdentifiers"
 import * as ID3Frames from './ID3Frames'
 const ID3Util = require('./ID3Util')
-import { ID3Frame } from './ID3Frame'
+import { Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
 
 /**
@@ -124,7 +124,7 @@ function getFramesFromTagBody(tagBody, version, options = {}) {
         }
 
         const frameBuffer = tagBody.subarray(0, frameSize)
-        const frame = ID3Frame.createFromBuffer(frameBuffer, version)
+        const frame = Frame.createFromBuffer(frameBuffer, version)
         if(frame && !isFrameDiscarded(frame.identifier, options)) {
             frames.push(frame)
         }

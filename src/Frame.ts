@@ -9,7 +9,7 @@ import * as ID3Util from './ID3Util'
 
 type FrameKeys = keyof typeof ID3Frames.Frames
 
-export class ID3Frame {
+export class Frame {
     private identifier: string
     private value: unknown
     flags: Flags
@@ -23,7 +23,7 @@ export class ID3Frame {
     static createFromBuffer(
         frameBuffer: Buffer,
         version: number
-    ): ID3Frame | null {
+    ): Frame | null {
         const frameHeaderSize = getHeaderSize(version)
         // Specification requirement
         if (frameBuffer.length < frameHeaderSize + 1) {
@@ -65,7 +65,7 @@ export class ID3Frame {
         } else {
             return null
         }
-        return new ID3Frame(identifier, value, frameHeader.flags)
+        return new Frame(identifier, value, frameHeader.flags)
     }
 
     getBuffer() {
