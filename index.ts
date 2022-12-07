@@ -4,7 +4,7 @@ import * as TagsHelpers from './src/TagsHelpers'
 import { isFunction, isString } from './src/util'
 import { Tags, RawTags, WriteTags } from './src/types/Tags'
 import { Options } from './src/types/Options'
-import { updateTags } from './src/update'
+import { updateTags } from './src/updateTags'
 
 export { Tags, RawTags, WriteTags } from "./src/types/Tags"
 export { Options } from "./src/types/Options"
