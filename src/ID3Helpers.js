@@ -2,7 +2,7 @@ import {
     FRAME_IDENTIFIERS,
     FRAME_ALIASES
 } from "./definitions/FrameIdentifiers"
-const ID3Frames = require('./ID3Frames')
+import * as ID3Frames from './ID3Frames'
 const ID3Util = require('./ID3Util')
 import { ID3Frame } from './ID3Frame'
 import { getFrameSize } from './FrameHeader'
@@ -21,12 +21,13 @@ function createBuffersFromTags(tags) {
         if(FRAME_IDENTIFIERS.v3[val] !== undefined) {
             acc[FRAME_IDENTIFIERS.v3[val]] = tags[val]
         } else if(FRAME_IDENTIFIERS.v4[val] !== undefined) {
-            /**
-             * Currently, node-id3 always writes ID3 version 3.
-             * However, version 3 and 4 are very similar, and node-id3 can also read version 4 frames.
-             * Until version 4 is fully supported, as a workaround, allow writing version 4 frames into a version 3 tag.
-             * If a reader does not support a v4 frame, it's (per spec) supposed to skip it, so it should not be a problem.
-             */
+            // Currently, node-id3 always writes ID3 version 3.
+            // However, version 3 and 4 are very similar, and node-id3
+            // can also read version 4 frames.
+            // Until version 4 is fully supported, as a workaround,
+            // allow writing version 4 frames into a version 3 tag.
+            // If a reader does not support a v4 frame, it's (per spec)
+            // supposed to skip it, so it should not be a problem.
             acc[FRAME_IDENTIFIERS.v4[val]] = tags[val]
         } else {
             acc[val] = tags[val]
@@ -37,14 +38,14 @@ function createBuffersFromTags(tags) {
     Object.keys(rawObject).forEach((frameIdentifier) => {
         let frame
         // Check if invalid frameIdentifier
-        if(frameIdentifier.length !== 4) {
+        if (frameIdentifier.length !== 4) {
             return
         }
-        if(ID3Frames[frameIdentifier] !== undefined) {
-            frame = ID3Frames[frameIdentifier].create(rawObject[frameIdentifier], 3)
-        } else if(frameIdentifier.startsWith('T')) {
+        if (frameIdentifier in ID3Frames.Frames) {
+            frame = ID3Frames.Frames[frameIdentifier].create(rawObject[frameIdentifier], 3)
+        } else if (frameIdentifier.startsWith('T')) {
             frame = ID3Frames.GENERIC_TEXT.create(frameIdentifier, rawObject[frameIdentifier], 3)
-        } else if(frameIdentifier.startsWith('W')) {
+        } else if (frameIdentifier.startsWith('W')) {
             if(ID3Util.getSpecOptions(frameIdentifier, 3).multiple && rawObject[frameIdentifier] instanceof Array && rawObject[frameIdentifier].length > 0) {
                 frame = Buffer.alloc(0)
                 // deduplicate array
@@ -79,25 +80,25 @@ export function getTagsFromBuffer(filebuffer, options) {
         return getTagsFromFrames([], 3, options)
     }
     const frameSize = ID3Util.decodeSize(filebuffer.slice(framePosition + 6, framePosition + 10)) + 10
-    const ID3Frame = Buffer.alloc(frameSize + 1)
-    filebuffer.copy(ID3Frame, 0, framePosition)
+    const frame = Buffer.alloc(frameSize + 1)
+    filebuffer.copy(frame, 0, framePosition)
     //ID3 version e.g. 3 if ID3v2.3.0
-    const ID3Version = ID3Frame[3]
-    const tagFlags = ID3Util.parseTagHeaderFlags(ID3Frame)
+    const version = frame[3]
+    const tagFlags = ID3Util.parseTagHeaderFlags(frame)
     let extendedHeaderOffset = 0
     if(tagFlags.extendedHeader) {
-        if(ID3Version === 3) {
+        if(version === 3) {
             extendedHeaderOffset = 4 + filebuffer.readUInt32BE(10)
-        } else if(ID3Version === 4) {
+        } else if(version === 4) {
             extendedHeaderOffset = ID3Util.decodeSize(filebuffer.slice(10, 14))
         }
     }
-    const ID3FrameBody = Buffer.alloc(frameSize - 10 - extendedHeaderOffset)
-    filebuffer.copy(ID3FrameBody, 0, framePosition + 10 + extendedHeaderOffset)
+    const frameBody = Buffer.alloc(frameSize - 10 - extendedHeaderOffset)
+    filebuffer.copy(frameBody, 0, framePosition + 10 + extendedHeaderOffset)
 
-    const frames = getFramesFromTagBody(ID3FrameBody, ID3Version, options)
+    const frames = getFramesFromTagBody(frameBody, version, options)
 
-    return getTagsFromFrames(frames, ID3Version, options)
+    return getTagsFromFrames(frames, version, options)
 }
 
 function isFrameDiscarded(frameIdentifier, options) {

@@ -4,7 +4,7 @@ import {
     FRAME_ALIASES }
 from "./definitions/FrameIdentifiers"
 
-type Flags = {
+export type Flags = {
     tagAlterPreservation?: boolean
     fileAlterPreservation?: boolean
     readOnly?: boolean
@@ -15,15 +15,18 @@ type Flags = {
     dataLengthIndicator?: boolean
 }
 
-class FrameHeader {
-    private identifier: string
-    private bodySize: number
-    private flags: Flags
+export class FrameHeader {
+    identifier: string
+    bodySize: number
+    flags: Flags
+
     constructor(identifier: string, bodySize: number, flags: Flags = {}) {
         this.identifier = identifier
         this.bodySize = bodySize
         this.flags = flags
     }
+
+    static createFromBuffer = createFromBuffer
 
     getBuffer() {
         const buffer = Buffer.alloc(10)
@@ -34,7 +37,7 @@ class FrameHeader {
 
 }
 
-export function createFromBuffer(headerBuffer: Buffer, version: number) {
+function createFromBuffer(headerBuffer: Buffer, version: number) {
     const identifierSize = version === 2 ? 3 : 4
     let identifier = headerBuffer.toString('utf8', 0, identifierSize)
     const frameSize = getBodySize(headerBuffer, version)

@@ -42,7 +42,7 @@ export const GENERIC_URL = {
     }
 }
 
-export const APIC = {
+const APIC = {
     create: (data) => {
         try {
             if (data instanceof Buffer) {
@@ -110,7 +110,7 @@ export const APIC = {
     }
 }
 
-export const COMM = {
+const COMM = {
     create: (data) => {
         data = data || {}
         if(!data.text) {
@@ -135,7 +135,7 @@ export const COMM = {
     }
 }
 
-export const USLT = {
+const USLT = {
     create: (data) => {
         data = data || {}
         if(isString(data)) {
@@ -165,7 +165,7 @@ export const USLT = {
     }
 }
 
-export const SYLT = {
+const SYLT = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -208,7 +208,7 @@ export const SYLT = {
     }
 }
 
-export const TXXX = {
+const TXXX = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -230,7 +230,7 @@ export const TXXX = {
     }
 }
 
-export const POPM = {
+const POPM = {
     create: (data) => {
         const email = data.email
         let rating = Math.trunc(data.rating)
@@ -261,7 +261,7 @@ export const POPM = {
     }
 }
 
-export const PRIV = {
+const PRIV = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -281,7 +281,7 @@ export const PRIV = {
     }
 }
 
-export const UFID = {
+const UFID = {
     create: (data) => {
         if (!(data instanceof Array)) {
             data = [data]
@@ -304,7 +304,7 @@ export const UFID = {
     }
 }
 
-export const CHAP = {
+const CHAP = {
     create: (data) => {
         if (!(data instanceof Array)) {
             data = [data]
@@ -344,7 +344,7 @@ export const CHAP = {
     }
 }
 
-export const CTOC = {
+const CTOC = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -399,7 +399,7 @@ export const CTOC = {
     }
 }
 
-export const WXXX = {
+const WXXX = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -423,7 +423,7 @@ export const WXXX = {
     }
 }
 
-export const ETCO = {
+const ETCO = {
     create: (data) => {
         const builder = new FrameBuilder("ETCO")
             .appendNumber(data.timeStampFormat, 1)
@@ -454,7 +454,7 @@ export const ETCO = {
     }
 }
 
-export const COMR = {
+const COMR = {
     create: (data) => {
         if(!(data instanceof Array)) {
             data = [data]
@@ -547,4 +547,20 @@ export const COMR = {
 
         return tag
     }
+}
+
+export const Frames = {
+    APIC,
+    COMM,
+    USLT,
+    SYLT,
+    TXXX,
+    POPM,
+    PRIV,
+    UFID,
+    CHAP,
+    CTOC,
+    WXXX,
+    ETCO,
+    COMR
 }
