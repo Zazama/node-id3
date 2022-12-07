@@ -32,23 +32,26 @@ export type CreateCallback =
  * Remove already written ID3-Frames from a buffer
  */
 export function removeTagsFromBuffer(data: Buffer) {
-    const framePosition = ID3Util.getFramePosition(data)
+    const tagPosition = ID3Util.getTagPosition(data)
 
-    if (framePosition === -1) {
+    if (tagPosition === -1) {
         return data
     }
 
-    // Remove the hard-coded size of 10
-    const encodedSize = data.subarray(framePosition + 6, framePosition + 10)
+    const tagHeaderSize = 10
+    const encodedSize = data.subarray(
+        tagPosition + 6,
+        tagPosition + tagHeaderSize
+    )
     if (!ID3Util.isValidEncodedSize(encodedSize)) {
         return false
     }
 
-    if (data.length >= framePosition + 10) {
+    if (data.length >= tagPosition + tagHeaderSize) {
         const size = ID3Util.decodeSize(encodedSize)
         return Buffer.concat([
-            data.subarray(0, framePosition),
-            data.subarray(framePosition + size + 10)
+            data.subarray(0, tagPosition),
+            data.subarray(tagPosition + size + tagHeaderSize)
         ])
     }
 

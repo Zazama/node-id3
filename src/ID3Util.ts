@@ -100,25 +100,29 @@ export function isValidID3Header(buffer: Buffer) {
     return isValidEncodedSize(buffer.subarray(6, 10))
 }
 
-export function getFramePosition(buffer: Buffer) {
+/**
+ * Returns -1 if no tag was found.
+ */
+export function getTagPosition(buffer: Buffer) {
     // Search Buffer for valid ID3 frame
-    let framePosition = -1
-    let frameHeaderValid = false
+    const tagHeaderSize = 10
+    let position = -1
+    let headerValid = false
     do {
-        framePosition = buffer.indexOf("ID3", framePosition + 1)
-        if (framePosition !== -1) {
+        position = buffer.indexOf("ID3", position + 1)
+        if (position !== -1) {
             // It's possible that there is a "ID3" sequence without being an
             // ID3 Frame, so we need to check for validity of the next 10 bytes.
-            frameHeaderValid = isValidID3Header(
-                buffer.subarray(framePosition, framePosition + 10)
+            headerValid = isValidID3Header(
+                buffer.subarray(position, position + tagHeaderSize)
             )
         }
-    } while (framePosition !== -1 && !frameHeaderValid)
+    } while (position !== -1 && !headerValid)
 
-    if (!frameHeaderValid) {
+    if (!headerValid) {
         return -1
     }
-    return framePosition
+    return position
 }
 
  export function isValidEncodedSize(encodedSize: Buffer) {

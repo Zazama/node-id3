@@ -30,7 +30,7 @@ export function createBufferFromTags(tags: WriteTags) {
 }
 
 export function getTagsFromBuffer(buffer: Buffer, options: Options) {
-    const framePosition = ID3Util.getFramePosition(buffer)
+    const framePosition = ID3Util.getTagPosition(buffer)
     if (framePosition === -1) {
         return getTagsFromFrames([], 3, options)
     }
