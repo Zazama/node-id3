@@ -2,7 +2,7 @@ import {
     FRAME_IDENTIFIERS,
     FRAME_ALIASES
 } from "./definitions/FrameIdentifiers"
-import * as ID3Frames from './ID3Frames'
+import * as Frames from './Frames'
 import * as ID3Util from './ID3Util'
 import { Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
@@ -42,10 +42,10 @@ function createBuffersFromTags(tags: WriteTags) {
             return
         }
         let frame
-        if (isKeyOf(frameIdentifier, ID3Frames.Frames)) {
-            frame = ID3Frames.Frames[frameIdentifier].create(data)
+        if (isKeyOf(frameIdentifier, Frames.Frames)) {
+            frame = Frames.Frames[frameIdentifier].create(data)
         } else if (frameIdentifier.startsWith('T')) {
-            frame = ID3Frames.GENERIC_TEXT.create(frameIdentifier, data)
+            frame = Frames.GENERIC_TEXT.create(frameIdentifier, data)
         } else if (frameIdentifier.startsWith('W')) {
             if (
                 ID3Util.getSpecOptions(frameIdentifier).multiple &&
@@ -54,11 +54,11 @@ function createBuffersFromTags(tags: WriteTags) {
             ) {
                 // deduplicate array
                 const frames = [...new Set(data)].map(
-                    url => ID3Frames.GENERIC_URL.create(frameIdentifier, url)
+                    url => Frames.GENERIC_URL.create(frameIdentifier, url)
                 ).filter((frame): frame is Buffer => !!frame)
                 frame = Buffer.concat(frames)
             } else {
-                frame = ID3Frames.GENERIC_URL.create(frameIdentifier, data)
+                frame = Frames.GENERIC_URL.create(frameIdentifier, data)
             }
         }
         if (frame && frame instanceof Buffer) {

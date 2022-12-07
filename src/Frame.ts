@@ -4,7 +4,7 @@ import {
     getHeaderSize,
     FrameHeader
 } from './FrameHeader'
-import * as ID3Frames from './ID3Frames'
+import * as Frames from './Frames'
 import * as ID3Util from './ID3Util'
 import { isKeyOf } from "./util"
 
@@ -54,12 +54,12 @@ export class Frame {
 
         const identifier = frameHeader.identifier
         let value = null
-        if (isKeyOf(identifier, ID3Frames.Frames)) {
-            value = ID3Frames.Frames[identifier].read(frameBody, version)
+        if (isKeyOf(identifier, Frames.Frames)) {
+            value = Frames.Frames[identifier].read(frameBody, version)
         } else if (identifier.startsWith('T')) {
-            value = ID3Frames.GENERIC_TEXT.read(frameBody)
+            value = Frames.GENERIC_TEXT.read(frameBody)
         } else if (identifier.startsWith('W')) {
-            value = ID3Frames.GENERIC_URL.read(frameBody)
+            value = Frames.GENERIC_URL.read(frameBody)
         } else {
             return null
         }
@@ -67,14 +67,14 @@ export class Frame {
     }
 
     getBuffer() {
-        if (isKeyOf(this.identifier, ID3Frames.Frames)) {
-            return ID3Frames.Frames[this.identifier].create(this.value)
+        if (isKeyOf(this.identifier, Frames.Frames)) {
+            return Frames.Frames[this.identifier].create(this.value)
         }
         if (this.identifier.startsWith('T')) {
-            return ID3Frames.GENERIC_TEXT.create(this.identifier, this.value)
+            return Frames.GENERIC_TEXT.create(this.identifier, this.value)
         }
         if (this.identifier.startsWith('W')) {
-            return ID3Frames.GENERIC_URL.create(this.identifier, this.value)
+            return Frames.GENERIC_URL.create(this.identifier, this.value)
         }
         return null
     }
