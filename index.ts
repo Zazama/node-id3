@@ -6,6 +6,7 @@ import { Tags, RawTags, WriteTags } from './src/types/Tags'
 import { Options } from './src/types/Options'
 import { updateTags } from './src/updateTags'
 import { create } from "./src/api/create"
+import { read, ReadCallback } from "./src/api/read"
 
 export { Tags, RawTags, WriteTags } from "./src/types/Tags"
 export { Options } from "./src/types/Options"
@@ -27,6 +28,7 @@ export type ReadCallback = {
 
 export type RemoveCallback =
     (error: NodeJS.ErrnoException | Error | null) => void
+export { read, ReadCallback } from "./src/api/read"
 
 export type CreateCallback =
     (data: Buffer) => void
