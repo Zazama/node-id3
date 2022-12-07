@@ -1,14 +1,11 @@
-import { Tags, TagAliases, RawTags, WriteTags  } from "./types/Tags"
+import { Tags, RawTags, WriteTags  } from "./types/Tags"
 import { FrameOptions } from "./definitions/FrameOptions"
-import {
-    FRAME_IDENTIFIERS,
-    FRAME_ALIASES
-} from "./definitions/FrameIdentifiers"
+import { convertWriteTagsToRawTags } from "./TagsConverters"
 import * as ID3Util from "./ID3Util"
 
 
 export function updateTags(newTags: WriteTags, currentTags: Tags): RawTags {
-    const newRawTags = makeRawTags(newTags)
+    const newRawTags = convertWriteTagsToRawTags(newTags)
 
     const currentRawTags = currentTags.raw ?? {}
     Object.keys(newRawTags).map(frameIdentifierString => {
@@ -68,18 +65,4 @@ function updateFrameIfMultiple(
         }
     })
     return currentTag
-}
-
-function makeRawTags(tags: WriteTags): RawTags {
-    return Object.entries(tags).reduce<RawTags>((rawTags, [key, value]) => {
-        const identifiers = FRAME_IDENTIFIERS.v34
-        const aliases = FRAME_ALIASES.v34
-        if (key in identifiers) {
-            rawTags[identifiers[key as keyof TagAliases]] = value
-        }
-        if (key in aliases) {
-            rawTags[key as keyof RawTags] = value
-        }
-        return rawTags
-    }, {})
 }

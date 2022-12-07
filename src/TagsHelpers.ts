@@ -1,7 +1,4 @@
-import {
-    FRAME_IDENTIFIERS,
-    FRAME_ALIASES
-} from "./definitions/FrameIdentifiers"
+import { FRAME_ALIASES } from "./definitions/FrameIdentifiers"
 import * as Frames from './Frames'
 import * as ID3Util from './ID3Util'
 import { Frame } from './Frame'
@@ -9,32 +6,17 @@ import { getFrameSize } from './FrameHeader'
 import { Options } from "./types/Options"
 import { Tags, RawTags, WriteTags } from './types/Tags'
 import { isKeyOf } from "./util"
+import { convertWriteTagsToRawTags } from "./TagsConverters"
 
 /**
- * Returns array of buffers created by tags specified in the tags argument
+ * Returns an array of buffers using specified tags.
  */
 function createBuffersFromTags(tags: WriteTags) {
     const frames: Buffer[] = []
     if(!tags) {
         return frames
     }
-    const rawObject = Object.entries(tags).reduce<RawTags>((acc, [key, value]) => {
-        if (isKeyOf(key, FRAME_IDENTIFIERS.v3)) {
-            acc[FRAME_IDENTIFIERS.v3[key]] = value
-        } else if (isKeyOf(key, FRAME_IDENTIFIERS.v4)) {
-            // Currently, node-id3 always writes ID3 version 3.
-            // However, version 3 and 4 are very similar, and node-id3
-            // can also read version 4 frames.
-            // Until version 4 is fully supported, as a workaround,
-            // allow writing version 4 frames into a version 3 tag.
-            // If a reader does not support a v4 frame, it's (per spec)
-            // supposed to skip it, so it should not be a problem.
-            acc[FRAME_IDENTIFIERS.v4[key]] = value
-        } else {
-            acc[key as keyof RawTags] = value
-        }
-        return acc
-    }, {})
+    const rawObject = convertWriteTagsToRawTags(tags)
 
     Object.entries(rawObject).forEach(([frameIdentifier, data]) => {
         // Check if invalid frameIdentifier
