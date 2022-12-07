@@ -1,6 +1,6 @@
 {
   "name": "node-id3",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "description": "Pure JavaScript ID3v2 Tag writer and reader",
   "author": "Jan Metzger <jan.metzger@gmx.net>",
   "main": "dist/index.js",
@@ -38,7 +38,7 @@
     "build-watch": "tsc --build --watch --incremental",
     "test": "mocha --require source-map-support/register dist/test",
     "test-watch": "mocha --watch --require source-map-support/register dist/test",
-    "prepare": "tsc",
+    "prepublishOnly": "npm run clean && tsc",
     "markdownlint-ci": "markdownlint README.md CHANGELOG.md",
     "markdownlint": "markdownlint --fix README.md CHANGELOG.md",
     "eslint": "eslint **/*.js **/*.ts",
