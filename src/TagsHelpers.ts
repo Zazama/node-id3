@@ -1,11 +1,13 @@
-import { FRAME_ALIASES } from "./definitions/FrameIdentifiers"
 import * as ID3Util from './ID3Util'
 import { makeFrameBuffer, Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
 import { Options } from "./types/Options"
 import { Tags, RawTags, WriteTags } from './types/Tags'
 import { isBuffer } from "./util"
-import { convertWriteTagsToRawTags } from "./TagsConverters"
+import {
+    convertWriteTagsToRawTags,
+    convertRawTagsToTagAliases
+} from "./TagsConverters"
 
 /**
  * Returns an array of buffers using specified tags.
@@ -104,39 +106,29 @@ function getTagsFromFrames(
     frames: Frame[],
     _version: number,
     options: Options = {}
-) {
-    const tags: Tags = {}
-    const raw: RawTags = {}
-
-    const push = (dest: unknown, value: unknown) => {
+): Tags | RawTags {
+    const pushValue = (dest: unknown, value: unknown) => {
         const destArray = Array.isArray(dest) ? dest : []
         destArray.push(value)
-        return destArray as never
+        return destArray
     }
-    const set = (_dest: unknown, value: unknown) => value as never
+    const getValue = (_dest: unknown, value: unknown) => value
 
-    frames.forEach(frame => {
-        const identifier = frame.identifier as keyof RawTags
-        const frameAlias = FRAME_ALIASES.v34[identifier] as keyof Tags
-
-        const assign = ID3Util.getSpecOptions(identifier).multiple ? push : set
-
-        if (!options.onlyRaw) {
-            tags[frameAlias] = assign(tags[frameAlias], frame.getValue())
-        }
-        if (!options.noRaw) {
-            raw[identifier] = assign(raw[identifier], frame.getValue())
-        }
-    })
+    const rawTags = frames.reduce<RawTags>((tags, frame) => {
+        const frameId = frame.identifier as keyof RawTags
+        const isMultiple = ID3Util.getSpecOptions(frameId).multiple
+        const makeValue = isMultiple ? pushValue : getValue
+        tags[frameId] = makeValue(tags[frameId], frame.getValue()) as never
+        return tags
+    }, {})
 
     if (options.onlyRaw) {
-        return raw
+        return rawTags
     }
+
+    const tags = convertRawTagsToTagAliases(rawTags)
     if (options.noRaw) {
         return tags
     }
-
-    tags.raw = raw
-    return tags
+    return { ...tags, raw: rawTags }
 }
-

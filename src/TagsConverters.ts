@@ -1,4 +1,4 @@
-import { RawTags, WriteTags } from "./types/Tags"
+import { RawTags, TagAliases, WriteTags } from "./types/Tags"
 import {
     FRAME_IDENTIFIERS,
     FRAME_ALIASES
@@ -29,3 +29,11 @@ export function convertWriteTagsToRawTags(tags: WriteTags): RawTags {
     }, {})
 }
 
+export function convertRawTagsToTagAliases(tags: RawTags): TagAliases {
+    return Object.entries(tags).reduce<TagAliases>((aliases, [key, value]) => {
+        if (isKeyOf(key, FRAME_ALIASES.v34)) {
+            aliases[FRAME_ALIASES.v34[key]] = value
+        }
+        return aliases
+    }, {})
+}
