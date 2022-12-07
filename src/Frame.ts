@@ -6,7 +6,7 @@ import {
 } from './FrameHeader'
 import * as Frames from './Frames'
 import * as ID3Util from './ID3Util'
-import { isKeyOf } from "./util"
+import { deduplicate, isBuffer, isKeyOf } from "./util"
 
 type HeaderInfo = {
     identifier: string
@@ -27,10 +27,6 @@ export class Frame {
     }
 
     static createFromBuffer = createFromBuffer
-
-    makeBuffer() {
-        return makeFrameBuffer(this.identifier, this.value)
-    }
 
     getValue() {
         return this.value
@@ -69,7 +65,7 @@ function createFromBuffer(
     return null
 }
 
-function makeFrameBuffer(identifier: string, value: unknown) {
+export function makeFrameBuffer(identifier: string, value: unknown) {
     if (isKeyOf(identifier, Frames.Frames)) {
         return Frames.Frames[identifier].create(value)
     }
@@ -77,9 +73,22 @@ function makeFrameBuffer(identifier: string, value: unknown) {
         return Frames.GENERIC_TEXT.create(identifier, value)
     }
     if (identifier.startsWith('W')) {
-        return Frames.GENERIC_URL.create(identifier, value)
+        return makeUrlBuffer(identifier, value)
     }
     return null
+}
+
+function makeUrlBuffer(identifier: string, value: unknown) {
+    const values =
+        ID3Util.getSpecOptions(identifier).multiple && Array.isArray(value)
+        ? value : [value]
+
+    const frames =
+        deduplicate(values)
+        .map(url => Frames.GENERIC_URL.create(identifier, url))
+        .filter(isBuffer)
+
+    return frames.length ? Buffer.concat(frames) : null
 }
 
 function makeFrameValue(identifier:string, body: Buffer, version: number) {

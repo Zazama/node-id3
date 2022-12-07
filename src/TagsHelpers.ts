@@ -1,11 +1,10 @@
 import { FRAME_ALIASES } from "./definitions/FrameIdentifiers"
-import * as Frames from './Frames'
 import * as ID3Util from './ID3Util'
-import { Frame } from './Frame'
+import { makeFrameBuffer, Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
 import { Options } from "./types/Options"
 import { Tags, RawTags, WriteTags } from './types/Tags'
-import { deduplicate, isBuffer, isKeyOf } from "./util"
+import { isBuffer } from "./util"
 import { convertWriteTagsToRawTags } from "./TagsConverters"
 
 /**
@@ -16,33 +15,9 @@ function createBuffersFromTags(tags: WriteTags): Buffer[] {
         return []
     }
     const rawTags = convertWriteTagsToRawTags(tags)
-
-    const frames = Object.entries(rawTags).map(([frameIdentifier, data]) => {
-        if (isKeyOf(frameIdentifier, Frames.Frames)) {
-            return Frames.Frames[frameIdentifier].create(data)
-        } else if (frameIdentifier.startsWith('T')) {
-            return Frames.GENERIC_TEXT.create(frameIdentifier, data)
-        } else if (frameIdentifier.startsWith('W')) {
-            if (
-                ID3Util.getSpecOptions(frameIdentifier).multiple &&
-                Array.isArray(data)
-            ) {
-                const frames =
-                    deduplicate(data)
-                    .map(url => Frames.GENERIC_URL.create(frameIdentifier, url))
-                    .filter(isBuffer)
-
-                if (frames.length) {
-                    return Buffer.concat(frames)
-                }
-            } else {
-                return Frames.GENERIC_URL.create(frameIdentifier, data)
-            }
-        }
-        return null
-    })
-
-    return frames.filter(isBuffer)
+    return Object.entries(rawTags)
+        .map(([identifier, value]) => makeFrameBuffer(identifier, value))
+        .filter(isBuffer)
 }
 
 /**
