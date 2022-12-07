@@ -1,6 +1,6 @@
 const fs = require('fs')
 import { FrameBuilder } from "./FrameBuilder"
-const ID3FrameReader = require("./ID3FrameReader")
+import { ID3FrameReader } from "./ID3FrameReader"
 import { APIC_TYPES } from './definitions/PictureTypes'
 import { TagConstants } from './definitions/TagConstants'
 const ID3Util = require("./ID3Util")
