@@ -4,7 +4,7 @@ import { FrameReader } from "./FrameReader"
 import { APIC_TYPES } from './definitions/PictureTypes'
 import { TagConstants } from './definitions/TagConstants'
 import * as ID3Util from "./ID3Util"
-import ID3Helpers = require('./ID3Helpers')
+import * as TagsHelpers from './TagsHelpers'
 import { isString } from './util'
 import { TextEncoding } from './definitions/Encoding'
 
@@ -326,7 +326,7 @@ const CHAP = {
                 .appendNumber(chap.endTimeMs, 4)
                 .appendNumber(chap.startOffsetBytes ? chap.startOffsetBytes : 0xFFFFFFFF, 4)
                 .appendNumber(chap.endOffsetBytes ? chap.endOffsetBytes : 0xFFFFFFFF, 4)
-                .appendValue(ID3Helpers.createBufferFromTags(chap.tags))
+                .appendValue(TagsHelpers.createBufferFromTags(chap.tags))
                 .getBuffer()
         }).filter((chap: Data) => chap instanceof Buffer))
     },
@@ -342,7 +342,7 @@ const CHAP = {
         const endTimeMs = consumeNumber()
         const startOffsetBytes = makeOffset(consumeNumber())
         const endOffsetBytes = makeOffset(consumeNumber())
-        const tags = ID3Helpers.getTagsFromID3Body(reader.consumeStaticValue())
+        const tags = TagsHelpers.getTagsFromID3Body(reader.consumeStaticValue())
         return {
             elementID,
             startTimeMs,
@@ -384,7 +384,7 @@ const CTOC = {
                 builder.appendNullTerminatedValue(el)
             })
             if(toc.tags) {
-                builder.appendValue(ID3Helpers.createBufferFromTags(toc.tags))
+                builder.appendValue(TagsHelpers.createBufferFromTags(toc.tags))
             }
             return builder.getBuffer()
         }).filter((toc: Data) => toc instanceof Buffer))
@@ -398,7 +398,7 @@ const CTOC = {
         for(let i = 0; i < entries; i++) {
             elements.push(reader.consumeNullTerminatedValue('string'))
         }
-        const tags = ID3Helpers.getTagsFromID3Body(reader.consumeStaticValue())
+        const tags = TagsHelpers.getTagsFromID3Body(reader.consumeStaticValue())
 
         return {
             elementID,

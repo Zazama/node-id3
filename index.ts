@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as ID3Util from './src/ID3Util'
-import * as ID3Helpers from './src/ID3Helpers'
+import * as TagsHelpers from './src/TagsHelpers'
 import { isFunction, isString } from './src/util'
 import { Tags, RawTags, WriteTags } from './src/types/Tags'
 import { Options } from './src/types/Options'
@@ -120,7 +120,7 @@ export function write(
 export function create(tags: WriteTags): Buffer
 export function create(tags: WriteTags, callback: CreateCallback): void
 export function create(tags: WriteTags, callback?: CreateCallback) {
-    const frames = ID3Helpers.createBufferFromTags(tags)
+    const frames = TagsHelpers.createBufferFromTags(tags)
 
     //  Create ID3 header
     const header = Buffer.alloc(10)
@@ -142,7 +142,7 @@ function readSync(filebuffer: string | Buffer, options: Options) {
     if(isString(filebuffer)) {
         filebuffer = fs.readFileSync(filebuffer)
     }
-    return ID3Helpers.getTagsFromBuffer(filebuffer, options)
+    return TagsHelpers.getTagsFromBuffer(filebuffer, options)
 }
 
 function readAsync(
@@ -155,11 +155,11 @@ function readAsync(
             if(error) {
                 callback(error, null)
             } else {
-                callback(null, ID3Helpers.getTagsFromBuffer(data, options))
+                callback(null, TagsHelpers.getTagsFromBuffer(data, options))
             }
         })
     } else {
-        callback(null, ID3Helpers.getTagsFromBuffer(filebuffer, options))
+        callback(null, TagsHelpers.getTagsFromBuffer(filebuffer, options))
     }
 }
 
