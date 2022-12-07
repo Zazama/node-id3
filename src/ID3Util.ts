@@ -1,6 +1,6 @@
 import iconv = require('iconv-lite')
 import { FrameOptions, FRAME_OPTIONS } from './definitions/FrameOptions'
-import { isString } from './util'
+import { isKeyOf, isString } from './util'
 
 export class SplitBuffer {
     value: Buffer | null
@@ -79,8 +79,8 @@ export function bufferToDecodedString(
 }
 
 export function getSpecOptions(frameIdentifier: string): FrameOptions {
-    if (frameIdentifier in FRAME_OPTIONS) {
-        return FRAME_OPTIONS[frameIdentifier as keyof typeof FRAME_OPTIONS]
+    if (isKeyOf(frameIdentifier, FRAME_OPTIONS)) {
+        return FRAME_OPTIONS[frameIdentifier]
     }
     return {
         multiple: false
