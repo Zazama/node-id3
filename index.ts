@@ -4,10 +4,10 @@ import * as TagsHelpers from './src/TagsHelpers'
 import { isFunction, isString } from './src/util'
 import { Tags, RawTags, WriteTags } from './src/types/Tags'
 import { Options } from './src/types/Options'
-import { updateTags } from './src/updateTags'
 import { create } from "./src/api/create"
 import { read, ReadCallback } from "./src/api/read"
 import { removeTags } from "./src/api/remove"
+import { update } from "./src/api/update"
 import { write, WriteCallback } from "./src/api/write"
 
 export { Tags, RawTags, WriteTags } from "./src/types/Tags"
@@ -24,53 +24,8 @@ export {
     removeTagsFromBuffer,
     RemoveCallback
 } from "./src/api/remove"
+export { update } from "./src/api/update"
 export { write, WriteCallback } from "./src/api/write"
-
-/**
- * Update ID3-Tags from passed buffer/filepath
- */
-export function update(
-    tags: WriteTags,
-    buffer: Buffer,
-    options?: Options
-): Buffer
-export function update(
-    tags: WriteTags,
-    filepath: string,
-    options?: Options
-): true | Error
-export function update(
-    tags: WriteTags,
-    filebuffer: string | Buffer,
-    callback: WriteCallback
-): void
-export function update(
-    tags: WriteTags,
-    filebuffer: string | Buffer,
-    options: Options,
-    callback: WriteCallback
-): void
-export function update(
-    tags: WriteTags,
-    filebuffer: string | Buffer,
-    optionsOrCallback?: Options | WriteCallback,
-    callback?: WriteCallback
-): Buffer | true | Error | void {
-    const options: Options =
-        (isFunction(optionsOrCallback) ? {} : optionsOrCallback) ?? {}
-    callback =
-        isFunction(optionsOrCallback) ? optionsOrCallback : callback
-
-    const currentTags = read(filebuffer, options)
-    const updatedTags = updateTags(tags, currentTags)
-    if (isFunction(callback)) {
-        return write(updatedTags, filebuffer, callback)
-    }
-    if (isString(filebuffer)) {
-        return write(updatedTags, filebuffer)
-    }
-    return write(updatedTags, filebuffer)
-}
 
 type Settle<T> = {
     (error: NodeJS.ErrnoException | Error, result: null): void
