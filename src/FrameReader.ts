@@ -1,7 +1,7 @@
 import { SplitBuffer, } from "./ID3Util"
 import * as ID3Util from "./ID3Util"
 
-type DataType = "string" | "number"
+type DataType = "string" | "number" | "buffer"
 
 export class FrameReader {
     private _encoding: number
@@ -9,13 +9,16 @@ export class FrameReader {
 
     constructor(
         buffer: Buffer,
-        encodingBytePosition: number,
+        encodingBytePosition?: number,
         consumeEncodingByte = true
     ) {
         if (!buffer || !(buffer instanceof Buffer)) {
             buffer = Buffer.alloc(0)
         }
-        if (Number.isInteger(encodingBytePosition)) {
+        if (
+            encodingBytePosition !== undefined &&
+            Number.isInteger(encodingBytePosition)
+        ) {
             this._encoding = buffer[encodingBytePosition] ? buffer[encodingBytePosition] : 0x00
             if (consumeEncodingByte) {
                 buffer = encodingBytePosition === 0 ?
@@ -32,8 +35,25 @@ export class FrameReader {
     }
 
     consumeStaticValue(
-        dataType: DataType,
-        size: number,
+        dataType: 'string',
+        size?: number | null,
+        encoding?: number
+    ): string
+    consumeStaticValue(
+        dataType: 'number',
+        size?: number | null,
+        encoding?: number
+    ): number
+    consumeStaticValue(
+        dataType: 'buffer',
+        size?: number | null,
+        encoding?: number
+    ): Buffer
+    consumeStaticValue(
+    ): Buffer
+    consumeStaticValue(
+        dataType: DataType = 'buffer',
+        size?: number | null,
         encoding = this._encoding
     ) {
         return this._consumeByFunction(
@@ -45,6 +65,14 @@ export class FrameReader {
         )
     }
 
+    consumeNullTerminatedValue(
+        dataType: 'string',
+        encoding?: number
+     ): string
+     consumeNullTerminatedValue(
+        dataType: 'number',
+        encoding?: number
+     ): number
     consumeNullTerminatedValue(
         dataType: DataType,
         encoding = this._encoding
@@ -102,7 +130,7 @@ function convertValue(
 
 function staticValueFromBuffer(
     buffer: Buffer,
-    size: number
+    size?: number | null
 ): SplitBuffer {
     size = size ?? buffer.length
     if (buffer.length > size) {

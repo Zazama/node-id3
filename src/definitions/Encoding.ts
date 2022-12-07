@@ -1,4 +1,4 @@
-export type TextEncoding = typeof TextEncoding
+export type TextEncoding = typeof TextEncoding[keyof typeof TextEncoding]
 
 export const TextEncoding = {
     /**

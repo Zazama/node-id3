@@ -14,8 +14,8 @@ export class FrameBuilder {
 
     appendValue(
         value: Value,
-        size: number,
-        encoding = TextEncoding.ISO_8859_1
+        size?: number | null,
+        encoding: TextEncoding = TextEncoding.ISO_8859_1
     ) {
         const convertedValue = convertValue(value, encoding)
         this.appendBuffer(staticValueToBuffer(convertedValue, size))
@@ -35,7 +35,7 @@ export class FrameBuilder {
         return this
     }
 
-    appendNullTerminatedValue(value = '', encoding = TextEncoding.ISO_8859_1) {
+    appendNullTerminatedValue(value = '', encoding: TextEncoding = TextEncoding.ISO_8859_1) {
         this.appendBuffer(
             convertValue(value, encoding),
             getTerminatingMarker(encoding)
@@ -55,7 +55,10 @@ export class FrameBuilder {
     }
 }
 
-function convertValue(value: Value, encoding = TextEncoding.ISO_8859_1) {
+function convertValue(
+    value: Value,
+    encoding: TextEncoding = TextEncoding.ISO_8859_1
+) {
     if (value instanceof Buffer) {
         return value
     }
@@ -65,14 +68,14 @@ function convertValue(value: Value, encoding = TextEncoding.ISO_8859_1) {
     return Buffer.alloc(0)
 }
 
-function staticValueToBuffer(buffer: Buffer, size: number) {
+function staticValueToBuffer(buffer: Buffer, size?: number | null) {
     if (size && buffer.length < size) {
         return Buffer.concat([Buffer.alloc(size - buffer.length, 0x00), buffer])
     }
     return buffer
 }
 
-function getTerminatingMarker(encoding: number) {
+function getTerminatingMarker(encoding: TextEncoding) {
     if (encoding === TextEncoding.UTF_16_WITH_BOM ||
         encoding === TextEncoding.UTF_16_BE
     ) {
