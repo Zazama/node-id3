@@ -1,6 +1,6 @@
 // Used specification: http://id3.org/id3v2.3.0
 
-import { Tags, RawTags, WriteTags } from './src/types/Tags'
+import { WriteTags } from './src/types/Tags'
 import { Options } from './src/types/Options'
 import { create } from "./src/api/create"
 import { read, ReadCallback } from "./src/api/read"
@@ -46,15 +46,15 @@ function makePromise<T>(callback: (settle: Settle<T>) => void) {
 }
 
 export const Promises = {
-    create: (tags: Tags) =>
+    create: (tags: WriteTags) =>
         makePromise((settle: Settle<Buffer>) =>
             create(tags, result => settle(null, result)),
     ),
-    write: (tags: Tags, filebuffer: string | Buffer) =>
+    write: (tags: WriteTags, filebuffer: string | Buffer) =>
         makePromise<Buffer>((callback: WriteCallback) =>
             write(tags, filebuffer, callback)
         ),
-    update: (tags: Tags, filebuffer: string | Buffer, options?: Options) =>
+    update: (tags: WriteTags, filebuffer: string | Buffer, options?: Options) =>
         makePromise<Buffer>((callback: WriteCallback) =>
             update(tags, filebuffer, options ?? {}, callback)
         ),
