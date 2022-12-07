@@ -1,7 +1,5 @@
-import * as fs from 'fs'
-import * as ID3Util from './src/ID3Util'
-import * as TagsHelpers from './src/TagsHelpers'
-import { isFunction, isString } from './src/util'
+// Used specification: http://id3.org/id3v2.3.0
+
 import { Tags, RawTags, WriteTags } from './src/types/Tags'
 import { Options } from './src/types/Options'
 import { create } from "./src/api/create"
@@ -14,8 +12,7 @@ export { Tags, RawTags, WriteTags } from "./src/types/Tags"
 export { Options } from "./src/types/Options"
 export { TagConstants } from './src/definitions/TagConstants'
 
-// Used specification: http://id3.org/id3v2.3.0
-
+// Operations
 
 export { create, CreateCallback } from "./src/api/create"
 export { read, ReadCallback } from "./src/api/read"
