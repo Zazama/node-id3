@@ -6,7 +6,7 @@ export type FrameOptions = {
 const satisfiesFrameOptions =
     <T extends Record<string, FrameOptions>>(data: T) => data
 
-export const ID3_FRAME_OPTIONS = satisfiesFrameOptions({
+export const FRAME_OPTIONS = satisfiesFrameOptions({
     "PIC": {
         multiple: false /* change in 1.0 */
     },
