@@ -8,6 +8,7 @@ import { updateTags } from './src/updateTags'
 import { create } from "./src/api/create"
 import { read, ReadCallback } from "./src/api/read"
 import { removeTags } from "./src/api/remove"
+import { write, WriteCallback } from "./src/api/write"
 
 export { Tags, RawTags, WriteTags } from "./src/types/Tags"
 export { Options } from "./src/types/Options"
@@ -16,11 +17,6 @@ export { TagConstants } from './src/definitions/TagConstants'
 // Used specification: http://id3.org/id3v2.3.0
 
 export { create } from "./src/api/create"
-
-export type WriteCallback = {
-    (error: null, data: Buffer): void
-    (error: NodeJS.ErrnoException | Error, data: null): void
-}
 
 export type ReadCallback = {
     (error: NodeJS.ErrnoException | Error, tags: null): void
@@ -33,69 +29,10 @@ export {
     removeTagsFromBuffer,
     RemoveCallback
 } from "./src/api/remove"
+export { write, WriteCallback } from "./src/api/write"
 
 export type CreateCallback =
     (data: Buffer) => void
-
-function writeInBuffer(tags: Buffer, buffer: Buffer) {
-    buffer = removeTagsFromBuffer(buffer) || buffer
-    return Buffer.concat([tags, buffer])
-}
-
-function writeAsync(tags: Buffer, filepath: string, callback: WriteCallback) {
-    fs.readFile(filepath, (error, data) => {
-        if(error) {
-            callback(error, null)
-            return
-        }
-        const newData = writeInBuffer(tags, data)
-        fs.writeFile(filepath, newData, 'binary', (error) => {
-            if (error) {
-                callback(error, null)
-            } else {
-                callback(null, newData)
-            }
-        })
-    })
-}
-
-function writeSync(tags: Buffer, filepath: string) {
-    try {
-        const data = fs.readFileSync(filepath)
-        const newData = writeInBuffer(tags, data)
-        fs.writeFileSync(filepath, newData, 'binary')
-        return true
-    } catch(error) {
-        return error as Error
-    }
-}
-
-/**
- * Write passed tags to a file/buffer
- */
-export function write(tags: WriteTags, buffer: Buffer): Buffer
-export function write(tags: WriteTags, filepath: string): true | Error
-export function write(
-    tags: WriteTags, filebuffer: string | Buffer, callback: WriteCallback
-): void
-export function write(
-    tags: WriteTags,
-    filebuffer: string | Buffer,
-    callback?: WriteCallback
-): Buffer | true | Error | void {
-    const tagsBuffer = create(tags)
-
-    if(isFunction(callback)) {
-        if (isString(filebuffer)) {
-            return writeAsync(tagsBuffer, filebuffer, callback)
-        }
-        return callback(null, writeInBuffer(tagsBuffer, filebuffer))
-    }
-    if(isString(filebuffer)) {
-        return writeSync(tagsBuffer, filebuffer)
-    }
-    return writeInBuffer(tagsBuffer, filebuffer)
-}
 
 function readSync(filebuffer: string | Buffer, options: Options) {
     if(isString(filebuffer)) {
