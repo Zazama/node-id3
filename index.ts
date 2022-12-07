@@ -2,11 +2,11 @@ import * as fs from 'fs'
 import * as ID3Util from './src/ID3Util'
 import * as ID3Helpers from './src/ID3Helpers'
 import { isFunction, isString } from './src/util'
-import { Tags, WriteTags } from './src/types/Tags'
+import { Tags, RawTags, WriteTags } from './src/types/Tags'
 import { Options } from './src/types/Options'
 import { updateTags } from './src/update'
 
-export { Tags, WriteTags } from "./src/types/Tags"
+export { Tags, RawTags, WriteTags } from "./src/types/Tags"
 export { Options } from "./src/types/Options"
 export { TagConstants } from './src/definitions/TagConstants'
 
@@ -19,7 +19,7 @@ export type WriteCallback = {
 
 export type ReadCallback = {
     (error: NodeJS.ErrnoException | Error, tags: null): void
-    (error: null, tags: Tags): void
+    (error: null, tags: Tags | RawTags): void
 }
 
 export type RemoveCallback =
@@ -138,7 +138,7 @@ export function create(tags: WriteTags, callback?: CreateCallback) {
     return id3Data
 }
 
-function readSync(filebuffer: string | Buffer, options: Options): Tags {
+function readSync(filebuffer: string | Buffer, options: Options) {
     if(isString(filebuffer)) {
         filebuffer = fs.readFileSync(filebuffer)
     }
@@ -175,7 +175,7 @@ export function read(
     filebuffer: string | Buffer,
     optionsOrCallback?: Options | ReadCallback,
     callback?: ReadCallback
-): Tags | void {
+): Tags | RawTags | void {
     const options: Options =
         (isFunction(optionsOrCallback) ? {} : optionsOrCallback) ?? {}
     callback =
