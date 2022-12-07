@@ -73,22 +73,26 @@ function createFromBuffer(
         getDataLength(header, frameBuffer),
         getBody(header, frameBuffer)
     )
-    if (!body) {
-        return null
+    if (body) {
+        const value = makeFrameValue(header.identifier, body, version)
+        if (value) {
+            return new Frame(header.identifier, value, header.flags)
+        }
     }
+    return null
+}
 
-    const identifier = header.identifier
-    let value = null
+function makeFrameValue(identifier:string, body: Buffer, version: number) {
     if (isKeyOf(identifier, Frames.Frames)) {
-        value = Frames.Frames[identifier].read(body, version)
-    } else if (identifier.startsWith('T')) {
-        value = Frames.GENERIC_TEXT.read(body)
-    } else if (identifier.startsWith('W')) {
-        value = Frames.GENERIC_URL.read(body)
-    } else {
-        return null
+        return Frames.Frames[identifier].read(body, version)
     }
-    return new Frame(identifier, value, header.flags)
+    if (identifier.startsWith('T')) {
+        return Frames.GENERIC_TEXT.read(body)
+    }
+    if (identifier.startsWith('W')) {
+        return Frames.GENERIC_URL.read(body)
+    }
+    return null
 }
 
 function getBody({flags, headerSize, bodySize}: HeaderInfo, buffer: Buffer) {
