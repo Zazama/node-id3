@@ -44,6 +44,9 @@
     "rules": {
         "prefer-const": "error",
         "mocha/no-setup-in-describe": "off",
-        "semi": [ "error", "never" ]
-    }
+        "semi": [ "error", "never" ],
+        "@typescript-eslint/no-unused-vars": [
+            "off", { "argsIgnorePattern": "^_" }
+        ]
+}
 }
