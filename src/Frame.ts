@@ -6,11 +6,10 @@ import {
 } from './FrameHeader'
 import * as ID3Frames from './ID3Frames'
 import * as ID3Util from './ID3Util'
-
-type FrameKeys = keyof typeof ID3Frames.Frames
+import { isKeyOf } from "./util"
 
 export class Frame {
-    private identifier: string
+    identifier: string
     private value: unknown
     flags: Flags
 
@@ -54,10 +53,9 @@ export class Frame {
         frameBody = decompressedFrameBody
 
         const identifier = frameHeader.identifier
-        const Frames = ID3Frames.Frames
         let value = null
-        if (identifier in Frames) {
-            value = Frames[identifier as FrameKeys].read(frameBody, version)
+        if (isKeyOf(identifier, ID3Frames.Frames)) {
+            value = ID3Frames.Frames[identifier].read(frameBody, version)
         } else if (identifier.startsWith('T')) {
             value = ID3Frames.GENERIC_TEXT.read(frameBody)
         } else if (identifier.startsWith('W')) {
@@ -69,9 +67,8 @@ export class Frame {
     }
 
     getBuffer() {
-        const Frames = ID3Frames.Frames
-        if (this.identifier in Frames) {
-            return Frames[this.identifier as FrameKeys].create(this.value)
+        if (isKeyOf(this.identifier, ID3Frames.Frames)) {
+            return ID3Frames.Frames[this.identifier].create(this.value)
         }
         if (this.identifier.startsWith('T')) {
             return ID3Frames.GENERIC_TEXT.create(this.identifier, this.value)
