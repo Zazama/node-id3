@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 'latest'
       - run: npm install -g markdownlint-cli
-      - run: markdownlint '**/*.md' --ignore node_modules
+      - run: npm run markdownlint-ci
 
   eslint:
     runs-on: ubuntu-latest
@@ -34,5 +34,5 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 'latest'
-      - run: npm install eslint eslint-plugin-mocha
-      - run: npx eslint '**/*.js'
+      - run: npm install
+      - run: npm run eslint

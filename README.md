@@ -6,7 +6,7 @@
 ![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability-percentage/Zazama/node-id3?style=flat-square)
 ![npm](https://img.shields.io/npm/dt/node-id3?style=flat-square)
 
-node-id3 is an ID3-Tag library written in JavaScript.
+node-id3 is an ID3-Tag library written in Typescript and JavaScript.
 
 ## Installation
 
@@ -133,14 +133,16 @@ let bufferWithoutID3Frame = NodeID3.removeTagsFromBuffer(filebuffer)  //  Return
 ```javascript
 const NodeID3Promise = require('node-id3').Promise
 
-NodeID3.write(tags, fileOrBuffer)
-NodeID3.update(tags, fileOrBuffer)
-NodeID3.create(tags)
-NodeID3.read(filepath)
-NodeID3.removeTags(filepath)
+NodeID3Promise.write(tags, fileOrBuffer).then((buffer) => /*...*/).catch(/*...*/)
+NodeID3Promise.update(tags, fileOrBuffer).then(/*...*/.catch(/*...*/)
+NodeID3Promise.create(tags).then((buffer) => /*...*/)
+NodeID3Promise.read(filepath).then(/*...*/.catch(/*...*/)
+NodeID3Promise.removeTags(filepath).then(/*...*/.catch(/*...*/)
 ```
 
 ## Supported aliases/fields
+
+For full specifications, see tag aliases [type definitions](src/types/Tags.ts).
 
 ```text
 album:
@@ -289,8 +291,8 @@ eventTimingCodes: {
 },
 commercialFrame: [{
   prices: {
-    'EUR': 15,
-    'DKK': 17.922
+    EUR: 15,
+    DKK: 17.922
   },
   validUntil: { year: 2023, month: 9, day: 1},
   contactUrl: 'https://example.com',
@@ -307,6 +309,8 @@ commercialFrame: [{
 ### Supported raw IDs
 
 You can also use the currently supported raw tags like TALB instead of album etc.
+
+For full specifications, see tag identifiers [type definitions](src/types/Tags.ts).
 
 ```text
 album:                "TALB"
@@ -362,23 +366,23 @@ setSubtitle:          "TSST"
 year:                 "TYER"
 comment:              "COMM"
 image:                "APIC"
-unsynchronisedLyrics  "USLT"
-synchronisedLyrics    "SYLT"
-userDefinedText       "TXXX"
-popularimeter         "POPM"
-private               "PRIV"
-uniqueFileIdentifier  "UFID"
-chapter               "CHAP"
-tableOfContents       "CTOC"
-commercialUrl         "WCOM"
-copyrightUrl          "WCOP"
-fileUrl               "WOAF"
-artistUrl             "WOAR"
-audioSourceUrl        "WOAS"
-radioStationUrl       "WORS"
-paymentUrl            "WPAY"
-publisherUrl          "WPUB"
-userDefinedUrl        "WXXX"
-eventTimingCodes      "ETCO"
-commercialFrame       "COMR"
+unsynchronisedLyrics: "USLT"
+synchronisedLyrics:   "SYLT"
+userDefinedText:      "TXXX"
+popularimeter:        "POPM"
+private:              "PRIV"
+uniqueFileIdentifier: "UFID"
+chapter:              "CHAP"
+tableOfContents:      "CTOC"
+commercialUrl:        "WCOM"
+copyrightUrl:         "WCOP"
+fileUrl:              "WOAF"
+artistUrl:            "WOAR"
+audioSourceUrl:       "WOAS"
+radioStationUrl:      "WORS"
+paymentUrl:           "WPAY"
+publisherUrl:         "WPUB"
+userDefinedUrl:       "WXXX"
+eventTimingCodes:     "ETCO"
+commercialFrame:      "COMR"
 ```

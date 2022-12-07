@@ -6,16 +6,47 @@
     ],
     "env": {
         "node": true,
-        "amd": true,
+        //"amd": true,
         "es6": true
     },
-    "ignorePatterns": [ "./node_modules/**" ],
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "ignorePatterns": [ "/dist/**" ],
+    "overrides": [
+        {
+            "files": ["**/*.ts"],
+            "extends": [
+                "eslint:recommended",
+                "plugin:mocha/recommended",
+                "plugin:@typescript-eslint/eslint-recommended",
+                "plugin:@typescript-eslint/recommended"
+            ],
+            "parser":  "@typescript-eslint/parser",
+            "parserOptions": {
+                "project": "./tsconfig.json"
+            },
+            "plugins": [
+                "@typescript-eslint",
+                "mocha"
+            ]
+        },
+        {
+            "files": ["test/*.js"],
+            "env": {
+                "mocha": true
+            }
+        }
+    ],
     "plugins": [
         "mocha"
     ],
     "rules": {
         "prefer-const": "error",
         "mocha/no-setup-in-describe": "off",
-        "semi": [ "error", "never" ]
-    }
+        "semi": [ "error", "never" ],
+        "@typescript-eslint/no-unused-vars": [
+            "off", { "argsIgnorePattern": "^_" }
+        ]
+}
 }

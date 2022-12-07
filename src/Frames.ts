@@ -1,48 +1,54 @@
-const fs = require('fs')
-const ID3FrameBuilder = require("./ID3FrameBuilder")
-const ID3FrameReader = require("./ID3FrameReader")
-const ID3Definitions = require("./ID3Definitions")
-const ID3Util = require("./ID3Util")
-const ID3Helpers = require('./ID3Helpers')
-const { isString } = require('./util')
+import fs = require('fs')
+import { FrameBuilder } from "./FrameBuilder"
+import { FrameReader } from "./FrameReader"
+import { APIC_TYPES } from './definitions/PictureTypes'
+import { TagConstants } from './definitions/TagConstants'
+import * as ID3Util from "./ID3Util"
+import * as TagsHelpers from './TagsHelpers'
+import { isString } from './util'
+import { TextEncoding } from './definitions/Encoding'
 
-module.exports.GENERIC_TEXT = {
-    create: (frameIdentifier, data) => {
+// TODO: Fix with better types.
+// eslint-disable-next-line
+type Data = any
+
+export const GENERIC_TEXT = {
+    create: (frameIdentifier: string, data: Data) => {
         if(!frameIdentifier || !data) {
             return null
         }
 
-        return new ID3FrameBuilder(frameIdentifier)
-            .appendStaticNumber(0x01, 0x01)
-            .appendStaticValue(data, null, 0x01)
+        return new FrameBuilder(frameIdentifier)
+            .appendNumber(0x01, 0x01)
+            .appendValue(data, null, TextEncoding.UTF_16_WITH_BOM)
             .getBuffer()
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer, 0)
 
         return reader.consumeStaticValue('string')
     }
 }
 
-module.exports.GENERIC_URL = {
-    create: (frameIdentifier, data) => {
+export const GENERIC_URL = {
+    create: (frameIdentifier: string, data: Data) => {
         if(!frameIdentifier || !data) {
             return null
         }
 
-        return new ID3FrameBuilder(frameIdentifier)
-            .appendStaticValue(data)
+        return new FrameBuilder(frameIdentifier)
+            .appendValue(data)
             .getBuffer()
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer)
 
         return reader.consumeStaticValue('string')
     }
 }
 
-module.exports.APIC = {
-    create: (data) => {
+const APIC = {
+    create: (data: Data) => {
         try {
             if (data instanceof Buffer) {
                 data = {
@@ -62,30 +68,31 @@ module.exports.APIC = {
                 mime_type = ID3Util.getPictureMimeTypeFromBuffer(data.imageBuffer)
             }
 
-            const TagConstants = ID3Definitions.TagConstants.AttachedPicture
             const pictureType = data.type || {}
             const pictureTypeId = pictureType.id === undefined
-                ? TagConstants.PictureType.FRONT_COVER : pictureType.id
+                ? TagConstants.AttachedPicture.PictureType.FRONT_COVER
+                : pictureType.id
 
             /*
              * Fix a bug in iTunes where the artwork is not recognized when the description is empty using UTF-16.
              * Instead, if the description is empty, use encoding 0x00 (ISO-8859-1).
              */
             const { description = '' } = data
-            const encoding = description ? 0x01 : 0x00
-            return new ID3FrameBuilder('APIC')
-              .appendStaticNumber(encoding, 1)
+            const encoding = description ?
+                TextEncoding.UTF_16_WITH_BOM : TextEncoding.ISO_8859_1
+            return new FrameBuilder('APIC')
+              .appendNumber(encoding, 1)
               .appendNullTerminatedValue(mime_type)
-              .appendStaticNumber(pictureTypeId, 1)
+              .appendNumber(pictureTypeId, 1)
               .appendNullTerminatedValue(description, encoding)
-              .appendStaticValue(data.imageBuffer)
+              .appendValue(data.imageBuffer)
               .getBuffer()
         } catch(error) {
-            return error
+            return null
         }
     },
-    read: (buffer, version) => {
-        const reader = new ID3FrameReader(buffer, 0)
+    read: (buffer: Buffer, version: number) => {
+        const reader = new FrameReader(buffer, 0)
         let mime
         if(version === 2) {
             mime = reader.consumeStaticValue('string', 3, 0x00)
@@ -101,7 +108,7 @@ module.exports.APIC = {
             mime: mime,
             type: {
                 id: typeId,
-                name: ID3Definitions.APIC_TYPES[typeId]
+                name: APIC_TYPES[typeId]
             },
             description: description,
             imageBuffer: imageBuffer
@@ -109,22 +116,22 @@ module.exports.APIC = {
     }
 }
 
-module.exports.COMM = {
-    create: (data) => {
+const COMM = {
+    create: (data: Data) => {
         data = data || {}
         if(!data.text) {
             return null
         }
 
-        return new ID3FrameBuilder("COMM")
-            .appendStaticNumber(0x01, 1)
-            .appendStaticValue(data.language)
+        return new FrameBuilder("COMM")
+            .appendNumber(0x01, 1)
+            .appendValue(data.language)
             .appendNullTerminatedValue(data.shortText, 0x01)
-            .appendStaticValue(data.text, null, 0x01)
+            .appendValue(data.text, null, 0x01)
             .getBuffer()
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer, 0)
 
         return {
             language: reader.consumeStaticValue('string', 3, 0x00),
@@ -134,8 +141,8 @@ module.exports.COMM = {
     }
 }
 
-module.exports.USLT = {
-    create: (data) => {
+const USLT = {
+    create: (data: Data) => {
         data = data || {}
         if(isString(data)) {
             data = {
@@ -146,15 +153,15 @@ module.exports.USLT = {
             return null
         }
 
-        return new ID3FrameBuilder("USLT")
-            .appendStaticNumber(0x01, 1)
-            .appendStaticValue(data.language)
+        return new FrameBuilder("USLT")
+            .appendNumber(0x01, 1)
+            .appendValue(data.language)
             .appendNullTerminatedValue(data.shortText, 0x01)
-            .appendStaticValue(data.text, null, 0x01)
+            .appendValue(data.text, null, 0x01)
             .getBuffer()
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer, 0)
 
         return {
             language: reader.consumeStaticValue('string', 3, 0x00),
@@ -164,29 +171,29 @@ module.exports.USLT = {
     }
 }
 
-module.exports.SYLT = {
-    create: (data) => {
+const SYLT = {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
         const encoding = 1 // 16 bit unicode
-        return Buffer.concat(data.map(lycics => {
-            const frameBuilder = new ID3FrameBuilder("SYLT")
-                .appendStaticNumber(encoding, 1)
-                .appendStaticValue(lycics.language, 3)
-                .appendStaticNumber(lycics.timeStampFormat, 1)
-                .appendStaticNumber(lycics.contentType, 1)
+        return Buffer.concat(data.map((lycics: Data) => {
+            const frameBuilder = new FrameBuilder("SYLT")
+                .appendNumber(encoding, 1)
+                .appendValue(lycics.language, 3)
+                .appendNumber(lycics.timeStampFormat, 1)
+                .appendNumber(lycics.contentType, 1)
                 .appendNullTerminatedValue(lycics.shortText, encoding)
-            lycics.synchronisedText.forEach(part => {
+            lycics.synchronisedText.forEach((part: Data) => {
                 frameBuilder.appendNullTerminatedValue(part.text, encoding)
-                frameBuilder.appendStaticNumber(part.timeStamp, 4)
+                frameBuilder.appendNumber(part.timeStamp, 4)
             })
             return frameBuilder.getBuffer()
         }))
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer, 0)
 
         return {
             language: reader.consumeStaticValue('string', 3, 0x00),
@@ -207,20 +214,20 @@ module.exports.SYLT = {
     }
 }
 
-module.exports.TXXX = {
-    create: (data) => {
+const TXXX = {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(udt => new ID3FrameBuilder("TXXX")
-            .appendStaticNumber(0x01, 1)
+        return Buffer.concat(data.map((udt: Data) => new FrameBuilder("TXXX")
+            .appendNumber(0x01, 1)
             .appendNullTerminatedValue(udt.description, 0x01)
-            .appendStaticValue(udt.value, null, 0x01)
+            .appendValue(udt.value, null, 0x01)
             .getBuffer()))
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer, 0)
 
         return {
             description: reader.consumeNullTerminatedValue('string'),
@@ -229,8 +236,8 @@ module.exports.TXXX = {
     }
 }
 
-module.exports.POPM = {
-    create: (data) => {
+const POPM = {
+    create: (data: Data) => {
         const email = data.email
         let rating = Math.trunc(data.rating)
         let counter = Math.trunc(data.counter)
@@ -244,14 +251,14 @@ module.exports.POPM = {
             counter = 0
         }
 
-        return new ID3FrameBuilder("POPM")
+        return new FrameBuilder("POPM")
             .appendNullTerminatedValue(email)
-            .appendStaticNumber(rating, 1)
-            .appendStaticNumber(counter, 4)
+            .appendNumber(rating, 1)
+            .appendNumber(counter, 4)
             .getBuffer()
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer)
         return {
             email: reader.consumeNullTerminatedValue('string'),
             rating: reader.consumeStaticValue('number', 1),
@@ -260,19 +267,19 @@ module.exports.POPM = {
     }
 }
 
-module.exports.PRIV = {
-    create: (data) => {
+const PRIV = {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(priv => new ID3FrameBuilder("PRIV")
+        return Buffer.concat(data.map((priv: Data) => new FrameBuilder("PRIV")
             .appendNullTerminatedValue(priv.ownerIdentifier)
-            .appendStaticValue(priv.data instanceof Buffer ? priv.data : Buffer.from(priv.data, "utf8"))
+            .appendValue(priv.data instanceof Buffer ? priv.data : Buffer.from(priv.data, "utf8"))
             .getBuffer()))
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer)
         return {
             ownerIdentifier: reader.consumeNullTerminatedValue('string'),
             data: reader.consumeStaticValue()
@@ -280,22 +287,22 @@ module.exports.PRIV = {
     }
 }
 
-module.exports.UFID = {
-    create: (data) => {
+const UFID = {
+    create: (data: Data) => {
         if (!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(ufid => new ID3FrameBuilder("UFID")
+        return Buffer.concat(data.map((ufid: Data) => new FrameBuilder("UFID")
             .appendNullTerminatedValue(ufid.ownerIdentifier)
-            .appendStaticValue(
+            .appendValue(
                 ufid.identifier instanceof Buffer ?
                 ufid.identifier : Buffer.from(ufid.identifier, "utf8")
             )
             .getBuffer()))
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer)
         return {
             ownerIdentifier: reader.consumeNullTerminatedValue('string'),
             identifier: reader.consumeStaticValue()
@@ -303,53 +310,58 @@ module.exports.UFID = {
     }
 }
 
-module.exports.CHAP = {
-    create: (data) => {
+const CHAP = {
+    create: (data: Data) => {
         if (!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(chap => {
+        return Buffer.concat(data.map((chap: Data) => {
             if (!chap || !chap.elementID || typeof chap.startTimeMs === "undefined" || !chap.endTimeMs) {
                 return null
             }
-            return new ID3FrameBuilder("CHAP")
+            const getOffset = (offset?: number) => offset ?? 0xFFFFFFFF
+            return new FrameBuilder("CHAP")
                 .appendNullTerminatedValue(chap.elementID)
-                .appendStaticNumber(chap.startTimeMs, 4)
-                .appendStaticNumber(chap.endTimeMs, 4)
-                .appendStaticNumber(chap.startOffsetBytes ? chap.startOffsetBytes : 0xFFFFFFFF, 4)
-                .appendStaticNumber(chap.endOffsetBytes ? chap.endOffsetBytes : 0xFFFFFFFF, 4)
-                .appendStaticValue(ID3Helpers.createBufferFromTags(chap.tags))
+                .appendNumber(chap.startTimeMs, 4)
+                .appendNumber(chap.endTimeMs, 4)
+                .appendNumber(getOffset(chap.startOffsetBytes), 4)
+                .appendNumber(getOffset(chap.endOffsetBytes), 4)
+                .appendValue(TagsHelpers.createBufferFromTags(chap.tags))
                 .getBuffer()
-        }).filter(chap => chap instanceof Buffer))
+        }).filter((chap: Data) => chap instanceof Buffer))
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
-        const chap = {
-            elementID: reader.consumeNullTerminatedValue('string'),
-            startTimeMs: reader.consumeStaticValue('number', 4),
-            endTimeMs: reader.consumeStaticValue('number', 4),
-            startOffsetBytes: reader.consumeStaticValue('number', 4),
-            endOffsetBytes: reader.consumeStaticValue('number', 4),
-            tags: ID3Helpers.getTagsFromID3Body(reader.consumeStaticValue())
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer)
+
+        const consumeNumber = () => reader.consumeStaticValue('number', 4)
+
+        const makeOffset = (value: number) => value === 0xFFFFFFFF ? null : value
+
+        const elementID = reader.consumeNullTerminatedValue('string')
+        const startTimeMs = consumeNumber()
+        const endTimeMs = consumeNumber()
+        const startOffsetBytes = makeOffset(consumeNumber())
+        const endOffsetBytes = makeOffset(consumeNumber())
+        const tags = TagsHelpers.getTagsFromTagBody(reader.consumeStaticValue())
+        return {
+            elementID,
+            startTimeMs,
+            endTimeMs,
+            ...startOffsetBytes === null ? {} : {startOffsetBytes},
+            ...endOffsetBytes === null ? {} : {endOffsetBytes},
+            tags
         }
-        if(chap.startOffsetBytes === 0xFFFFFFFF) {
-            delete chap.startOffsetBytes
-        }
-        if(chap.endOffsetBytes === 0xFFFFFFFF) {
-            delete chap.endOffsetBytes
-        }
-        return chap
     }
 }
 
-module.exports.CTOC = {
-    create: (data) => {
+const CTOC = {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map((toc, index) => {
+        return Buffer.concat(data.map((toc: Data, index: Data) => {
             if(!toc || !toc.elementID) {
                 return null
             }
@@ -365,21 +377,21 @@ module.exports.CTOC = {
                 ctocFlags[0] += 1
             }
 
-            const builder = new ID3FrameBuilder("CTOC")
+            const builder = new FrameBuilder("CTOC")
                 .appendNullTerminatedValue(toc.elementID)
-                .appendStaticValue(ctocFlags, 1)
-                .appendStaticNumber(toc.elements.length, 1)
-            toc.elements.forEach((el) => {
+                .appendValue(ctocFlags, 1)
+                .appendNumber(toc.elements.length, 1)
+            toc.elements.forEach((el: Data) => {
                 builder.appendNullTerminatedValue(el)
             })
             if(toc.tags) {
-                builder.appendStaticValue(ID3Helpers.createBufferFromTags(toc.tags))
+                builder.appendValue(TagsHelpers.createBufferFromTags(toc.tags))
             }
             return builder.getBuffer()
-        }).filter((toc) => toc instanceof Buffer))
+        }).filter((toc: Data) => toc instanceof Buffer))
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer)
         const elementID = reader.consumeNullTerminatedValue('string')
         const flags = reader.consumeStaticValue('number', 1)
         const entries = reader.consumeStaticValue('number', 1)
@@ -387,33 +399,33 @@ module.exports.CTOC = {
         for(let i = 0; i < entries; i++) {
             elements.push(reader.consumeNullTerminatedValue('string'))
         }
-        const tags = ID3Helpers.getTagsFromID3Body(reader.consumeStaticValue())
+        const tags = TagsHelpers.getTagsFromTagBody(reader.consumeStaticValue())
 
         return {
             elementID,
-            isOrdered: !!(flags & 0x01 === 0x01),
+            isOrdered: !!(flags & 0x01),
             elements,
             tags
         }
     }
 }
 
-module.exports.WXXX = {
-    create: (data) => {
+const WXXX = {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map((udu) => {
-            return new ID3FrameBuilder("WXXX")
-                .appendStaticNumber(0x01, 1)
+        return Buffer.concat(data.map((udu: Data) => {
+            return new FrameBuilder("WXXX")
+                .appendNumber(0x01, 1)
                 .appendNullTerminatedValue(udu.description, 0x01)
-                .appendStaticValue(udu.url, null)
+                .appendValue(udu.url, null)
                 .getBuffer()
         }))
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer, 0)
 
         return {
             description: reader.consumeNullTerminatedValue('string'),
@@ -422,20 +434,20 @@ module.exports.WXXX = {
     }
 }
 
-module.exports.ETCO = {
-    create: (data) => {
-        const builder = new ID3FrameBuilder("ETCO")
-            .appendStaticNumber(data.timeStampFormat, 1)
-        data.keyEvents.forEach((keyEvent) => {
+const ETCO = {
+    create: (data: Data) => {
+        const builder = new FrameBuilder("ETCO")
+            .appendNumber(data.timeStampFormat, 1)
+        data.keyEvents.forEach((keyEvent: Data) => {
             builder
-                .appendStaticNumber(keyEvent.type, 1)
-                .appendStaticNumber(keyEvent.timeStamp, 4)
+                .appendNumber(keyEvent.type, 1)
+                .appendNumber(keyEvent.timeStamp, 4)
         })
 
         return builder.getBuffer()
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer)
 
         return {
             timeStampFormat: reader.consumeStaticValue('number', 1),
@@ -453,25 +465,25 @@ module.exports.ETCO = {
     }
 }
 
-module.exports.COMR = {
-    create: (data) => {
+const COMR = {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(comr => {
+        return Buffer.concat(data.map((comr: Data) => {
             const prices = comr.prices || {}
-            const builder = new ID3FrameBuilder("COMR")
+            const builder = new FrameBuilder("COMR")
 
             // Text encoding
-            builder.appendStaticNumber(0x01, 1)
+            builder.appendNumber(0x01, 1)
             // Price string
-            const priceString = Object.entries(prices).map((price) => {
+            const priceString = Object.entries(prices).map((price: Data) => {
                 return price[0].substring(0, 3) + price[1].toString()
             }).join('/')
             builder.appendNullTerminatedValue(priceString, 0x00)
             // Valid until
-            builder.appendStaticValue(
+            builder.appendValue(
                 comr.validUntil.year.toString().padStart(4, '0').substring(0, 4) +
                 comr.validUntil.month.toString().padStart(2, '0').substring(0, 2) +
                 comr.validUntil.day.toString().padStart(2, '0').substring(0, 2),
@@ -480,33 +492,35 @@ module.exports.COMR = {
             // Contact URL
             builder.appendNullTerminatedValue(comr.contactUrl, 0x00)
             // Received as
-            builder.appendStaticNumber(comr.receivedAs, 1)
+            builder.appendNumber(comr.receivedAs, 1)
             // Name of seller
             builder.appendNullTerminatedValue(comr.nameOfSeller, 0x01)
             // Description
             builder.appendNullTerminatedValue(comr.description, 0x01)
             // Seller logo
             if(comr.sellerLogo) {
-                let picture = comr.sellerLogo.picture
-                if(typeof comr.sellerLogo.picture === 'string' || comr.sellerLogo.picture instanceof String) {
-                    picture = fs.readFileSync(comr.sellerLogo.picture)
-                }
+                const pictureFilenameOrBuffer = comr.sellerLogo.picture
+                const picture = isString(pictureFilenameOrBuffer)
+                    ? fs.readFileSync(comr.sellerLogo.picture)
+                    : pictureFilenameOrBuffer
+
                 let mimeType = comr.sellerLogo.mimeType || ID3Util.getPictureMimeTypeFromBuffer(picture)
+
                 // Only image/png and image/jpeg allowed
-                if(mimeType !== 'image/png' && 'image/jpeg') {
+                if (mimeType !== 'image/png' && 'image/jpeg') {
                     mimeType = 'image/'
                 }
 
-                builder.appendNullTerminatedValue(mimeType ? mimeType : '', 0x00)
-                builder.appendStaticValue(picture)
+                builder.appendNullTerminatedValue(mimeType || '', 0x00)
+                builder.appendValue(picture)
             }
             return builder.getBuffer()
         }))
     },
-    read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+    read: (buffer: Buffer) => {
+        const reader = new FrameReader(buffer, 0)
 
-        const tag = {}
+        const tag: Data = {}
 
         // Price string
         const priceStrings = reader.consumeNullTerminatedValue('string', 0x00)
@@ -544,4 +558,20 @@ module.exports.COMR = {
 
         return tag
     }
+}
+
+export const Frames = {
+    APIC,
+    COMM,
+    USLT,
+    SYLT,
+    TXXX,
+    POPM,
+    PRIV,
+    UFID,
+    CHAP,
+    CTOC,
+    WXXX,
+    ETCO,
+    COMR
 }

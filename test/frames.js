@@ -1,4 +1,4 @@
-const NodeID3 = require('../index.js')
+const NodeID3 = require('../index')
 const assert = require('assert')
 
 /**
