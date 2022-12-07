@@ -16,8 +16,6 @@ export { TagConstants } from './src/definitions/TagConstants'
 
 // Used specification: http://id3.org/id3v2.3.0
 
-export { create } from "./src/api/create"
-
 
 export { create, CreateCallback } from "./src/api/create"
 export { read, ReadCallback } from "./src/api/read"
