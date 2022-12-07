@@ -26,46 +26,7 @@ export class Frame {
         this.flags = flags
     }
 
-    static createFromBuffer(
-        frameBuffer: Buffer,
-        version: number
-    ): Frame | null {
-        const headerSize = getHeaderSize(version)
-        // Specification requirement
-        if (frameBuffer.length < headerSize + 1) {
-            return null
-        }
-        const headerBuffer = frameBuffer.subarray(0, headerSize)
-        const header: HeaderInfo = {
-            headerSize,
-            ...FrameHeader.createFromBuffer(headerBuffer, version)
-        }
-        if (header.flags.encryption) {
-            return null
-        }
-
-        const body = decompressBody(
-            header.flags,
-            getDataLength(header, frameBuffer),
-            getBody(header, frameBuffer)
-        )
-        if (!body) {
-            return null
-        }
-
-        const identifier = header.identifier
-        let value = null
-        if (isKeyOf(identifier, Frames.Frames)) {
-            value = Frames.Frames[identifier].read(body, version)
-        } else if (identifier.startsWith('T')) {
-            value = Frames.GENERIC_TEXT.read(body)
-        } else if (identifier.startsWith('W')) {
-            value = Frames.GENERIC_URL.read(body)
-        } else {
-            return null
-        }
-        return new Frame(identifier, value, header.flags)
-    }
+    static createFromBuffer = createFromBuffer
 
     getBuffer() {
         if (isKeyOf(this.identifier, Frames.Frames)) {
@@ -83,6 +44,47 @@ export class Frame {
     getValue() {
         return this.value
     }
+}
+
+function createFromBuffer(
+    frameBuffer: Buffer,
+    version: number
+): Frame | null {
+    const headerSize = getHeaderSize(version)
+    // Specification requirement
+    if (frameBuffer.length < headerSize + 1) {
+        return null
+    }
+    const headerBuffer = frameBuffer.subarray(0, headerSize)
+    const header: HeaderInfo = {
+        headerSize,
+        ...FrameHeader.createFromBuffer(headerBuffer, version)
+    }
+    if (header.flags.encryption) {
+        return null
+    }
+
+    const body = decompressBody(
+        header.flags,
+        getDataLength(header, frameBuffer),
+        getBody(header, frameBuffer)
+    )
+    if (!body) {
+        return null
+    }
+
+    const identifier = header.identifier
+    let value = null
+    if (isKeyOf(identifier, Frames.Frames)) {
+        value = Frames.Frames[identifier].read(body, version)
+    } else if (identifier.startsWith('T')) {
+        value = Frames.GENERIC_TEXT.read(body)
+    } else if (identifier.startsWith('W')) {
+        value = Frames.GENERIC_URL.read(body)
+    } else {
+        return null
+    }
+    return new Frame(identifier, value, header.flags)
 }
 
 function getBody({flags, headerSize, bodySize}: HeaderInfo, buffer: Buffer) {
