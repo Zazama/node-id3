@@ -23,6 +23,7 @@ export type ReadCallback = {
     (error: null, tags: Tags | RawTags): void
 }
 
+export { create, CreateCallback } from "./src/api/create"
 export { read, ReadCallback } from "./src/api/read"
 export {
     removeTags,
@@ -30,9 +31,6 @@ export {
     RemoveCallback
 } from "./src/api/remove"
 export { write, WriteCallback } from "./src/api/write"
-
-export type CreateCallback =
-    (data: Buffer) => void
 
 function readSync(filebuffer: string | Buffer, options: Options) {
     if(isString(filebuffer)) {
