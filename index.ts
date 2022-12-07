@@ -4,7 +4,8 @@
 
 export {
     Tags,
-    RawTags,
+    TagAliases,
+    TagIdentifiers,
     WriteTags
 } from "./src/types/Tags"
 export {

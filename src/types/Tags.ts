@@ -553,7 +553,7 @@ export interface TagAliases {
     }[]
 }
 
-export interface RawTags {
+export interface TagIdentifiers {
     TALB?: TagAliases["album"]
     TBPM?: TagAliases["bpm"]
     TCOM?: TagAliases["composer"]
@@ -632,9 +632,9 @@ export interface RawTags {
  * On write either a tag alias or tag identifier can be be specified.
  * This is undefined behaviour when both are specified.
  */
-export interface WriteTags extends TagAliases, RawTags {
+export interface WriteTags extends TagAliases, TagIdentifiers {
 }
 
 export interface Tags extends TagAliases {
-    raw?: RawTags
+    raw?: TagIdentifiers
 }

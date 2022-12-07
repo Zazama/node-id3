@@ -1,12 +1,12 @@
 import * as fs from 'fs'
 import { getTagsFromBuffer } from '../TagsHelpers'
 import { isFunction, isString } from '../util'
-import { Tags, RawTags } from '../types/Tags'
+import { Tags, TagIdentifiers } from '../types/Tags'
 import { Options } from '../types/Options'
 
 export type ReadCallback = {
     (error: NodeJS.ErrnoException | Error, tags: null): void
-    (error: null, tags: Tags | RawTags): void
+    (error: null, tags: Tags | TagIdentifiers): void
 }
 
 /**
@@ -21,7 +21,7 @@ export function read(
     filebuffer: string | Buffer,
     optionsOrCallback?: Options | ReadCallback,
     callback?: ReadCallback
-): Tags | RawTags | void {
+): Tags | TagIdentifiers | void {
     const options: Options =
         (isFunction(optionsOrCallback) ? {} : optionsOrCallback) ?? {}
     callback =
