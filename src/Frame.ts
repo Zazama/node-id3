@@ -44,7 +44,7 @@ export class Frame {
             frameBody = ID3Util.processUnsynchronisedBuffer(frameBody)
         }
 
-        const decompressedFrameBody = decompressBody(
+        const decompressedFrameBody = decompressFrameBody(
             frameHeader.flags, frameBuffer, frameHeaderSize, frameBody
         )
         if (!decompressedFrameBody) {
@@ -84,7 +84,7 @@ export class Frame {
     }
 }
 
-function decompressBody(
+function decompressFrameBody(
     flags: Flags,
     frameBuffer: Buffer,
     dataLengthOffset: number,
@@ -102,7 +102,7 @@ function decompressBody(
 
 
 function decompressBuffer(buffer: Buffer, expectedDecompressedLength: number) {
-    if (buffer.length < 5 || expectedDecompressedLength === undefined) {
+    if (buffer.length < 5) {
         return null
     }
 
@@ -128,8 +128,8 @@ function decompressBuffer(buffer: Buffer, expectedDecompressedLength: number) {
         }
     }
     const decompressed = tryDecompress()
-    if (!decompressed || decompressed.length !== expectedDecompressedLength) {
-        return null
+    if (decompressed && decompressed.length === expectedDecompressedLength) {
+        return decompressed
     }
-    return decompressed
+    return null
 }

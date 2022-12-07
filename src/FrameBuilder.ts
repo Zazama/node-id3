@@ -35,7 +35,10 @@ export class FrameBuilder {
         return this
     }
 
-    appendNullTerminatedValue(value = '', encoding: TextEncoding = TextEncoding.ISO_8859_1) {
+    appendNullTerminatedValue(
+        value = '',
+        encoding: TextEncoding = TextEncoding.ISO_8859_1
+    ) {
         this.appendBuffer(
             convertValue(value, encoding),
             getTerminatingMarker(encoding)

@@ -19,10 +19,6 @@ function createBuffersFromTags(tags: WriteTags) {
     const rawObject = convertWriteTagsToRawTags(tags)
 
     Object.entries(rawObject).forEach(([frameIdentifier, data]) => {
-        // Check if invalid frameIdentifier
-        if (frameIdentifier.length !== 4) {
-            return
-        }
         let frame
         if (isKeyOf(frameIdentifier, Frames.Frames)) {
             frame = Frames.Frames[frameIdentifier].create(data)
@@ -43,7 +39,7 @@ function createBuffersFromTags(tags: WriteTags) {
                 frame = Frames.GENERIC_URL.create(frameIdentifier, data)
             }
         }
-        if (frame && frame instanceof Buffer) {
+        if (frame instanceof Buffer) {
             frames.push(frame)
         }
     })
@@ -52,7 +48,7 @@ function createBuffersFromTags(tags: WriteTags) {
 }
 
 /**
- * Return a buffer with the frames for the specified tags
+ * Returns a buffer with the frames for the specified tags.
  */
 export function createBufferFromTags(tags: WriteTags) {
     return Buffer.concat(createBuffersFromTags(tags))

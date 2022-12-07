@@ -5,6 +5,10 @@ import {
 } from "./definitions/FrameIdentifiers"
 import { isKeyOf } from "./util"
 
+/**
+ * Convert tag aliases from WriteTags to identifiers in RawTags and
+ * filter out unknown aliases and identifiers.
+ */
 export function convertWriteTagsToRawTags(tags: WriteTags): RawTags {
     return Object.entries(tags).reduce<RawTags>((rawTags, [key, value]) => {
         if (isKeyOf(key, FRAME_IDENTIFIERS.v3)) {
