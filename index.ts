@@ -18,10 +18,6 @@ export { TagConstants } from './src/definitions/TagConstants'
 
 export { create } from "./src/api/create"
 
-export type ReadCallback = {
-    (error: NodeJS.ErrnoException | Error, tags: null): void
-    (error: null, tags: Tags | RawTags): void
-}
 
 export { create, CreateCallback } from "./src/api/create"
 export { read, ReadCallback } from "./src/api/read"
@@ -31,55 +27,6 @@ export {
     RemoveCallback
 } from "./src/api/remove"
 export { write, WriteCallback } from "./src/api/write"
-
-function readSync(filebuffer: string | Buffer, options: Options) {
-    if(isString(filebuffer)) {
-        filebuffer = fs.readFileSync(filebuffer)
-    }
-    return TagsHelpers.getTagsFromBuffer(filebuffer, options)
-}
-
-function readAsync(
-    filebuffer: string | Buffer,
-    options: Options,
-    callback: ReadCallback
-) {
-    if(isString(filebuffer)) {
-        fs.readFile(filebuffer, (error, data) => {
-            if(error) {
-                callback(error, null)
-            } else {
-                callback(null, TagsHelpers.getTagsFromBuffer(data, options))
-            }
-        })
-    } else {
-        callback(null, TagsHelpers.getTagsFromBuffer(filebuffer, options))
-    }
-}
-
-/**
- * Read ID3-Tags from passed buffer/filepath
- */
-export function read(filebuffer: string | Buffer, options?: Options): Tags
-export function read(filebuffer: string | Buffer, callback: ReadCallback): void
-export function read(
-    filebuffer: string | Buffer, options: Options, callback: ReadCallback
-): void
-export function read(
-    filebuffer: string | Buffer,
-    optionsOrCallback?: Options | ReadCallback,
-    callback?: ReadCallback
-): Tags | RawTags | void {
-    const options: Options =
-        (isFunction(optionsOrCallback) ? {} : optionsOrCallback) ?? {}
-    callback =
-        isFunction(optionsOrCallback) ? optionsOrCallback : callback
-
-    if(isFunction(callback)) {
-        return readAsync(filebuffer, options, callback)
-    }
-    return readSync(filebuffer, options)
-}
 
 /**
  * Update ID3-Tags from passed buffer/filepath
