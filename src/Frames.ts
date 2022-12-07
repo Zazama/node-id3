@@ -88,7 +88,7 @@ const APIC = {
               .appendValue(data.imageBuffer)
               .getBuffer()
         } catch(error) {
-            return error
+            return null
         }
     },
     read: (buffer: Buffer, version: number) => {
