@@ -28,22 +28,26 @@ export class Frame {
 
     static createFromBuffer = createFromBuffer
 
-    getBuffer() {
-        if (isKeyOf(this.identifier, Frames.Frames)) {
-            return Frames.Frames[this.identifier].create(this.value)
-        }
-        if (this.identifier.startsWith('T')) {
-            return Frames.GENERIC_TEXT.create(this.identifier, this.value)
-        }
-        if (this.identifier.startsWith('W')) {
-            return Frames.GENERIC_URL.create(this.identifier, this.value)
-        }
-        return null
+    makeBuffer() {
+        return makeFrameBuffer(this.identifier, this.value)
     }
 
     getValue() {
         return this.value
     }
+}
+
+function makeFrameBuffer(identifier: string, value: unknown) {
+    if (isKeyOf(identifier, Frames.Frames)) {
+        return Frames.Frames[identifier].create(value)
+    }
+    if (identifier.startsWith('T')) {
+        return Frames.GENERIC_TEXT.create(identifier, value)
+    }
+    if (identifier.startsWith('W')) {
+        return Frames.GENERIC_URL.create(identifier, value)
+    }
+    return null
 }
 
 function createFromBuffer(
