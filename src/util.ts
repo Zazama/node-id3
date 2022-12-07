@@ -6,6 +6,11 @@ export const isFunction =
 export const isString = (value: unknown): value is string =>
     typeof value === 'string' || value instanceof String
 
+export const isBuffer =
+    (value: unknown): value is Buffer => value instanceof Buffer
+
+export const deduplicate = <T>(values: T[]) => [ ...new Set(values)]
+
 /**
  * @remarks Use only for objects defined as const when known that
  * object keyof sets are defined by the object definitions themselves.

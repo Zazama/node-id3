@@ -5,46 +5,44 @@ import { Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
 import { Options } from "./types/Options"
 import { Tags, RawTags, WriteTags } from './types/Tags'
-import { isKeyOf } from "./util"
+import { deduplicate, isBuffer, isKeyOf } from "./util"
 import { convertWriteTagsToRawTags } from "./TagsConverters"
 
 /**
  * Returns an array of buffers using specified tags.
  */
-function createBuffersFromTags(tags: WriteTags) {
-    const frames: Buffer[] = []
+function createBuffersFromTags(tags: WriteTags): Buffer[] {
     if(!tags) {
-        return frames
+        return []
     }
-    const rawObject = convertWriteTagsToRawTags(tags)
+    const rawTags = convertWriteTagsToRawTags(tags)
 
-    Object.entries(rawObject).forEach(([frameIdentifier, data]) => {
-        let frame
+    const frames = Object.entries(rawTags).map(([frameIdentifier, data]) => {
         if (isKeyOf(frameIdentifier, Frames.Frames)) {
-            frame = Frames.Frames[frameIdentifier].create(data)
+            return Frames.Frames[frameIdentifier].create(data)
         } else if (frameIdentifier.startsWith('T')) {
-            frame = Frames.GENERIC_TEXT.create(frameIdentifier, data)
+            return Frames.GENERIC_TEXT.create(frameIdentifier, data)
         } else if (frameIdentifier.startsWith('W')) {
             if (
                 ID3Util.getSpecOptions(frameIdentifier).multiple &&
-                data instanceof Array &&
-                data.length
+                Array.isArray(data)
             ) {
-                // deduplicate array
-                const frames = [...new Set(data)].map(
-                    url => Frames.GENERIC_URL.create(frameIdentifier, url)
-                ).filter((frame): frame is Buffer => !!frame)
-                frame = Buffer.concat(frames)
+                const frames =
+                    deduplicate(data)
+                    .map(url => Frames.GENERIC_URL.create(frameIdentifier, url))
+                    .filter(isBuffer)
+
+                if (frames.length) {
+                    return Buffer.concat(frames)
+                }
             } else {
-                frame = Frames.GENERIC_URL.create(frameIdentifier, data)
+                return Frames.GENERIC_URL.create(frameIdentifier, data)
             }
         }
-        if (frame instanceof Buffer) {
-            frames.push(frame)
-        }
+        return null
     })
 
-    return frames
+    return frames.filter(isBuffer)
 }
 
 /**
@@ -81,12 +79,11 @@ export function getTagsFromBuffer(buffer: Buffer, options: Options) {
     return getTagsFromFrames(frames, version, options)
 }
 
-function isFrameDiscarded(frameIdentifier: string, options: Options) {
-    if(options.exclude instanceof Array && options.exclude.includes(frameIdentifier)) {
+function isFrameDiscarded(frameId: string, options: Options) {
+    if (Array.isArray(options.exclude) && options.exclude.includes(frameId)) {
         return true
     }
-
-    return options.include instanceof Array && !options.include.includes(frameIdentifier)
+    return Array.isArray(options.include) && !options.include.includes(frameId)
 }
 
 function getFramesFromTagBody(tagBody: Buffer, version: number, options = {}) {
