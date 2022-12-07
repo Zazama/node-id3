@@ -1,6 +1,6 @@
 const fs = require('fs')
 import { FrameBuilder } from "./FrameBuilder"
-import { ID3FrameReader } from "./ID3FrameReader"
+import { FrameReader } from "./FrameReader"
 import { APIC_TYPES } from './definitions/PictureTypes'
 import { TagConstants } from './definitions/TagConstants'
 const ID3Util = require("./ID3Util")
@@ -19,7 +19,7 @@ export const GENERIC_TEXT = {
             .getBuffer()
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, 0)
 
         return reader.consumeStaticValue('string')
     }
@@ -36,7 +36,7 @@ export const GENERIC_URL = {
             .getBuffer()
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+        const reader = new FrameReader(buffer)
 
         return reader.consumeStaticValue('string')
     }
@@ -86,7 +86,7 @@ const APIC = {
         }
     },
     read: (buffer, version) => {
-        const reader = new ID3FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, 0)
         let mime
         if(version === 2) {
             mime = reader.consumeStaticValue('string', 3, 0x00)
@@ -125,7 +125,7 @@ const COMM = {
             .getBuffer()
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, 0)
 
         return {
             language: reader.consumeStaticValue('string', 3, 0x00),
@@ -155,7 +155,7 @@ const USLT = {
             .getBuffer()
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, 0)
 
         return {
             language: reader.consumeStaticValue('string', 3, 0x00),
@@ -187,7 +187,7 @@ const SYLT = {
         }))
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, 0)
 
         return {
             language: reader.consumeStaticValue('string', 3, 0x00),
@@ -221,7 +221,7 @@ const TXXX = {
             .getBuffer()))
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, 0)
 
         return {
             description: reader.consumeNullTerminatedValue('string'),
@@ -252,7 +252,7 @@ const POPM = {
             .getBuffer()
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+        const reader = new FrameReader(buffer)
         return {
             email: reader.consumeNullTerminatedValue('string'),
             rating: reader.consumeStaticValue('number', 1),
@@ -273,7 +273,7 @@ const PRIV = {
             .getBuffer()))
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+        const reader = new FrameReader(buffer)
         return {
             ownerIdentifier: reader.consumeNullTerminatedValue('string'),
             data: reader.consumeStaticValue()
@@ -296,7 +296,7 @@ const UFID = {
             .getBuffer()))
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+        const reader = new FrameReader(buffer)
         return {
             ownerIdentifier: reader.consumeNullTerminatedValue('string'),
             identifier: reader.consumeStaticValue()
@@ -325,7 +325,7 @@ const CHAP = {
         }).filter(chap => chap instanceof Buffer))
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+        const reader = new FrameReader(buffer)
         const chap = {
             elementID: reader.consumeNullTerminatedValue('string'),
             startTimeMs: reader.consumeStaticValue('number', 4),
@@ -380,7 +380,7 @@ const CTOC = {
         }).filter((toc) => toc instanceof Buffer))
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+        const reader = new FrameReader(buffer)
         const elementID = reader.consumeNullTerminatedValue('string')
         const flags = reader.consumeStaticValue('number', 1)
         const entries = reader.consumeStaticValue('number', 1)
@@ -414,7 +414,7 @@ const WXXX = {
         }))
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, 0)
 
         return {
             description: reader.consumeNullTerminatedValue('string'),
@@ -436,7 +436,7 @@ const ETCO = {
         return builder.getBuffer()
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+        const reader = new FrameReader(buffer)
 
         return {
             timeStampFormat: reader.consumeStaticValue('number', 1),
@@ -507,7 +507,7 @@ const COMR = {
         }))
     },
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, 0)
 
         const tag = {}
 

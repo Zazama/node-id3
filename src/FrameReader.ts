@@ -3,7 +3,7 @@ import * as ID3Util from "./ID3Util"
 
 type DataType = "string" | "number"
 
-export class ID3FrameReader {
+export class FrameReader {
     private _encoding: number
     private _splitBuffer: SplitBuffer
 
