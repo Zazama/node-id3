@@ -342,7 +342,7 @@ const CHAP = {
         const endTimeMs = consumeNumber()
         const startOffsetBytes = makeOffset(consumeNumber())
         const endOffsetBytes = makeOffset(consumeNumber())
-        const tags = TagsHelpers.getTagsFromID3Body(reader.consumeStaticValue())
+        const tags = TagsHelpers.getTagsFromTagBody(reader.consumeStaticValue())
         return {
             elementID,
             startTimeMs,
@@ -398,7 +398,7 @@ const CTOC = {
         for(let i = 0; i < entries; i++) {
             elements.push(reader.consumeNullTerminatedValue('string'))
         }
-        const tags = TagsHelpers.getTagsFromID3Body(reader.consumeStaticValue())
+        const tags = TagsHelpers.getTagsFromTagBody(reader.consumeStaticValue())
 
         return {
             elementID,

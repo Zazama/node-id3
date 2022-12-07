@@ -29,7 +29,7 @@ export function createBufferFromTags(tags: WriteTags) {
 
 export function getTagsFromBuffer(buffer: Buffer, options: Options) {
     const framePosition = ID3Util.getFramePosition(buffer)
-    if(framePosition === -1) {
+    if (framePosition === -1) {
         return getTagsFromFrames([], 3, options)
     }
     const frameSize = ID3Util.decodeSize(buffer.subarray(framePosition + 6, framePosition + 10)) + 10
@@ -39,8 +39,8 @@ export function getTagsFromBuffer(buffer: Buffer, options: Options) {
     const version = frame[3]
     const tagFlags = ID3Util.parseTagHeaderFlags(frame)
     let extendedHeaderOffset = 0
-    if(tagFlags.extendedHeader) {
-        if(version === 3) {
+    if (tagFlags.extendedHeader) {
+        if (version === 3) {
             extendedHeaderOffset = 4 + buffer.readUInt32BE(10)
         } else if(version === 4) {
             extendedHeaderOffset = ID3Util.decodeSize(buffer.subarray(10, 14))
@@ -49,9 +49,19 @@ export function getTagsFromBuffer(buffer: Buffer, options: Options) {
     const frameBody = Buffer.alloc(frameSize - 10 - extendedHeaderOffset)
     buffer.copy(frameBody, 0, framePosition + 10 + extendedHeaderOffset)
 
-    const frames = getFramesFromTagBody(frameBody, version, options)
+    return getTagsFromTagBody(frameBody, version, options)
+}
 
-    return getTagsFromFrames(frames, version, options)
+export function getTagsFromTagBody(
+    body: Buffer,
+    version = 3,
+    options: Options = {}
+) {
+    return getTagsFromFrames(
+        getFramesFromTagBody(body, version, options),
+        version,
+        options
+    )
 }
 
 function isFrameDiscarded(frameId: string, options: Options) {
@@ -61,8 +71,12 @@ function isFrameDiscarded(frameId: string, options: Options) {
     return Array.isArray(options.include) && !options.include.includes(frameId)
 }
 
-function getFramesFromTagBody(tagBody: Buffer, version: number, options = {}) {
-    if(!(tagBody instanceof Buffer)) {
+function getFramesFromTagBody(
+    tagBody: Buffer,
+    version: number,
+    options: Options = {}
+) {
+    if (!isBuffer(tagBody)) {
         return []
     }
 
@@ -77,7 +91,7 @@ function getFramesFromTagBody(tagBody: Buffer, version: number, options = {}) {
 
         const frameBuffer = tagBody.subarray(0, frameSize)
         const frame = Frame.createFromBuffer(frameBuffer, version)
-        if(frame && !isFrameDiscarded(frame.identifier, options)) {
+        if (frame && !isFrameDiscarded(frame.identifier, options)) {
             frames.push(frame)
         }
 
@@ -126,6 +140,3 @@ function getTagsFromFrames(
     return tags
 }
 
-export function getTagsFromID3Body(body: Buffer) {
-    return getTagsFromFrames(getFramesFromTagBody(body, 3), 3)
-}
