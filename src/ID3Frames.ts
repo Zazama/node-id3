@@ -1,24 +1,29 @@
-const fs = require('fs')
+import fs = require('fs')
 import { FrameBuilder } from "./FrameBuilder"
 import { FrameReader } from "./FrameReader"
 import { APIC_TYPES } from './definitions/PictureTypes'
 import { TagConstants } from './definitions/TagConstants'
-const ID3Util = require("./ID3Util")
-const ID3Helpers = require('./ID3Helpers')
-const { isString } = require('./util')
+import * as ID3Util from "./ID3Util"
+import ID3Helpers = require('./ID3Helpers')
+import { isString } from './util'
+import { TextEncoding } from './definitions/Encoding'
+
+// TODO: Fix with better types.
+// eslint-disable-next-line
+type Data = any
 
 export const GENERIC_TEXT = {
-    create: (frameIdentifier, data) => {
+    create: (frameIdentifier: string, data: Data) => {
         if(!frameIdentifier || !data) {
             return null
         }
 
         return new FrameBuilder(frameIdentifier)
             .appendNumber(0x01, 0x01)
-            .appendValue(data, null, 0x01)
+            .appendValue(data, null, TextEncoding.UTF_16_WITH_BOM)
             .getBuffer()
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer, 0)
 
         return reader.consumeStaticValue('string')
@@ -26,7 +31,7 @@ export const GENERIC_TEXT = {
 }
 
 export const GENERIC_URL = {
-    create: (frameIdentifier, data) => {
+    create: (frameIdentifier: string, data: Data) => {
         if(!frameIdentifier || !data) {
             return null
         }
@@ -35,7 +40,7 @@ export const GENERIC_URL = {
             .appendValue(data)
             .getBuffer()
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
 
         return reader.consumeStaticValue('string')
@@ -43,7 +48,7 @@ export const GENERIC_URL = {
 }
 
 const APIC = {
-    create: (data) => {
+    create: (data: Data) => {
         try {
             if (data instanceof Buffer) {
                 data = {
@@ -73,7 +78,8 @@ const APIC = {
              * Instead, if the description is empty, use encoding 0x00 (ISO-8859-1).
              */
             const { description = '' } = data
-            const encoding = description ? 0x01 : 0x00
+            const encoding = description ?
+                TextEncoding.UTF_16_WITH_BOM : TextEncoding.ISO_8859_1
             return new FrameBuilder('APIC')
               .appendNumber(encoding, 1)
               .appendNullTerminatedValue(mime_type)
@@ -85,7 +91,7 @@ const APIC = {
             return error
         }
     },
-    read: (buffer, version) => {
+    read: (buffer: Buffer, version: number) => {
         const reader = new FrameReader(buffer, 0)
         let mime
         if(version === 2) {
@@ -111,7 +117,7 @@ const APIC = {
 }
 
 const COMM = {
-    create: (data) => {
+    create: (data: Data) => {
         data = data || {}
         if(!data.text) {
             return null
@@ -124,7 +130,7 @@ const COMM = {
             .appendValue(data.text, null, 0x01)
             .getBuffer()
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer, 0)
 
         return {
@@ -136,7 +142,7 @@ const COMM = {
 }
 
 const USLT = {
-    create: (data) => {
+    create: (data: Data) => {
         data = data || {}
         if(isString(data)) {
             data = {
@@ -154,7 +160,7 @@ const USLT = {
             .appendValue(data.text, null, 0x01)
             .getBuffer()
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer, 0)
 
         return {
@@ -166,27 +172,27 @@ const USLT = {
 }
 
 const SYLT = {
-    create: (data) => {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
         const encoding = 1 // 16 bit unicode
-        return Buffer.concat(data.map(lycics => {
+        return Buffer.concat(data.map((lycics: Data) => {
             const frameBuilder = new FrameBuilder("SYLT")
                 .appendNumber(encoding, 1)
                 .appendValue(lycics.language, 3)
                 .appendNumber(lycics.timeStampFormat, 1)
                 .appendNumber(lycics.contentType, 1)
                 .appendNullTerminatedValue(lycics.shortText, encoding)
-            lycics.synchronisedText.forEach(part => {
+            lycics.synchronisedText.forEach((part: Data) => {
                 frameBuilder.appendNullTerminatedValue(part.text, encoding)
                 frameBuilder.appendNumber(part.timeStamp, 4)
             })
             return frameBuilder.getBuffer()
         }))
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer, 0)
 
         return {
@@ -209,18 +215,18 @@ const SYLT = {
 }
 
 const TXXX = {
-    create: (data) => {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(udt => new FrameBuilder("TXXX")
+        return Buffer.concat(data.map((udt: Data) => new FrameBuilder("TXXX")
             .appendNumber(0x01, 1)
             .appendNullTerminatedValue(udt.description, 0x01)
             .appendValue(udt.value, null, 0x01)
             .getBuffer()))
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer, 0)
 
         return {
@@ -231,7 +237,7 @@ const TXXX = {
 }
 
 const POPM = {
-    create: (data) => {
+    create: (data: Data) => {
         const email = data.email
         let rating = Math.trunc(data.rating)
         let counter = Math.trunc(data.counter)
@@ -251,7 +257,7 @@ const POPM = {
             .appendNumber(counter, 4)
             .getBuffer()
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
         return {
             email: reader.consumeNullTerminatedValue('string'),
@@ -262,17 +268,17 @@ const POPM = {
 }
 
 const PRIV = {
-    create: (data) => {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(priv => new FrameBuilder("PRIV")
+        return Buffer.concat(data.map((priv: Data) => new FrameBuilder("PRIV")
             .appendNullTerminatedValue(priv.ownerIdentifier)
             .appendValue(priv.data instanceof Buffer ? priv.data : Buffer.from(priv.data, "utf8"))
             .getBuffer()))
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
         return {
             ownerIdentifier: reader.consumeNullTerminatedValue('string'),
@@ -282,12 +288,12 @@ const PRIV = {
 }
 
 const UFID = {
-    create: (data) => {
+    create: (data: Data) => {
         if (!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(ufid => new FrameBuilder("UFID")
+        return Buffer.concat(data.map((ufid: Data) => new FrameBuilder("UFID")
             .appendNullTerminatedValue(ufid.ownerIdentifier)
             .appendValue(
                 ufid.identifier instanceof Buffer ?
@@ -295,7 +301,7 @@ const UFID = {
             )
             .getBuffer()))
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
         return {
             ownerIdentifier: reader.consumeNullTerminatedValue('string'),
@@ -305,12 +311,12 @@ const UFID = {
 }
 
 const CHAP = {
-    create: (data) => {
+    create: (data: Data) => {
         if (!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(chap => {
+        return Buffer.concat(data.map((chap: Data) => {
             if (!chap || !chap.elementID || typeof chap.startTimeMs === "undefined" || !chap.endTimeMs) {
                 return null
             }
@@ -322,35 +328,39 @@ const CHAP = {
                 .appendNumber(chap.endOffsetBytes ? chap.endOffsetBytes : 0xFFFFFFFF, 4)
                 .appendValue(ID3Helpers.createBufferFromTags(chap.tags))
                 .getBuffer()
-        }).filter(chap => chap instanceof Buffer))
+        }).filter((chap: Data) => chap instanceof Buffer))
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
-        const chap = {
-            elementID: reader.consumeNullTerminatedValue('string'),
-            startTimeMs: reader.consumeStaticValue('number', 4),
-            endTimeMs: reader.consumeStaticValue('number', 4),
-            startOffsetBytes: reader.consumeStaticValue('number', 4),
-            endOffsetBytes: reader.consumeStaticValue('number', 4),
-            tags: ID3Helpers.getTagsFromID3Body(reader.consumeStaticValue())
+
+        const consumeNumber = () => reader.consumeStaticValue('number', 4)
+
+        const makeOffset = (value: number) => value === 0xFFFFFFFF ? null : value
+
+        const elementID = reader.consumeNullTerminatedValue('string')
+        const startTimeMs = consumeNumber()
+        const endTimeMs = consumeNumber()
+        const startOffsetBytes = makeOffset(consumeNumber())
+        const endOffsetBytes = makeOffset(consumeNumber())
+        const tags = ID3Helpers.getTagsFromID3Body(reader.consumeStaticValue())
+        return {
+            elementID,
+            startTimeMs,
+            endTimeMs,
+            ...startOffsetBytes === null ? {} : {startOffsetBytes},
+            ...endOffsetBytes === null ? {} : {endOffsetBytes},
+            tags
         }
-        if(chap.startOffsetBytes === 0xFFFFFFFF) {
-            delete chap.startOffsetBytes
-        }
-        if(chap.endOffsetBytes === 0xFFFFFFFF) {
-            delete chap.endOffsetBytes
-        }
-        return chap
     }
 }
 
 const CTOC = {
-    create: (data) => {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map((toc, index) => {
+        return Buffer.concat(data.map((toc: Data, index: Data) => {
             if(!toc || !toc.elementID) {
                 return null
             }
@@ -370,16 +380,16 @@ const CTOC = {
                 .appendNullTerminatedValue(toc.elementID)
                 .appendValue(ctocFlags, 1)
                 .appendNumber(toc.elements.length, 1)
-            toc.elements.forEach((el) => {
+            toc.elements.forEach((el: Data) => {
                 builder.appendNullTerminatedValue(el)
             })
             if(toc.tags) {
                 builder.appendValue(ID3Helpers.createBufferFromTags(toc.tags))
             }
             return builder.getBuffer()
-        }).filter((toc) => toc instanceof Buffer))
+        }).filter((toc: Data) => toc instanceof Buffer))
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
         const elementID = reader.consumeNullTerminatedValue('string')
         const flags = reader.consumeStaticValue('number', 1)
@@ -392,7 +402,7 @@ const CTOC = {
 
         return {
             elementID,
-            isOrdered: !!(flags & 0x01 === 0x01),
+            isOrdered: !!(flags & 0x01),
             elements,
             tags
         }
@@ -400,12 +410,12 @@ const CTOC = {
 }
 
 const WXXX = {
-    create: (data) => {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map((udu) => {
+        return Buffer.concat(data.map((udu: Data) => {
             return new FrameBuilder("WXXX")
                 .appendNumber(0x01, 1)
                 .appendNullTerminatedValue(udu.description, 0x01)
@@ -413,7 +423,7 @@ const WXXX = {
                 .getBuffer()
         }))
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer, 0)
 
         return {
@@ -424,10 +434,10 @@ const WXXX = {
 }
 
 const ETCO = {
-    create: (data) => {
+    create: (data: Data) => {
         const builder = new FrameBuilder("ETCO")
             .appendNumber(data.timeStampFormat, 1)
-        data.keyEvents.forEach((keyEvent) => {
+        data.keyEvents.forEach((keyEvent: Data) => {
             builder
                 .appendNumber(keyEvent.type, 1)
                 .appendNumber(keyEvent.timeStamp, 4)
@@ -435,7 +445,7 @@ const ETCO = {
 
         return builder.getBuffer()
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
 
         return {
@@ -455,19 +465,19 @@ const ETCO = {
 }
 
 const COMR = {
-    create: (data) => {
+    create: (data: Data) => {
         if(!(data instanceof Array)) {
             data = [data]
         }
 
-        return Buffer.concat(data.map(comr => {
+        return Buffer.concat(data.map((comr: Data) => {
             const prices = comr.prices || {}
             const builder = new FrameBuilder("COMR")
 
             // Text encoding
             builder.appendNumber(0x01, 1)
             // Price string
-            const priceString = Object.entries(prices).map((price) => {
+            const priceString = Object.entries(prices).map((price: Data) => {
                 return price[0].substring(0, 3) + price[1].toString()
             }).join('/')
             builder.appendNullTerminatedValue(priceString, 0x00)
@@ -506,10 +516,10 @@ const COMR = {
             return builder.getBuffer()
         }))
     },
-    read: (buffer) => {
+    read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer, 0)
 
-        const tag = {}
+        const tag: Data = {}
 
         // Price string
         const priceStrings = reader.consumeNullTerminatedValue('string', 0x00)
