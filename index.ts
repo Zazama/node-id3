@@ -38,6 +38,7 @@ export function removeTagsFromBuffer(data: Buffer) {
         return data
     }
 
+    // Remove the hard-coded size of 10
     const encodedSize = data.subarray(framePosition + 6, framePosition + 10)
     if (!ID3Util.isValidEncodedSize(encodedSize)) {
         return false
