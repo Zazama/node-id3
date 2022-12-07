@@ -5,12 +5,15 @@ import { isFunction, isString } from './src/util'
 import { Tags, RawTags, WriteTags } from './src/types/Tags'
 import { Options } from './src/types/Options'
 import { updateTags } from './src/updateTags'
+import { create } from "./src/api/create"
 
 export { Tags, RawTags, WriteTags } from "./src/types/Tags"
 export { Options } from "./src/types/Options"
 export { TagConstants } from './src/definitions/TagConstants'
 
 // Used specification: http://id3.org/id3v2.3.0
+
+export { create } from "./src/api/create"
 
 export type WriteCallback = {
     (error: null, data: Buffer): void
@@ -116,30 +119,6 @@ export function write(
         return writeSync(tagsBuffer, filebuffer)
     }
     return writeInBuffer(tagsBuffer, filebuffer)
-}
-
-/**
- * Creates a buffer containing the ID3 Tag
- */
-export function create(tags: WriteTags): Buffer
-export function create(tags: WriteTags, callback: CreateCallback): void
-export function create(tags: WriteTags, callback?: CreateCallback) {
-    const frames = TagsHelpers.createBufferFromTags(tags)
-
-    //  Create ID3 header
-    const header = Buffer.alloc(10)
-    header.fill(0)
-    header.write("ID3", 0)              //File identifier
-    header.writeUInt16BE(0x0300, 3)     //Version 2.3.0  --  03 00
-    header.writeUInt16BE(0x0000, 5)     //Flags 00
-    ID3Util.encodeSize(frames.length).copy(header, 6)
-
-    const id3Data = Buffer.concat([header, frames])
-
-    if(isFunction(callback)) {
-        return callback(id3Data)
-    }
-    return id3Data
 }
 
 function readSync(filebuffer: string | Buffer, options: Options) {
