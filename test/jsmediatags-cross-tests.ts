@@ -110,26 +110,40 @@ const nodeTagsMissingValues = {
     }],
 }
 
+// TagFrames definition is incorrect sometimes it is an array.
+function makeTagFrameArray(tagFrame: TagFrame) {
+    return tagFrame as unknown as TagFrame[]
+}
+
 describe('Cross tests jsmediatags', function() {
     it('write full', function() {
         jsmediatags.read(NodeID3.create(nodeTagsFull), {
-            // @types/jsmediatags are kind of broken.
-            // E.g. tags.TXXX will return an array,
-            // but the types say it only returns an Object.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onSuccess: (tag: any) => {
-                const tags: TagFrames = tag.tags
+            onSuccess: (tag) => {
+                const tags = tag.tags
+
                 assert.strictEqual(tags.TIT2.data, nodeTagsFull.title)
+
                 assert.strictEqual(tags.TALB.data, nodeTagsFull.album)
-                assert.deepStrictEqual({ language: tags.COMM.data.language, shortText: tags.COMM.data.short_description, text: tags.COMM.data.text }, nodeTagsFull.comment)
-                assert.deepStrictEqual({ language: tags.USLT.data.language, shortText: tags.USLT.data.descriptor, text: tags.USLT.data.lyrics }, nodeTagsFull.unsynchronisedLyrics)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                expect((tags.TXXX as any).map((t: TagFrame) => {
-                    return {
-                        description: t.data.user_description,
-                        value: t.data.data
-                    }
-                })).to.have.deep.members(nodeTagsFull.userDefinedText)
+
+                assert.deepStrictEqual({
+                    language: tags.COMM.data.language,
+                    shortText: tags.COMM.data.short_description,
+                    text: tags.COMM.data.text
+                }, nodeTagsFull.comment)
+
+                assert.deepStrictEqual({
+                    language: tags.USLT.data.language,
+                    shortText: tags.USLT.data.descriptor,
+                    text: tags.USLT.data.lyrics
+                }, nodeTagsFull.unsynchronisedLyrics)
+
+                expect(
+                    makeTagFrameArray(tags.TXXX).map(tagFrame => ({
+                        description: tagFrame.data.user_description,
+                        value: tagFrame.data.data
+                    })
+                )).to.have.deep.members(nodeTagsFull.userDefinedText)
+
                 assert.deepStrictEqual({
                     mime: tags.APIC.data.format,
                     description: tags.APIC.data.description,
@@ -139,8 +153,9 @@ describe('Cross tests jsmediatags', function() {
                     description: nodeTagsFull.image.description,
                     imageBuffer: nodeTagsFull.image.imageBuffer
                 })
-                // POPM seems broken in jsmediatags, data is null but tag looks correct
-                // PRIV seems broken in jsmediatags, data is null but tag looks correct
+
+                // POPM and PRIV seem broken in jsmediatags,
+                // data is null but tag looks correct.
                 assert.deepStrictEqual({
                     elementID: nodeTagsFull.chapter[0].elementID,
                     startTimeMs: tags.CHAP.data.startTime,
@@ -152,6 +167,7 @@ describe('Cross tests jsmediatags', function() {
                         artist: tags.CHAP.data.subFrames.TPE1.data
                     }
                 }, nodeTagsFull.chapter[0])
+
                 assert.deepStrictEqual({
                     elementID:nodeTagsFull.tableOfContents[0].elementID,
                     isOrdered: false,
@@ -160,7 +176,12 @@ describe('Cross tests jsmediatags', function() {
                         title: tags.CTOC.data.subFrames.TIT2.data
                     }
                 }, nodeTagsFull.tableOfContents[0])
-                assert.strictEqual(tags.WCOM.data, nodeTagsFull.commercialUrl[0])
+
+                assert.strictEqual(
+                    tags.WCOM.data,
+                    nodeTagsFull.commercialUrl[0]
+                )
+
                 // The URL is always encoded with ISO-8859-1
                 // => jsmediatags reads as UTF-16, can't use here
                 assert.deepStrictEqual({
@@ -168,50 +189,64 @@ describe('Cross tests jsmediatags', function() {
                     url: nodeTagsFull.userDefinedUrl[0].url
                 }, nodeTagsFull.userDefinedUrl[0])
             },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onError: function(error: any) {
+            onError: (error) => {
                 throw error
             }
         })
     })
 
     it('write with missing values', function() {
-        // Pre-TypeScript backwards compatibility
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        jsmediatags.read(NodeID3.create(nodeTagsMissingValues as any), {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onSuccess: (tag: any) => {
+        jsmediatags.read(NodeID3.create(
+            nodeTagsMissingValues as NodeID3.WriteTags
+        ), {
+            onSuccess: (tag) => {
                 const tags = tag.tags
-                assert.deepStrictEqual({ language: tags.COMM.data.language, text: tags.COMM.data.text }, nodeTagsMissingValues.comment)
+
+                assert.deepStrictEqual({
+                    language: tags.COMM.data.language,
+                    text: tags.COMM.data.text
+                }, nodeTagsMissingValues.comment)
+
                 assert.strictEqual(tags.COMM.data.short_description, '')
-                expect(tags.TXXX.map((t: TagFrame) => {
-                    return {
-                        value: t.data.data
-                    }
-                })).to.have.deep.members(nodeTagsMissingValues.userDefinedText)
-                tags.TXXX.forEach((t: TagFrame) => {
-                    assert.strictEqual(t.data.user_description, '')
+
+                expect(
+                    makeTagFrameArray(tags.TXXX).map(
+                        tagFrame => ({ value: tagFrame.data.data })
+                    )
+                ).to.have.deep.members(nodeTagsMissingValues.userDefinedText)
+
+                makeTagFrameArray(tags.TXXX).forEach(tagFrame => {
+                    assert.strictEqual(tagFrame.data.user_description, '')
                 })
+
                 assert.deepStrictEqual({
                     mime: tags.APIC.data.format,
                     imageBuffer: Buffer.from(tags.APIC.data.data)
                 }, nodeTagsMissingValues.image)
+
                 assert.strictEqual(tags.APIC.data.description, '')
-                /* POPM seems broken in jsmediatags, data is null but tag looks correct */
-                /* PRIV seems broken in jsmediatags, data is null but tag looks correct */
+
+                // POPM and PRIV seem broken in jsmediatags,
+                // data is null but tag looks correct.
                 assert.deepStrictEqual({
                     elementID: nodeTagsMissingValues.chapter[0].elementID,
                     startTimeMs: tags.CHAP.data.startTime,
                     endTimeMs: tags.CHAP.data.endTime
                 }, nodeTagsMissingValues.chapter[0])
+
                 assert.deepStrictEqual(tags.CHAP.data.subFrames, {})
+
                 assert.strictEqual(tags.CHAP.data.startOffset, 0xFFFFFFFF)
+
                 assert.strictEqual(tags.CHAP.data.endOffset, 0xFFFFFFFF)
+
                 assert.deepStrictEqual({
                     elementID: nodeTagsMissingValues.tableOfContents[0].elementID,
                     elements: tags.CTOC.data.childElementIds,
                 }, nodeTagsMissingValues.tableOfContents[0])
+
                 assert.deepStrictEqual(tags.CTOC.data.subFrames, {})
+
                 assert.strictEqual(tags.CTOC.data.ordered, false)
             },
             onError: function(error) {
@@ -222,13 +257,12 @@ describe('Cross tests jsmediatags', function() {
 
     it('read from full self-created tags', function() {
         const tagsBuffer = NodeID3.create(nodeTagsFull)
-        const read = NodeID3.read(tagsBuffer)
+        const read = NodeID3.read(tagsBuffer, { noRaw: true })
 
-        delete read.raw
-        if(read.chapter && read.chapter[0].tags) {
+        if (read.chapter && read.chapter[0].tags) {
             delete read.chapter[0].tags.raw
         }
-        if(read.tableOfContents && read.tableOfContents[0].tags) {
+        if (read.tableOfContents && read.tableOfContents[0].tags) {
             delete read.tableOfContents[0].tags.raw
         }
         assert.deepStrictEqual(nodeTagsFull, read)
