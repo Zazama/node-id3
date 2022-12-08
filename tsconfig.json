@@ -3,7 +3,7 @@
     // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
     "compilerOptions": {
       "sourceMap": true,
-      "lib": ["es2018"],
+      "lib": ["es2018", "dom"],
       "module": "commonjs",
       "outDir": "dist",
       "strict": true,
