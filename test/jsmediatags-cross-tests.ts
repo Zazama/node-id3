@@ -277,20 +277,35 @@ describe('Cross tests jsmediatags', function() {
 
         delete read.raw
         assert.deepStrictEqual(read.chapter[0].tags.raw, {})
+
         delete read.chapter[0].tags
-        if(!read.comment.shortText) delete read.comment.shortText
-        if(!read.image.description) delete read.image.description
+        if (!read.comment.shortText) {
+            delete read.comment.shortText
+        }
+        if (!read.image.description) {
+            delete read.image.description
+        }
         delete read.image.type
         assert.strictEqual(read.popularimeter.rating, 0)
+
         delete read.popularimeter.rating
-        if(read.private[0].ownerIdentifier === undefined) delete read.private[0].ownerIdentifier
-        if(read.private[1].ownerIdentifier === undefined) delete read.private[1].ownerIdentifier
+        if (read.private[0].ownerIdentifier === undefined) {
+            delete read.private[0].ownerIdentifier
+        }
+        if (read.private[1].ownerIdentifier === undefined) {
+            delete read.private[1].ownerIdentifier
+        }
         assert.strictEqual(read.tableOfContents[0].isOrdered, false)
         assert.deepStrictEqual(read.tableOfContents[0].tags.raw, {})
+
         delete read.tableOfContents[0].tags
         delete read.tableOfContents[0].isOrdered
-        if(!read.userDefinedText[0].description) delete read.userDefinedText[0].description
-        if(!read.userDefinedText[1].description) delete read.userDefinedText[1].description
+        if (!read.userDefinedText[0].description) {
+            delete read.userDefinedText[0].description
+        }
+        if (!read.userDefinedText[1].description) {
+            delete read.userDefinedText[1].description
+        }
         assert.deepStrictEqual(nodeTagsMissingValues, read)
     })
 })
