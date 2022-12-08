@@ -9,7 +9,7 @@ const unicodeTestCharacters = "-äé"
 describe('NodeID3 frames', function () {
     it('read() matches create()', function () {
         const TagConstants = NodeID3.TagConstants
-        const tags: NodeID3.Tags = {
+        const tags = {
             /**
              * COMM
              */
@@ -150,7 +150,7 @@ describe('NodeID3 frames', function () {
                 description: 'url-description',
                 url: 'https://example.com'
             }]
-        }
+        } satisfies NodeID3.Tags
         const createdBuffer = NodeID3.create(tags)
         const readTags = NodeID3.read(createdBuffer, { noRaw: true})
         assert.deepStrictEqual(tags, readTags)
