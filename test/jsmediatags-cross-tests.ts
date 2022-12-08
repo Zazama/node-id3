@@ -269,9 +269,9 @@ describe('Cross tests jsmediatags', function() {
     })
 
     it('read from missing values self-created tags', function() {
-        // Pre-TypeScript backwards compatibility
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tagsBuffer = NodeID3.create(nodeTagsMissingValues as any)
+        const tagsBuffer = NodeID3.create(
+            nodeTagsMissingValues as unknown as NodeID3.WriteTags
+        )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const read: any = NodeID3.read(tagsBuffer)
 
