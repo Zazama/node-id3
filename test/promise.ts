@@ -15,7 +15,9 @@ describe('NodeID3.Promise', function () {
             ).to.eventually.be.instanceOf(Buffer)
         })
     })
-    const writeTestCases: Array<[string, Function]> = [
+    type writeTestCaseFunctions =
+        (tags: NodeID3.WriteTags, buffer: Buffer | string) => void
+    const writeTestCases: Array<[string, writeTestCaseFunctions]> = [
         ['#write()', NodeID3.Promise.write],
         ['#update()', NodeID3.Promise.update]
     ]

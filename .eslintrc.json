@@ -29,7 +29,10 @@
             "plugins": [
                 "@typescript-eslint",
                 "mocha"
-            ]
+            ],
+            "rules": {
+                "mocha/no-setup-in-describe": "off"
+            }
         },
         {
             "files": ["test/*.js"],
@@ -48,5 +51,5 @@
         "@typescript-eslint/no-unused-vars": [
             "off", { "argsIgnorePattern": "^_" }
         ]
-}
+    }
 }
