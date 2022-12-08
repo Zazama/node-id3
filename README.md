@@ -1,9 +1,9 @@
 # node-id3
 
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/zazama/node-id3?style=flat-square)
-![Travis (.org)](https://img.shields.io/travis/zazama/node-id3?style=flat-square)
+![GitHub build status](https://img.shields.io/github/checks-status/Zazama/node-id3/master?style=flat-square)
 ![Codecov](https://img.shields.io/codecov/c/github/Zazama/node-id3?style=flat-square)
-![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability-percentage/Zazama/node-id3?style=flat-square)
+![Scrutinizer code quality](https://img.shields.io/scrutinizer/quality/g/Zazama/node-id3?style=flat-square)
 ![npm](https://img.shields.io/npm/dt/node-id3?style=flat-square)
 
 node-id3 is an ID3-Tag library written in Typescript and JavaScript.
