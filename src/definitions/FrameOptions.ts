@@ -3,10 +3,7 @@ export type FrameOptions = {
     updateCompareKey?: string
 }
 
-const satisfiesFrameOptions =
-    <T extends Record<string, FrameOptions>>(data: T) => data
-
-export const FRAME_OPTIONS = satisfiesFrameOptions({
+export const FRAME_OPTIONS = {
     "PIC": {
         multiple: false /* change in 1.0 */
     },
@@ -68,4 +65,4 @@ export const FRAME_OPTIONS = satisfiesFrameOptions({
     "UFID": {
         multiple: true
     }
- } as const)
+ } as const satisfies Record<string, FrameOptions>
