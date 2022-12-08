@@ -2,7 +2,7 @@ import * as NodeID3 from '../index'
 import assert = require('assert')
 import chai = require('chai')
 import jsmediatags = require("jsmediatags")
-import { TagFrame, TagFrames } from 'jsmediatags/types'
+import { TagFrame } from 'jsmediatags/types'
 const expect = chai.expect
 
 const nodeTagsFull = {
