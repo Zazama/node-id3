@@ -1,7 +1,7 @@
-const fs = require('fs')
-const NodeID3 = require('../index.js')
-const chai = require('chai')
-const chaiAsPromised = require('chai-as-promised')
+import fs = require('fs')
+import * as NodeID3 from '../index'
+import chai = require('chai')
+import chaiAsPromised = require('chai-as-promised')
 const { expect } = chai
 chai.use(chaiAsPromised)
 
@@ -15,7 +15,7 @@ describe('NodeID3.Promise', function () {
             ).to.eventually.be.instanceOf(Buffer)
         })
     })
-    const writeTestCases = [
+    const writeTestCases: Array<[string, Function]> = [
         ['#write()', NodeID3.Promise.write],
         ['#update()', NodeID3.Promise.update]
     ]

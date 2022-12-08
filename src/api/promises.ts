@@ -40,7 +40,7 @@ export const Promises = {
         makePromise<Buffer>((callback: WriteCallback) =>
             update(tags, filebuffer, options ?? {}, callback)
         ),
-    read: (file: string, options?: Options) =>
+    read: (file: string | Buffer, options?: Options) =>
         makePromise((callback: ReadCallback) =>
             read(file, options ?? {}, callback)
         ),
