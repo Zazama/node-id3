@@ -1,4 +1,5 @@
 import { TagConstants } from "../definitions/TagConstants"
+import { Values } from "../types/utility"
 
 export interface TagAliases {
     /**
@@ -334,7 +335,7 @@ export interface TagAliases {
          * Absolute time unit:
          * {@link TagConstants.TimeStampFormat}
          */
-        timeStampFormat: TagConstants['TimeStampFormat'],
+        timeStampFormat: Values<TagConstants['TimeStampFormat']>,
         /**
          * {@link TagConstants.SynchronisedLyrics.ContentType}
          */
@@ -493,7 +494,7 @@ export interface TagAliases {
          * Absolute time unit:
          * {@link TagConstants.TimeStampFormat}
          */
-        timeStampFormat: TagConstants['TimeStampFormat'],
+        timeStampFormat: Values<TagConstants['TimeStampFormat']>,
         keyEvents: {
             /**
              * {@link TagConstants.EventTimingCodes.EventType}
