@@ -72,7 +72,7 @@ const nodeTagsFull = {
         description: "URL description物",
         url: "https://example.com/"
     }]
-} satisfies NodeID3.Tags;
+} satisfies NodeID3.Tags
 
 const nodeTagsMissingValues = {
     comment: {
@@ -116,12 +116,14 @@ describe('Cross tests jsmediatags', function() {
             // @types/jsmediatags are kind of broken.
             // E.g. tags.TXXX will return an array,
             // but the types say it only returns an Object.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onSuccess: (tag: any) => {
                 const tags: TagFrames = tag.tags
                 assert.strictEqual(tags.TIT2.data, nodeTagsFull.title)
                 assert.strictEqual(tags.TALB.data, nodeTagsFull.album)
                 assert.deepStrictEqual({ language: tags.COMM.data.language, shortText: tags.COMM.data.short_description, text: tags.COMM.data.text }, nodeTagsFull.comment)
                 assert.deepStrictEqual({ language: tags.USLT.data.language, shortText: tags.USLT.data.descriptor, text: tags.USLT.data.lyrics }, nodeTagsFull.unsynchronisedLyrics)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 expect((tags.TXXX as any).map((t: TagFrame) => {
                     return {
                         description: t.data.user_description,
@@ -166,6 +168,7 @@ describe('Cross tests jsmediatags', function() {
                     url: nodeTagsFull.userDefinedUrl[0].url
                 }, nodeTagsFull.userDefinedUrl[0])
             },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onError: function(error: any) {
                 throw error
             }
@@ -174,7 +177,9 @@ describe('Cross tests jsmediatags', function() {
 
     it('write with missing values', function() {
         // Pre-TypeScript backwards compatibility
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         jsmediatags.read(NodeID3.create(nodeTagsMissingValues as any), {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onSuccess: (tag: any) => {
                 const tags = tag.tags
                 assert.deepStrictEqual({ language: tags.COMM.data.language, text: tags.COMM.data.text }, nodeTagsMissingValues.comment)
@@ -231,7 +236,9 @@ describe('Cross tests jsmediatags', function() {
 
     it('read from missing values self-created tags', function() {
         // Pre-TypeScript backwards compatibility
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tagsBuffer = NodeID3.create(nodeTagsMissingValues as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const read: any = NodeID3.read(tagsBuffer)
 
         delete read.raw
