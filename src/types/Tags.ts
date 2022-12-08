@@ -310,6 +310,7 @@ export interface TagAliases {
          * @see {@link https://id3.org/ISO%20639-2 ISO 639-2}
          */
         language: string,
+        shortText?: string,
         text: string,
     },
     unsynchronisedLyrics?: {
@@ -318,6 +319,7 @@ export interface TagAliases {
          * @see {@link https://id3.org/ISO%20639-2 ISO 639-2}
          */
         language: string,
+        shortText?: string,
         text: string
     },
     /**
@@ -352,10 +354,10 @@ export interface TagAliases {
             timeStamp: number
         }[]
     }[],
-    userDefinedText?: [{
+    userDefinedText?: {
         description: string,
         value: string
-    }]
+    }[],
     /**
      * `APIC` (attached picture) tag frames
      *
@@ -388,10 +390,10 @@ export interface TagAliases {
         rating: number,
         counter: number,
     },
-    private?: [{
+    private?: {
         ownerIdentifier: string,
-        data: string
-    }],
+        data: Buffer
+    }[],
     /**
      * This frame's purpose is to be able to identify the audio file in a
      * database that may contain more information relevant to the content.

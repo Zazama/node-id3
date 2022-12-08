@@ -1,5 +1,5 @@
-const NodeID3 = require('../index')
-const assert = require('assert')
+import * as NodeID3 from '../index'
+import assert = require('assert')
 
 /**
  * Some characters to test unicode encoding.
@@ -150,7 +150,7 @@ describe('NodeID3 frames', function () {
                 description: 'url-description',
                 url: 'https://example.com'
             }]
-        }
+        } satisfies NodeID3.Tags
         const createdBuffer = NodeID3.create(tags)
         const readTags = NodeID3.read(createdBuffer, { noRaw: true})
         assert.deepStrictEqual(tags, readTags)

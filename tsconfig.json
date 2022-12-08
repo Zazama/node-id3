@@ -9,8 +9,9 @@
       "strict": true,
       "allowJs": true,
       "target": "es2018",
-      "declaration": true
+      "declaration": true,
+      "skipLibCheck": true
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "dist", "coverage"]
-  }
+}

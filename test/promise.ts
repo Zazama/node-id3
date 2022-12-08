@@ -1,7 +1,7 @@
-const fs = require('fs')
-const NodeID3 = require('../index.js')
-const chai = require('chai')
-const chaiAsPromised = require('chai-as-promised')
+import fs = require('fs')
+import * as NodeID3 from '../index'
+import chai = require('chai')
+import chaiAsPromised = require('chai-as-promised')
 const { expect } = chai
 chai.use(chaiAsPromised)
 
@@ -18,7 +18,7 @@ describe('NodeID3.Promise', function () {
     const writeTestCases = [
         ['#write()', NodeID3.Promise.write],
         ['#update()', NodeID3.Promise.update]
-    ]
+    ] as const
     writeTestCases.forEach(([name, fn]) => {
         describe(name, function () {
             describe('with buffer', function() {
