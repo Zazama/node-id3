@@ -1,5 +1,6 @@
-const NodeID3 = require('../index')
-const assert = require('assert')
+import NodeID3 = require('../index')
+import assert = require('assert')
+import { Tags } from '../src/types/Tags'
 
 /**
  * Some characters to test unicode encoding.
@@ -9,7 +10,7 @@ const unicodeTestCharacters = "-äé"
 describe('NodeID3 frames', function () {
     it('read() matches create()', function () {
         const TagConstants = NodeID3.TagConstants
-        const tags = {
+        const tags: Tags = {
             /**
              * COMM
              */
