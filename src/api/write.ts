@@ -4,19 +4,55 @@ import { create }  from "./create"
 import { removeTagsFromBuffer } from "./remove"
 import { isFunction, isString } from "../util"
 
-export type WriteCallback = {
-    (error: null, data: Buffer): void
-    (error: NodeJS.ErrnoException | Error, data: null): void
-}
+/**
+ * Callback signature for successful asynchronous update and write operations.
+ *
+ * @public
+ */
+export type WriteSuccessCallback =
+    (error: null, data: Buffer) => void
 
 /**
- * Write passed tags to a file/buffer
+ * Callback signature for failing asynchronous update and write operations.
+ *
+ * @public
+ */
+export type WriteErrorCallback =
+    (error: NodeJS.ErrnoException | Error, data: null) => void
+
+/**
+ * Callback signatures for asynchronous update and write operations.
+ *
+ * @public
+ */
+export type WriteCallback =
+    WriteSuccessCallback & WriteErrorCallback
+
+/**
+ * Replaces any existing tags with the given tags in the given buffer.
+ *
+ * @public
  */
 export function write(tags: WriteTags, buffer: Buffer): Buffer
+
+/**
+ * Replaces synchronously any existing tags with the given tags in the
+ * specified file.
+ *
+ * @public
+ */
 export function write(tags: WriteTags, filepath: string): true | Error
+
+/**
+ * Replaces asynchronously any existing tags with the given tags in the
+ * given buffer or specified file.
+ *
+ * @public
+ */
 export function write(
     tags: WriteTags, filebuffer: string | Buffer, callback: WriteCallback
 ): void
+
 export function write(
     tags: WriteTags,
     filebuffer: string | Buffer,

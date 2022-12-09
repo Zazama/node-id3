@@ -1,4 +1,12 @@
-// Used specification: http://id3.org/id3v2.3.0
+/**
+ * An ID3-Tag library written in Typescript.
+ *
+ * @remarks
+ *
+ * Used specification: {@link http://id3.org/id3v2.3.0 | id3.org v2.3.0}.
+ *
+ * @packageDocumentation
+ */
 
 // Types
 
