@@ -1,6 +1,9 @@
 import { TagConstants } from "../definitions/TagConstants"
 import { Values } from "../types/utility"
 
+/**
+ * @public
+ */
 export interface TagAliases {
     /**
      * The 'Album/Movie/Show title' frame is intended for the title of the recording(/source of sound) which the audio in the file is taken from.
@@ -561,6 +564,9 @@ export interface TagAliases {
     }[]
 }
 
+/**
+ * @public
+ */
 export interface TagIdentifiers {
     TALB?: TagAliases["album"]
     TBPM?: TagAliases["bpm"]
@@ -639,10 +645,15 @@ export interface TagIdentifiers {
 /**
  * On write either a tag alias or tag identifier can be be specified.
  * This is undefined behaviour when both are specified.
+ *
+ * @public
  */
 export interface WriteTags extends TagAliases, TagIdentifiers {
 }
 
+/**
+ * @public
+ */
 export interface Tags extends TagAliases {
     raw?: TagIdentifiers
 }
