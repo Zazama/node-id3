@@ -2,16 +2,24 @@
     // To target Node.js 10 see:
     // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
     "compilerOptions": {
-      "sourceMap": true,
-      "lib": ["es2018"],
-      "module": "commonjs",
-      "outDir": "dist",
-      "strict": true,
-      "allowJs": true,
-      "target": "es2018",
-      "declaration": true,
-      "skipLibCheck": true
+        "sourceMap": true,
+        "lib": [
+            "es2018"
+        ],
+        "module": "commonjs",
+        "outDir": "dist",
+        "strict": true,
+        "allowJs": true,
+        "target": "es2018",
+        "declaration": true,
+        "skipLibCheck": true
     },
-    "include": ["./**/*"],
-    "exclude": ["node_modules", "dist", "coverage"]
+    "include": [
+        "./**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "coverage"
+    ]
 }
