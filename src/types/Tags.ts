@@ -349,7 +349,8 @@ export interface TagAliases {
         synchronisedText: {
             text: string,
             /**
-             * Absolute time in unit according to `timeStampFormat`.
+             * A positive integer expressing an absolute time in unit according
+             * to `timeStampFormat`.
              */
             timeStamp: number
         }[]
@@ -503,7 +504,8 @@ export interface TagAliases {
              */
             type: number,
             /**
-             * Absolute time in unit according to `timeStampFormat`.
+             * A positive integer expressing an absolute time in unit according
+             * to `timeStampFormat`.
              */
             timeStamp: number
         }[]
