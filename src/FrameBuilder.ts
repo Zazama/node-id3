@@ -23,15 +23,16 @@ export class FrameBuilder {
     }
 
     appendNumber(value: number, size: number) {
-        if (Number.isInteger(value)) {
-            let hexValue = value.toString(16)
-            if (hexValue.length % 2 !== 0) {
-                hexValue = "0" + hexValue
-            }
-            this.appendBuffer(
-                staticValueToBuffer(Buffer.from(hexValue, 'hex'), size)
-            )
+        if (!Number.isInteger(value)) {
+            throw new RangeError("An integer value is expected")
         }
+        let hexValue = value.toString(16)
+        if (hexValue.length % 2 !== 0) {
+            hexValue = "0" + hexValue
+        }
+        this.appendBuffer(
+            staticValueToBuffer(Buffer.from(hexValue, 'hex'), size)
+        )
         return this
     }
 
