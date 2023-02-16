@@ -212,10 +212,10 @@ synchronisedLyrics: [{
   shortText: "Content descriptor",
   synchronisedText: [{
     text: "part 1",
-    timeStamp: 0
+    timeStamp: 0 // Must be a positive integer value
   }, {
     text: "part 2",
-    timeStamp: 1000
+    timeStamp: 1000 // Must be a positive integer value
   }]
 }]
 userDefinedText: [{
@@ -285,9 +285,10 @@ userDefinedUrl: [{
 }], // array or single object
 eventTimingCodes: {
   timeStampFormat: TagConstants.TimeStampFormat.MILLISECONDS,
-  keyEvents: [
-    { type: TagConstants.EventTimingCodes.EventType.INTRO_START, timeStamp: 1000 }
-  ]
+  keyEvents: [{
+    type: TagConstants.EventTimingCodes.EventType.INTRO_START,
+    timeStamp: 1000 // Must be a positive integer value
+  }]
 },
 commercialFrame: [{
   prices: {
