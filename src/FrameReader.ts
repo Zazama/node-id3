@@ -78,9 +78,12 @@ export class FrameReader {
         encoding = this._encoding
     ) {
         return this._consumeByFunction(
-            // TODO check if this._splitBuffer.remainder can be null!
-            // eslint-disable-next-line
-            () => nullTerminatedValueFromBuffer(this._splitBuffer.remainder!, encoding),
+            () => ID3Util.splitNullTerminatedBuffer(
+                // TODO check if this._splitBuffer.remainder can be null!
+                // eslint-disable-next-line
+                this._splitBuffer.remainder!,
+                encoding
+            ),
             dataType,
             encoding
         )
@@ -139,11 +142,4 @@ function staticValueFromBuffer(
         )
     }
     return new SplitBuffer(buffer.subarray(0), null)
-}
-
-function nullTerminatedValueFromBuffer(
-    buffer: Buffer,
-    encoding = 0x00
-): SplitBuffer {
-    return ID3Util.splitNullTerminatedBuffer(buffer, encoding)
 }
