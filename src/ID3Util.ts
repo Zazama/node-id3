@@ -1,6 +1,7 @@
 import iconv = require('iconv-lite')
 import { FrameOptions, FRAME_OPTIONS } from './definitions/FrameOptions'
 import { isKeyOf, isString } from './util'
+import { TextEncoding } from './definitions/Encoding'
 
 export class SplitBuffer {
     value: Buffer | null
@@ -11,34 +12,33 @@ export class SplitBuffer {
     }
 }
 
-export function splitNullTerminatedBuffer(buffer: Buffer, encodingByte = 0x00) {
-    const termination = { start: -1, size: 0 }
-    if (encodingByte === 0x01 || encodingByte === 0x02) {
-        termination.start = buffer.indexOf(Buffer.from([0x00, 0x00]))
-        termination.size = 2
-        if (
-            termination.start !== -1 &&
-            buffer.length > (termination.start + termination.size)
-        ) {
-            if (buffer[termination.start + termination.size] === 0x00) {
-                termination.start += 1
-            }
+/**
+ * @param buffer A buffer starting with a null-terminated text string.
+ * @param encoding The encoding type in which the text string is encoded.
+ * @returns A split buffer containing the bytes before and after the null
+ *          termination. If no null termination is found, considers that
+ *          the buffer was not containing a text string and returns
+ *          the given buffer as the remainder in the split buffer.
+ */
+export function splitNullTerminatedBuffer(
+    buffer: Buffer,
+    encoding: number = TextEncoding.ISO_8859_1
+) {
+    const charSize = ([
+        TextEncoding.UTF_16_WITH_BOM,
+        TextEncoding.UTF_16_BE
+    ] as number[]).includes(encoding) ? 2 : 1
+
+    for (let pos = 0; pos <= buffer.length - charSize; pos += charSize) {
+        if (buffer.readUIntBE(pos, charSize) === 0) {
+            return new SplitBuffer(
+                buffer.subarray(0, pos),
+                buffer.subarray(pos + charSize)
+            )
         }
-    } else {
-        termination.start = buffer.indexOf(0x00)
-        termination.size = 1
     }
 
-    if (termination.start === -1) {
-        return new SplitBuffer(null, buffer.subarray(0))
-    }
-    if (buffer.length <= termination.start + termination.size) {
-        return new SplitBuffer(buffer.subarray(0, termination.start), null)
-    }
-    return new SplitBuffer(
-        buffer.subarray(0, termination.start),
-        buffer.subarray(termination.start + termination.size)
-    )
+    return new SplitBuffer(null, buffer.subarray(0))
 }
 
 export function encodingFromStringOrByte(encoding: string | number) {
