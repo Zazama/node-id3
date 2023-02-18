@@ -113,6 +113,15 @@ function convertValue(
     dataType: DataType,
     encoding = 0x00
 ) {
+    // TODO: Check this behaviour:
+    // - if 0 or an empty string is given it will return `undefined`
+    //   I don't think this should behave that way.
+    //   I would think this test should not exist, the following one
+    //   !(buffer instanceof Buffer)) should be sufficient and more correct,
+    //   removing this test would:
+    //   - return 0 if 0 is given (instead of undefined)
+    //   - return "" if "" is given (instead of undefined)
+    //   - return null if null is given (instead of undefined)
     if (!buffer) {
         return undefined
     }
