@@ -14,13 +14,14 @@ ID3FrameBuilder.prototype.appendStaticValue = function(value, size, encoding = 0
 }
 
 ID3FrameBuilder.prototype.appendStaticNumber = function(value, size) {
-    if(Number.isInteger(value)) {
-        let hexValue = value.toString(16)
-        if(hexValue.length % 2 !== 0) {
-            hexValue = "0" + hexValue
-        }
-        this._buffer = Buffer.concat([this._buffer, staticValueToBuffer(Buffer.from(hexValue, 'hex'), size)])
+    if (!Number.isInteger(value)) {
+        throw new RangeError("An integer value is expected")
     }
+    let hexValue = value.toString(16)
+    if(hexValue.length % 2 !== 0) {
+        hexValue = "0" + hexValue
+    }
+    this._buffer = Buffer.concat([this._buffer, staticValueToBuffer(Buffer.from(hexValue, 'hex'), size)])
     return this
 }
 

@@ -337,7 +337,8 @@ declare module "node-id3" {
             synchronisedText: Array<{
                text: string,
                /**
-                * Absolute time in unit according to `timeStampFormat`.
+                * A positive integer expressing an absolute time in unit according
+                * to `timeStampFormat`.
                 */
                timeStamp: number
             }>
