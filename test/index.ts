@@ -1,21 +1,28 @@
-const NodeID3 = require('../index')
-const assert = require('assert')
-const chai = require('chai')
-const iconv = require('iconv-lite')
-const fs = require('fs')
-const ID3Util = require('../src/ID3Util')
+import * as NodeID3 from '../index'
+import assert = require('assert')
+import chai = require('chai')
+import iconv = require('iconv-lite')
+import * as fs from 'fs'
+import * as ID3Util from '../src/ID3Util'
 
 describe('NodeID3', function () {
     describe('#create()', function () {
         it('empty tags', function () {
-            assert.strictEqual(NodeID3.create({}).compare(Buffer.from([0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])), 0)
+            assert.strictEqual(
+                NodeID3.create({}).compare(
+                    Buffer.from([0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+                ),
+                 0
+            )
         })
         it('text frames', function () {
             const tags = {
-                TIT2: "abcdeÜ看板かんばん",
-                album: "nasÖÄkdnasd",
-                notfound: "notfound",
-                year: 1990
+                ...{
+                    TIT2: "abcdeÜ看板かんばん",
+                    album: "nasÖÄkdnasd",
+                    year: "1990"
+                } satisfies NodeID3.WriteTags,
+                notfound: "notfound"
             }
             const buffer = NodeID3.create(tags)
             const titleSize = 10 + 1 + iconv.encode(tags.TIT2, 'utf16').length
@@ -66,14 +73,14 @@ describe('NodeID3', function () {
             ))
         })
 
-        it('user defined text frames', function() {
-            let tags = {
+        it('user defined text frame single value', function() {
+            const tags = {
                 userDefinedText: {
                     description: "abc",
                     value: "defg"
                 }
-            }
-            let buffer = NodeID3.create(tags).slice(10)
+            } satisfies NodeID3.WriteTags
+            const buffer = NodeID3.create(tags).subarray(10)
             const descEncoded = iconv.encode(tags.userDefinedText.description + "\0", "UTF-16")
             const valueEncoded = iconv.encode(tags.userDefinedText.value, "UTF-16")
 
@@ -88,8 +95,10 @@ describe('NodeID3', function () {
                     valueEncoded
                 ])
             ), 0)
+        })
 
-            tags = {
+        it('user defined text frame array', function() {
+            const tags = {
                 userDefinedText: [{
                     description: "abc",
                     value: "defg"
@@ -97,8 +106,8 @@ describe('NodeID3', function () {
                     description: "hij",
                     value: "klmn"
                 }]
-            }
-            buffer = NodeID3.create(tags).slice(10)
+            } satisfies NodeID3.WriteTags
+            const buffer = NodeID3.create(tags).subarray(10)
             const desc1Encoded = iconv.encode(tags.userDefinedText[0].description + "\0", "UTF-16")
             const value1Encoded = iconv.encode(tags.userDefinedText[0].value, "UTF-16")
             const desc2Encoded = iconv.encode(tags.userDefinedText[1].description + "\0", "UTF-16")
@@ -129,8 +138,8 @@ describe('NodeID3', function () {
             const tags = {
                 title: "all",
                 year: 3,
-                recordingTime: 4
-            }
+                recordingTime: "4"
+            } satisfies NodeID3.WriteTags
 
             assert.deepStrictEqual(
                 NodeID3.create(tags),
@@ -157,28 +166,30 @@ describe('NodeID3', function () {
         })
 
         const buffer = Buffer.from([0x02, 0x06, 0x12, 0x22])
-        let tags = {title: "abc"}
+        const titleTag = {
+            title: "abc"
+        } satisfies NodeID3.WriteTags
         const filepath = './testfile.mp3'
 
         it('sync write file without id3 tag', function() {
             fs.writeFileSync(filepath, buffer, 'binary')
-            NodeID3.write(tags, filepath)
+            NodeID3.write(titleTag, filepath)
             const newFileBuffer = fs.readFileSync(filepath)
             fs.unlinkSync(filepath)
             assert.strictEqual(Buffer.compare(
                 newFileBuffer,
-                Buffer.concat([NodeID3.create(tags), buffer])
+                Buffer.concat([NodeID3.create(titleTag), buffer])
             ), 0)
         })
 
         it('async write file without id3 tag', function(done) {
             fs.writeFileSync(filepath, buffer, 'binary')
-            NodeID3.write(tags, filepath, function() {
+            NodeID3.write(titleTag, filepath, function() {
                 const newFileBuffer = fs.readFileSync(filepath)
                 fs.unlinkSync(filepath)
                 if(Buffer.compare(
                     newFileBuffer,
-                    Buffer.concat([NodeID3.create(tags), buffer])
+                    Buffer.concat([NodeID3.create(titleTag), buffer])
                 ) === 0) {
                     done()
                 } else {
@@ -187,27 +198,31 @@ describe('NodeID3', function () {
             })
         })
 
-        const bufferWithTag = Buffer.concat([NodeID3.create(tags), buffer])
-        tags = {album: "ix123"}
+        {
+
+        const bufferWithTag = Buffer.concat([NodeID3.create(titleTag), buffer])
+        const albumTag = {
+            album: "ix123"
+        } satisfies NodeID3.WriteTags
 
         it('sync write file with id3 tag', function() {
             fs.writeFileSync(filepath, bufferWithTag, 'binary')
-            NodeID3.write(tags, filepath)
+            NodeID3.write(albumTag, filepath)
             const newFileBuffer = fs.readFileSync(filepath)
             fs.unlinkSync(filepath)
             assert.strictEqual(Buffer.compare(
                 newFileBuffer,
-                Buffer.concat([NodeID3.create(tags), buffer])
+                Buffer.concat([NodeID3.create(albumTag), buffer])
             ), 0)
         })
         it('async write file with id3 tag', function(done) {
             fs.writeFileSync(filepath, bufferWithTag, 'binary')
-            NodeID3.write(tags, filepath, function() {
+            NodeID3.write(albumTag, filepath, function() {
                 const newFileBuffer = fs.readFileSync(filepath)
                 fs.unlinkSync(filepath)
                 if(Buffer.compare(
                     newFileBuffer,
-                    Buffer.concat([NodeID3.create(tags), buffer])
+                    Buffer.concat([NodeID3.create(albumTag), buffer])
                 ) === 0) {
                     done()
                 } else {
@@ -215,6 +230,7 @@ describe('NodeID3', function () {
                 }
             })
         })
+    }
     })
 
     describe('#read()', function() {
@@ -316,36 +332,38 @@ describe('NodeID3', function () {
         })
 
         it('read exclude', function() {
-            const tags = {
-                TIT2: "abcdeÜ看板かんばん",
+            const tagsWithoutTitle = {
                 album: "nasÖÄkdnasd",
                 year: "1990"
-            }
+            } satisfies NodeID3.WriteTags
+            const tags = {
+                TIT2: "abcdeÜ看板かんばん",
+                ...tagsWithoutTitle
+            } satisfies NodeID3.WriteTags
 
             const buffer = NodeID3.create(tags)
-            const read = NodeID3.read(buffer, { exclude: ['TIT2'] })
-            delete read.raw
-            delete tags.TIT2
+            const read = NodeID3.read(buffer, { exclude: ['TIT2'], noRaw: true })
             assert.deepStrictEqual(
                 read,
-                tags
+                tagsWithoutTitle
             )
         })
 
         it('read include', function() {
-            const tags = {
+            const tagsWithoutYear = {
                 title: "abcdeÜ看板かんばん",
-                album: "nasÖÄkdnasd",
+                album: "nasÖÄkdnasd"
+            } satisfies NodeID3.WriteTags
+            const tags = {
+                ...tagsWithoutYear,
                 year: "1990"
-            }
+            } satisfies NodeID3.WriteTags
 
             const buffer = NodeID3.create(tags)
-            const read = NodeID3.read(buffer, { include: ['TALB', 'TIT2'] })
-            delete read.raw
-            delete tags.year
+            const read = NodeID3.read(buffer, { include: ['TALB', 'TIT2'], noRaw: true })
             assert.deepStrictEqual(
                 read,
-                tags
+                tagsWithoutYear
             )
         })
 
@@ -353,7 +371,7 @@ describe('NodeID3', function () {
             const tags = {
                 TIT2: "abcdeÜ看板かんばん",
                 TALB: "nasÖÄkdnasd"
-            }
+            } satisfies NodeID3.WriteTags
 
             const buffer = NodeID3.create(tags)
             const read = NodeID3.read(buffer, { onlyRaw: true })
@@ -367,7 +385,7 @@ describe('NodeID3', function () {
             const tags = {
                 title: "abcdeÜ看板かんばん",
                 album: "nasÖÄkdnasd"
-            }
+            } satisfies NodeID3.WriteTags
 
             const buffer = NodeID3.create(tags)
             const read = NodeID3.read(buffer, { noRaw: true })
@@ -395,7 +413,7 @@ describe('NodeID3', function () {
     })
 })
 
-function sizeToBuffer(totalSize) {
+function sizeToBuffer(totalSize: number) {
     const buffer = Buffer.alloc(4)
     buffer.writeUInt32BE(totalSize)
     return buffer
