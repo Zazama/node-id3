@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.7] - 2023-02-26
+
+### Fixed
+
+- Support optional tags defined with `undefined`
+  ([issue #150](https://github.com/Zazama/node-id3/issues/150))
+
+## [0.2.6] - 2023-02-18
+
+### Fixed
+
+- Fix null terminated buffer split for UTF-16 encoded text
+  ([issue #146](https://github.com/Zazama/node-id3/issues/146))
+
 ## [0.2.5] - 2022-12-02
 
 ### Added
