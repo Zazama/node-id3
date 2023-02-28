@@ -1,11 +1,11 @@
 import fs = require('fs')
-import * as NodeID3 from '../index'
+import * as NodeID3 from '../../index'
 import chai = require('chai')
 import chaiAsPromised = require('chai-as-promised')
 const { expect } = chai
 chai.use(chaiAsPromised)
 
-describe('NodeID3.Promise', function () {
+describe('NodeID3 API Promise', function () {
     const invalidFilepath = 'should-hopefully-not-be-a-valid-file.mp3'
     const testFilepath = 'write-promise-test-file.mp3'
     describe('#create()', function () {
