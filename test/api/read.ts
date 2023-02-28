@@ -1,7 +1,7 @@
-import * as NodeID3 from '../index'
+import * as NodeID3 from '../../index'
 import assert = require('assert')
 
-describe('NodeID3', function () {
+describe('NodeID3 API', function () {
     describe('#read()', function() {
         it('read empty id3 tag', function() {
             const frame = NodeID3.create({})
