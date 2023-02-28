@@ -4,7 +4,8 @@ import {
     getHeaderSize,
     FrameHeader
 } from './FrameHeader'
-import * as Frames from './Frames'
+import * as GenericFrames from './frames/generic'
+import { Frames } from './frames/frames'
 import * as ID3Util from './ID3Util'
 import { deduplicate, isBuffer, isKeyOf } from "./util"
 
@@ -66,11 +67,11 @@ function createFromBuffer(
 }
 
 export function makeFrameBuffer(identifier: string, value: unknown) {
-    if (isKeyOf(identifier, Frames.Frames)) {
-        return Frames.Frames[identifier].create(value)
+    if (isKeyOf(identifier, Frames)) {
+        return Frames[identifier].create(value)
     }
     if (identifier.startsWith('T')) {
-        return Frames.GENERIC_TEXT.create(identifier, value)
+        return GenericFrames.GENERIC_TEXT.create(identifier, value)
     }
     if (identifier.startsWith('W')) {
         return makeUrlBuffer(identifier, value)
@@ -85,21 +86,21 @@ function makeUrlBuffer(identifier: string, value: unknown) {
 
     const frames =
         deduplicate(values)
-        .map(url => Frames.GENERIC_URL.create(identifier, url))
+        .map(url => GenericFrames.GENERIC_URL.create(identifier, url))
         .filter(isBuffer)
 
     return frames.length ? Buffer.concat(frames) : null
 }
 
 function makeFrameValue(identifier:string, body: Buffer, version: number) {
-    if (isKeyOf(identifier, Frames.Frames)) {
-        return Frames.Frames[identifier].read(body, version)
+    if (isKeyOf(identifier, Frames)) {
+        return Frames[identifier].read(body, version)
     }
     if (identifier.startsWith('T')) {
-        return Frames.GENERIC_TEXT.read(body)
+        return GenericFrames.GENERIC_TEXT.read(body)
     }
     if (identifier.startsWith('W')) {
-        return Frames.GENERIC_URL.read(body)
+        return GenericFrames.GENERIC_URL.read(body)
     }
     return null
 }
