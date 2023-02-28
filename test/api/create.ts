@@ -131,12 +131,12 @@ describe('NodeID3 API', function () {
         })
 
         it('create mixed v3/v4 tag', function() {
-            const frameBuf = Buffer.from('494433030000000000315449543200000009000001fffe61006c006c005459455200000005000001fffe33005444524300000005000001fffe3400', 'hex')
+            const frameBuf = Buffer.from('4944330300000000003d5449543200000009000001fffe61006c006c00545945520000000b000001fffe3200300032003200544452430000000b000001fffe3200300032003300', 'hex')
 
             const tags = {
                 title: "all",
-                year: 3,
-                recordingTime: "4"
+                year: "2022",
+                recordingTime: "2023"
             } satisfies NodeID3.WriteTags
 
             assert.deepStrictEqual(
