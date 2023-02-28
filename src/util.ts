@@ -20,3 +20,15 @@ export const isKeyOf = <T extends Readonly<Record<string, unknown>>>(
     key: keyof any,
     object: T
 ): key is keyof T => key in object
+
+/**
+ * Returns true when an object entry is not undefined.
+ *
+ * @remarks Helper to filter out entries that are undefined. The node-id3 public
+ * API supports TypeScript with or without the `exactOptionalPropertyTypes`.
+ * Therefore the entries that are undefined needs to be filtered out.
+ *
+ * @see {@link https://www.typescriptlang.org/tsconfig#exactOptionalPropertyTypes tsconfig exactOptionalPropertyTypes}
+ */
+export const isNotUndefinedEntry =
+    (objectEntry: [string, unknown]) => objectEntry[1] !== undefined

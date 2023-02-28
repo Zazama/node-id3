@@ -3,7 +3,7 @@ import { makeFrameBuffer, Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
 import { Options } from "./types/Options"
 import { Tags, TagIdentifiers, WriteTags } from './types/Tags'
-import { isBuffer } from "./util"
+import { isBuffer, isNotUndefinedEntry } from "./util"
 import {
     convertWriteTagsToRawTags,
     convertRawTagsToTagAliases
@@ -18,6 +18,7 @@ function createBuffersFromTags(tags: WriteTags): Buffer[] {
     }
     const rawTags = convertWriteTagsToRawTags(tags)
     return Object.entries(rawTags)
+        .filter(isNotUndefinedEntry)
         .map(([identifier, value]) => makeFrameBuffer(identifier, value))
         .filter(isBuffer)
 }

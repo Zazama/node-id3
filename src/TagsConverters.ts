@@ -3,14 +3,16 @@ import {
     FRAME_IDENTIFIERS,
     FRAME_ALIASES
 } from "./definitions/FrameIdentifiers"
-import { isKeyOf } from "./util"
+import { isKeyOf, isNotUndefinedEntry } from "./util"
 
 /**
  * Convert tag aliases from WriteTags to identifiers in RawTags and
  * filter out unknown aliases and identifiers.
  */
 export function convertWriteTagsToRawTags(tags: WriteTags): TagIdentifiers {
-    return Object.entries(tags).reduce<TagIdentifiers>((rawTags, [key, value]) => {
+    return Object.entries(tags)
+        .filter(isNotUndefinedEntry)
+        .reduce<TagIdentifiers>((rawTags, [key, value]) => {
         if (isKeyOf(key, FRAME_IDENTIFIERS.v3)) {
             rawTags[FRAME_IDENTIFIERS.v3[key]] = value
         } else if (isKeyOf(key, FRAME_IDENTIFIERS.v4)) {
