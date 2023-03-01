@@ -358,6 +358,9 @@ export interface TagAliases {
     userDefinedText?: {
         description: string,
         value: string
+    }|{
+        description: string,
+        value: string
     }[],
     /**
      * `APIC` (attached picture) tag frames
