@@ -1,3 +1,8 @@
+import { TagAliases } from "../types/Tags"
+
+type FrameIdentifiersChecker =
+    Partial<Record<keyof TagAliases, string>>
+
 const FrameIdentifiersV2 = {
     album:                  "TAL",
     bpm:                    "TBP",
@@ -42,7 +47,7 @@ const FrameIdentifiersV2 = {
     audioSourceUrl:         "WAS",
     publisherUrl:           "WPB",
     userDefinedUrl:         "WXX"
-} as const
+} as const satisfies FrameIdentifiersChecker
 
 const FrameIdentifiersV3 = {
     album:                  "TALB",
@@ -104,7 +109,7 @@ const FrameIdentifiersV3 = {
     eventTimingCodes:       "ETCO",
     commercialFrame:        "COMR",
     uniqueFileIdentifier:   "UFID"
-} as const
+} as const satisfies FrameIdentifiersChecker
 
 /**
  * v4 removes some text frames compared to v3: TDAT, TIME, TRDA, TSIZ, TYER
@@ -177,7 +182,7 @@ const FrameIdentifiersV4 = {
     paymentUrl:             "WPAY",
     publisherUrl:           "WPUB",
     userDefinedUrl:         "WXXX"
-} as const
+} as const satisfies FrameIdentifiersChecker
 
 /**
  * Alias to identifier

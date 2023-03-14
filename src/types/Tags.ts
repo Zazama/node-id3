@@ -1,4 +1,26 @@
+/**
+ * Tag frames type definitions and documentations.
+ *
+ * @public
+ */
 import * as TagFrames from "./TagFrames"
+
+/**
+ * Tag frames type definitions and documentations.
+ *
+ * @public
+ */
+export { TagFrames }
+
+/**
+ * A utility to define an union of the given type or an array of the type.
+ *
+ * @remarks
+ * Used for frames that can have multiple instances.
+ *
+ * @public
+ */
+export type TypeOrTypeArray<T> = T | T[]
 
 /**
  * @public
@@ -10,7 +32,7 @@ export interface TagAliases {
     genre?: TagFrames.Genre,
     copyright?: TagFrames.Copyright,
     encodingTime?: TagFrames.EncodingTime,
-    date?: TagFrames.Date,
+    date?: TagFrames.RecordingDate,
     playlistDelay?: TagFrames.PlaylistDelay,
     originalReleaseTime?: TagFrames.OriginalReleaseTime,
     recordingTime?: TagFrames.RecordingTime,
@@ -56,15 +78,17 @@ export interface TagAliases {
     setSubtitle?: TagFrames.SetSubtitle,
     year?: TagFrames.Year,
     comment?: TagFrames.Comment,
-    unsynchronisedLyrics?: TagFrames.UnsynchronisedLyrics,
-    synchronisedLyrics?: TagFrames.SynchronisedLyrics,
-    userDefinedText?: TagFrames.UserDefinedText,
+    unsynchronisedLyrics?: TypeOrTypeArray<TagFrames.UnsynchronisedLyrics >,
+    synchronisedLyrics?: TypeOrTypeArray<TagFrames.SynchronisedLyrics>,
+    userDefinedText?: TypeOrTypeArray<TagFrames.UserDefinedText>,
     image?: TagFrames.Image,
     popularimeter?: TagFrames.Popularimeter,
-    private?: TagFrames.Private,
-    uniqueFileIdentifier?: TagFrames.UniqueFileIdentifier,
-    chapter?: TagFrames.Chapter<Tags>,
-    tableOfContents?: TagFrames.TableOfContents<Tags>,
+    private?: TypeOrTypeArray<TagFrames.Private>,
+    uniqueFileIdentifier?: TypeOrTypeArray<TagFrames.UniqueFileIdentifier>,
+    // TODO change to TypeOrTypeArray
+    chapter?: TagFrames.Chapter<Tags>[],
+    // TODO change to TypeOrTypeArray
+    tableOfContents?: TagFrames.TableOfContents<Tags>[],
     commercialUrl?: TagFrames.CommercialUrl,
     copyrightUrl?: TagFrames.CopyrightUrl,
     fileUrl?: TagFrames.FileUrl,
@@ -73,9 +97,9 @@ export interface TagAliases {
     radioStationUrl?: TagFrames.RadioStationUrl,
     paymentUrl?: TagFrames.PaymentUrl,
     publisherUrl?: TagFrames.PublisherUrl,
-    userDefinedUrl?: TagFrames.UserDefinedUrl,
+    userDefinedUrl?: TypeOrTypeArray<TagFrames.UserDefinedUrl>,
     eventTimingCodes?: TagFrames.EventTimingCodes,
-    commercialFrame?: TagFrames.CommercialFrame
+    commercialFrame?: TypeOrTypeArray<TagFrames.CommercialFrame>
 }
 
 /**

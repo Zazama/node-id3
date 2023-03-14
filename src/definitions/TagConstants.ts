@@ -19,6 +19,8 @@ export const TagConstants = {
      * - Synchronised tempo codes (`SYTC` tag frame)
      * - Synchronised lyrics/text (`SYLT` tag frame)
      * - Position synchronisation frame (`POSS` tag frame))
+     *
+     * @label TimeStampFormat
      */
     TimeStampFormat: {
         MPEG_FRAMES: 1,
