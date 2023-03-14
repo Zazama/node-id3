@@ -1,3 +1,4 @@
+import { TextEncoding } from "../definitions/Encoding"
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { isString } from '../util'
@@ -8,6 +9,7 @@ export const USLT = {
         data = data || {}
         if(isString(data)) {
             data = {
+                // TODO This is buggy specs expects a language of 3 characters
                 text: data
             }
         }
@@ -15,11 +17,12 @@ export const USLT = {
             return null
         }
 
+        const encoding = TextEncoding.UTF_16_WITH_BOM
         return new FrameBuilder("USLT")
-            .appendNumber(0x01, 1)
+            .appendNumber(0x01, encoding)
             .appendValue(data.language)
-            .appendNullTerminatedValue(data.shortText, 0x01)
-            .appendValue(data.text, null, 0x01)
+            .appendNullTerminatedValue(data.shortText, encoding)
+            .appendValue(data.text, null, encoding)
             .getBuffer()
     },
     read: (buffer: Buffer) => {
