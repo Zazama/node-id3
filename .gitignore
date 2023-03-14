@@ -4,6 +4,8 @@
 *.png
 node_modules
 dist
+lib
+temp
 package-lock.json
 .idea
 .nyc_output

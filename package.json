@@ -3,8 +3,8 @@
   "version": "0.3.0",
   "description": "Pure JavaScript ID3v2 Tag writer and reader",
   "author": "Jan Metzger <jan.metzger@gmx.net>",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Zazama/node-id3.git"
@@ -29,28 +29,37 @@
   ],
   "homepage": "https://github.com/Zazama/node-id3#readme",
   "directories": {
-    "test": "dist/test",
-    "example": "dist/example"
+    "test": "lib/test",
+    "example": "lib/example"
   },
   "scripts": {
     "build": "tsc --build --incremental",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf lib temp",
+    "restore-api": "git clean -f etc doc",
     "build-watch": "tsc --build --watch --incremental",
     "test": "mocha test/**/*.ts",
     "test-watch": "mocha --watch --watch-files src/**/*,test/**/* test/**/*.ts",
     "test-coverage": "nyc mocha test/**/*.ts",
-    "prepublishOnly": "npm run clean && tsc",
+    "prepublishOnly": "npm run clean && npm build-all",
     "markdownlint-ci": "markdownlint README.md CHANGELOG.md",
     "markdownlint": "markdownlint --fix README.md CHANGELOG.md",
     "eslint": "eslint **/*.js **/*.ts",
-    "eslint-fix": "eslint --fix **/*.js **/*.ts"
+    "eslint-fix": "eslint --fix **/*.js **/*.ts",
+    "preapi-extractor": "npx mkdirp ./etc",
+    "api-extractor": "api-extractor run --local --config ./config/api-extractor.jsonc",
+    "api-documenter": "api-documenter markdown --input-folder ./temp --output-folder ./doc",
+    "build-api": "npm run build && npm run api-extractor",
+    "build-all": "npm run build && npm run api-extractor && npm run api-documenter"
   },
   "license": "MIT",
   "dependencies": {
+    "eslint-plugin-tsdoc": "^0.2.17",
     "iconv-lite": "0.6.2"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@microsoft/api-documenter": "^7.19.25",
+    "@microsoft/api-extractor": "^7.33.6",
     "@types/chai": "^4.3.4",
     "@types/chai-as-promised": "^7.1.5",
     "@types/jsmediatags": "^3.9.3",
@@ -61,7 +70,7 @@
     "@typescript-eslint/parser": "^5.45.0",
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^8.28.0",
+    "eslint": "^8.34.0",
     "eslint-plugin-mocha": "^10.1.0",
     "jsmediatags": "^3.9.3",
     "markdownlint-cli": "^0.32.2",
@@ -69,6 +78,6 @@
     "nyc": "^15.1.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.1",
-    "typescript": "^4.9.3"
+    "typescript": "^4.9.5"
   }
 }

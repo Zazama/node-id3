@@ -26,6 +26,7 @@ export const FRAME_OPTIONS = {
         multiple: false /* change in 1.0 */
     },
     "USLT": {
+        // TODO this should be true!
         multiple: false /* change in 1.0 */
     },
     "SYLT": {

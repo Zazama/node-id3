@@ -1,3 +1,6 @@
+/**
+ * @public
+ */
 export interface Options {
     /**
      * Only read the specified tag identifiers, defaults to all.

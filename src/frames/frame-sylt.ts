@@ -1,3 +1,4 @@
+import { TextEncoding } from "../definitions/Encoding"
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import type { Data } from "./type"
@@ -8,7 +9,7 @@ export const SYLT = {
             data = [data]
         }
 
-        const encoding = 1 // 16 bit unicode
+        const encoding = TextEncoding.UTF_16_WITH_BOM
         return Buffer.concat(data.map((lycics: Data) => {
             const frameBuilder = new FrameBuilder("SYLT")
                 .appendNumber(encoding, 1)
