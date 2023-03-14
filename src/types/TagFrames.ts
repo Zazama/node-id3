@@ -1,5 +1,19 @@
+/**
+ * Tag frames type definitions and documentations.
+ *
+ * @public
+ */
+
+
 import { TagConstants } from "../definitions/TagConstants"
 import { Values } from "../types/utility"
+
+/**
+ * Tag frames type definitions and documentations.
+ *
+ * @public
+ */
+
 
 /**
  * The 'Album/Movie/Show title' frame is intended for the title of the recording(/source of sound) which the audio in the file is taken from.
@@ -186,16 +200,19 @@ export type Length = string
 export type MusicianCreditsList = string
 
 /**
- * The 'Media type' frame describes from which media the sound originated. This may be a text string or a reference to the predefined media types found in the list below. References are made within "(" and ")" and are optionally followed by a text refinement, e.g. "(MC) with four channels". If a text refinement should begin with a "(" character it should be replaced with "((". Predefined refinements is appended after the media type, e.g. "(CD/A)" or "(VID/PAL/VHS)".
+ * The 'Media type' frame describes from which media the sound originated.
  *
- * DIG     Other digital media
+ * @remarks This may be a text string or a reference to the predefined media types found in the list below. References are made within "(" and ")" and are optionally followed by a text refinement, e.g. "(MC) with four channels". If a text refinement should begin with a "(" character it should be replaced with "((". Predefined refinements is appended after the media type, e.g. "(CD/A)" or "(VID/PAL/VHS)".
+ *
+ * ```
+ * DIG    Other digital media
  *    /A  Analog transfer from media
  *
- * ANA     Other analog media
+ * ANA    Other analog media
  *   /WAC Wax cylinder
  *   /8CA 8-track tape cassette
  *
- * CD      CD
+ * CD     CD
  *     /A Analog transfer from media
  *    /DD DDD
  *    /AD ADD
@@ -269,6 +286,7 @@ export type MusicianCreditsList = string
  *    /II Type II cassette (chrome)
  *   /III Type III cassette (ferric chrome)
  *    /IV Type IV cassette (metal)
+ * ```
  *
  * @public
  */
@@ -511,6 +529,7 @@ export type SynchronisedLyrics = {
     /**
      * 3 letter ISO 639-2 language code, for example: eng
      * @see {@link https://id3.org/ISO%20639-2 | ISO 639-2}
+     * @public
      */
     language: string,
     /**
