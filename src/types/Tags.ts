@@ -1,5 +1,25 @@
 import * as TagFrames from "./TagFrames"
 
+/**
+ * Tag frames type definitions and documentations.
+ *
+ * @public
+ */
+export { TagFrames }
+
+/**
+ * A utility to define an union of the given type or an array of the type.
+ *
+ * @remarks
+ * Used for frames that can have multiple instances.
+ *
+ * @public
+ */
+export type TypeOrTypeArray<T> = T | T[]
+
+/**
+ * @public
+ */
 export interface TagAliases {
     album?: TagFrames.Album,
     bpm?: TagFrames.Bpm,
@@ -54,25 +74,25 @@ export interface TagAliases {
     year?: TagFrames.Year,
     comment?: TagFrames.Comment,
     unsynchronisedLyrics?: TagFrames.UnsynchronisedLyrics,
-    synchronisedLyrics?: TagFrames.SynchronisedLyrics,
-    userDefinedText?: TagFrames.UserDefinedText,
+    synchronisedLyrics?: TypeOrTypeArray<TagFrames.SynchronisedLyrics>,
+    userDefinedText?: TypeOrTypeArray<TagFrames.UserDefinedText>,
     image?: TagFrames.Image,
     popularimeter?: TagFrames.Popularimeter,
-    private?: TagFrames.Private,
-    uniqueFileIdentifier?: TagFrames.UniqueFileIdentifier,
-    chapter?: TagFrames.Chapter<Tags>,
-    tableOfContents?: TagFrames.TableOfContents<Tags>,
-    commercialUrl?: TagFrames.CommercialUrl,
+    private?: TypeOrTypeArray<TagFrames.Private>,
+    uniqueFileIdentifier?: TypeOrTypeArray<TagFrames.UniqueFileIdentifier>,
+    chapter?: TypeOrTypeArray<TagFrames.Chapter<Tags>>,
+    tableOfContents?: TypeOrTypeArray<TagFrames.TableOfContents<Tags>>,
+    commercialUrl?: TypeOrTypeArray<TagFrames.CommercialUrl>,
     copyrightUrl?: TagFrames.CopyrightUrl,
     fileUrl?: TagFrames.FileUrl,
-    artistUrl?: TagFrames.ArtistUrl,
+    artistUrl?: TypeOrTypeArray<TagFrames.ArtistUrl>,
     audioSourceUrl?: TagFrames.AudioSourceUrl,
     radioStationUrl?: TagFrames.RadioStationUrl,
     paymentUrl?: TagFrames.PaymentUrl,
     publisherUrl?: TagFrames.PublisherUrl,
-    userDefinedUrl?: TagFrames.UserDefinedUrl,
+    userDefinedUrl?: TypeOrTypeArray<TagFrames.UserDefinedUrl>,
     eventTimingCodes?: TagFrames.EventTimingCodes,
-    commercialFrame?: TagFrames.CommercialFrame
+    commercialFrame?: TypeOrTypeArray<TagFrames.CommercialFrame>
 }
 
 export interface TagIdentifiers {

@@ -536,7 +536,7 @@ export type SynchronisedLyrics = {
          */
         timeStamp: number
     }[]
-}[]
+}
 
 /**
  * @public
@@ -544,10 +544,7 @@ export type SynchronisedLyrics = {
 export type UserDefinedText = {
     description: string,
     value: string
-} | {
-    description: string,
-    value: string
-}[]
+}
 
 /**
  * `APIC` (attached picture) tag frames
@@ -594,7 +591,7 @@ export type Popularimeter = {
 export type Private = {
     ownerIdentifier: string,
     data: Buffer
-}[]
+}
 
 /**
  * This frame's purpose is to be able to identify the audio file in a
@@ -624,7 +621,7 @@ export type UniqueFileIdentifier = {
      * Providing more data will result in an undefined behaviour.
      */
     identifier: Buffer
-}[]
+}
 
 /**
  * The purpose of this frame is to describe a single chapter within an audio file. There may be more than one frame of this type in a tag but each must have an Element ID that is unique with respect to any other "CHAP" frame or "CTOC" frame in the tag.
@@ -643,7 +640,7 @@ export type Chapter<Tags> = {
     startOffsetBytes?: number,
     endOffsetBytes?: number,
     tags?: Tags
-}[]
+}
 
 /**
  * @see {@link https://id3.org/id3v2-chapters-1.0#Table_of_contents_frame | Table of contents frame}
@@ -658,7 +655,7 @@ export type Chapter<Tags> = {
     isOrdered?: boolean,
     elements?: string[]
     tags?: Tags
-}[]
+}
 
 /**
  * The 'Commercial information' frame is a URL pointing at a webpage with information such as where the album can be bought. There may be more than one "WCOM" frame in a tag, but not with the same content.
@@ -724,7 +721,7 @@ export type PublisherUrl = string
  export type UserDefinedUrl = {
     description: string,
     url: string
-}[]
+}
 
 /**
  * ETCO frame
@@ -802,4 +799,4 @@ export type CommercialFrame = {
          */
         picture: string | Buffer
     }
-}[]
+}

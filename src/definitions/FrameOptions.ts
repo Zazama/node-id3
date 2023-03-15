@@ -5,7 +5,7 @@ export type FrameOptions = {
 
 const FRAME_OPTIONS_V2 = {
     "PIC": {
-        multiple: false /* change in 1.0 */
+        multiple: false // change in 1.0
     },
     "WAR": {
         multiple: true
@@ -18,13 +18,13 @@ const FRAME_OPTIONS_V2 = {
 
 const FRAME_OPTIONS_V3 = {
     "APIC": {
-        multiple: false /* change in 1.0 */
+        multiple: false // change in 1.0
     },
     "CHAP": {
         multiple: true
     },
     "COMM": {
-        multiple: false /* change in 1.0 */
+        multiple: false // change in 1.0
     },
     "COMR": {
         multiple: true
@@ -36,7 +36,7 @@ const FRAME_OPTIONS_V3 = {
         multiple: false
     },
     "POPM": {
-        multiple: false /* change in 1.0 */
+        multiple: false // change in 1.0
     },
     "PRIV": {
         multiple: true
@@ -57,7 +57,7 @@ const FRAME_OPTIONS_V3 = {
         multiple: true
     },
     "USLT": {
-        multiple: false /* change in 1.0 */
+        multiple: false // enable in 1.0
     },
     "WCOM": {
         multiple: true
