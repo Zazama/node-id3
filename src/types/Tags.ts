@@ -96,6 +96,15 @@ export interface TagAliases {
 }
 
 export interface TagIdentifiers {
+    APIC?: TagAliases["image"]
+    CHAP?: TagAliases["chapter"]
+    COMM?: TagAliases["comment"]
+    COMR?: TagAliases["commercialFrame"]
+    CTOC?: TagAliases["tableOfContents"]
+    ETCO?: TagAliases["eventTimingCodes"]
+    POPM?: TagAliases["popularimeter"]
+    PRIV?: TagAliases["private"]
+    SYLT?: TagAliases["synchronisedLyrics"]
     TALB?: TagAliases["album"]
     TBPM?: TagAliases["bpm"]
     TCOM?: TagAliases["composer"]
@@ -146,17 +155,10 @@ export interface TagIdentifiers {
     TSRC?: TagAliases["ISRC"]
     TSSE?: TagAliases["encodingTechnology"]
     TSST?: TagAliases["setSubtitle"]
-    TYER?: TagAliases["year"]
-    COMM?: TagAliases["comment"]
-    APIC?: TagAliases["image"]
-    USLT?: TagAliases["unsynchronisedLyrics"]
-    SYLT?: TagAliases["synchronisedLyrics"]
     TXXX?: TagAliases["userDefinedText"]
-    POPM?: TagAliases["popularimeter"]
-    PRIV?: TagAliases["private"]
+    TYER?: TagAliases["year"]
     UFID?: TagAliases["uniqueFileIdentifier"]
-    CHAP?: TagAliases["chapter"]
-    CTOC?: TagAliases["tableOfContents"]
+    USLT?: TagAliases["unsynchronisedLyrics"]
     WCOM?: TagAliases["commercialUrl"]
     WCOP?: TagAliases["copyrightUrl"]
     WOAF?: TagAliases["fileUrl"]
@@ -166,8 +168,6 @@ export interface TagIdentifiers {
     WPAY?: TagAliases["paymentUrl"]
     WPUB?: TagAliases["publisherUrl"]
     WXXX?: TagAliases["userDefinedUrl"]
-    ETCO?: TagAliases["eventTimingCodes"]
-    COMR?: TagAliases["commercialFrame"]
 }
 
 /**
