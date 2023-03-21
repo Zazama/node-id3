@@ -111,7 +111,8 @@ function getBody({flags, headerSize, bodySize}: HeaderInfo, buffer: Buffer) {
     const bodyEnd = bodyStart + bodySize - bodyOffset
     const body = buffer.subarray(bodyStart, bodyEnd)
     if (flags.unsynchronisation) {
-        // This method should stay in ID3Util for now because it's also used in the Tag's header which we don't have a class for.
+        // This method should stay in ID3Util for now because it's also used
+        // in the Tag's header which we don't have a class for.
         return ID3Util.processUnsynchronisedBuffer(body)
     }
     return body
