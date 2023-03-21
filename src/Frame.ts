@@ -68,28 +68,55 @@ function createFromBuffer(
 
 export function makeFrameBuffer(identifier: string, value: unknown) {
     if (isKeyOf(identifier, Frames)) {
-        return Frames[identifier].create(value)
+        return handleMultipleAndMakeFrameBuffer(
+            identifier,
+            value,
+            Frames[identifier].create
+        )
     }
     if (identifier.startsWith('T')) {
         return GenericFrames.GENERIC_TEXT.create(identifier, value)
     }
     if (identifier.startsWith('W')) {
-        return makeUrlBuffer(identifier, value)
+        return handleMultipleAndMakeFrameBuffer(
+            identifier,
+            value,
+            url => GenericFrames.GENERIC_URL.create(identifier, url),
+            deduplicate
+        )
     }
     return null
 }
 
-function makeUrlBuffer(identifier: string, value: unknown) {
-    const values =
-        ID3Util.getSpecOptions(identifier).multiple && Array.isArray(value)
-        ? value : [value]
-
-    const frames =
-        deduplicate(values)
-        .map(url => GenericFrames.GENERIC_URL.create(identifier, url))
+function handleMultipleAndMakeFrameBuffer(
+    identifier: string,
+    data: unknown,
+    create: (value: unknown, index: number) => Buffer | null,
+    deduplicate = (values: unknown[]) => values
+) {
+    const values = makeValueArray(identifier, data)
+    if (!values) {
+        return null
+    }
+    const frames = deduplicate(values)
+        .map(create)
         .filter(isBuffer)
 
     return frames.length ? Buffer.concat(frames) : null
+}
+
+/**
+ * When an array is given but not expected, i.e. the contract is not
+ * respected, returns null to silently ignore the data, previously the
+ * behaviour was undefined.
+ */
+function makeValueArray(identifier: string, data: unknown) {
+    const isMultiple = ID3Util.getSpecOptions(identifier).multiple
+    const isArray = Array.isArray(data)
+    if (!isMultiple && isArray) {
+        return null
+    }
+    return isMultiple && isArray ? data : [data]
 }
 
 function makeFrameValue(identifier:string, body: Buffer, version: number) {

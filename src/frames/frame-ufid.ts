@@ -3,18 +3,14 @@ import { FrameReader } from "../FrameReader"
 import type { Data } from "./type"
 
 export const UFID = {
-    create: (data: Data) => {
-        if (!(data instanceof Array)) {
-            data = [data]
-        }
-
-        return Buffer.concat(data.map((ufid: Data) => new FrameBuilder("UFID")
+    create: (ufid: Data) => {
+        return new FrameBuilder("UFID")
             .appendNullTerminatedValue(ufid.ownerIdentifier)
             .appendValue(
                 ufid.identifier instanceof Buffer ?
                 ufid.identifier : Buffer.from(ufid.identifier, "utf8")
             )
-            .getBuffer()))
+            .getBuffer()
     },
     read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
