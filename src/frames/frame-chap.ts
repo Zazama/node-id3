@@ -1,10 +1,11 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import * as TagsHelpers from '../TagsHelpers'
-import type { Data } from "./type"
+import type { Chapter } from "../types/TagFrames"
+import type { WriteTags } from "../types/Tags"
 
 export const CHAP = {
-    create: (chap: Data) => {
+    create: (chap: Chapter<WriteTags>) => {
         if (!chap
             || !chap.elementID
             || typeof chap.startTimeMs === "undefined"

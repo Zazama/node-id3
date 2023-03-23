@@ -1,9 +1,9 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import type { Data } from "./type"
+import { Comment } from "../types/TagFrames"
 
 export const COMM = {
-    create: (data: Data) => {
+    create: (data: Comment) => {
         data = data || {}
         if(!data.text) {
             return null

@@ -1,10 +1,10 @@
 import { TextEncoding } from "../definitions/Encoding"
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import type { Data } from "./type"
+import { SynchronisedLyrics } from "../types/TagFrames"
 
 export const SYLT = {
-    create: (lyrics: Data) => {
+    create: (lyrics: SynchronisedLyrics) => {
         const encoding = TextEncoding.UTF_16_WITH_BOM
         const frameBuilder = new FrameBuilder("SYLT")
             .appendNumber(encoding, 1)
@@ -12,7 +12,7 @@ export const SYLT = {
             .appendNumber(lyrics.timeStampFormat, 1)
             .appendNumber(lyrics.contentType, 1)
             .appendNullTerminatedValue(lyrics.shortText, encoding)
-        lyrics.synchronisedText.forEach((part: Data) => {
+        lyrics.synchronisedText.forEach(part => {
             frameBuilder.appendNullTerminatedValue(part.text, encoding)
             frameBuilder.appendNumber(part.timeStamp, 4)
         })
