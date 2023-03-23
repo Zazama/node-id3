@@ -1,10 +1,11 @@
+import { TextEncoding } from "../definitions/Encoding"
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import type { Data } from "./type"
 
 export const SYLT = {
     create: (lyrics: Data) => {
-        const encoding = 1 // 16 bit unicode
+        const encoding = TextEncoding.UTF_16_WITH_BOM
         const frameBuilder = new FrameBuilder("SYLT")
             .appendNumber(encoding, 1)
             .appendValue(lyrics.language, 3)
