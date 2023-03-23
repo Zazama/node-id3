@@ -115,8 +115,8 @@ function makeTagFrameArray(tagFrame: TagFrame) {
     return tagFrame as unknown as TagFrame[]
 }
 
-describe('Cross tests jsmediatags', function() {
-    it('write full', function() {
+describe('Cross tests jsmediatags', function () {
+    it('write full', function () {
         jsmediatags.read(NodeID3.create(nodeTagsFull), {
             onSuccess: (tag) => {
                 const tags = tag.tags
@@ -142,7 +142,7 @@ describe('Cross tests jsmediatags', function() {
                         description: tagFrame.data.user_description,
                         value: tagFrame.data.data
                     })
-                )).to.have.deep.members(nodeTagsFull.userDefinedText)
+                    )).to.have.deep.members(nodeTagsFull.userDefinedText)
 
                 assert.deepStrictEqual({
                     mime: tags.APIC.data.format,
@@ -169,7 +169,7 @@ describe('Cross tests jsmediatags', function() {
                 }, nodeTagsFull.chapter[0])
 
                 assert.deepStrictEqual({
-                    elementID:nodeTagsFull.tableOfContents[0].elementID,
+                    elementID: nodeTagsFull.tableOfContents[0].elementID,
                     isOrdered: false,
                     elements: tags.CTOC.data.childElementIds,
                     tags: {
@@ -195,7 +195,7 @@ describe('Cross tests jsmediatags', function() {
         })
     })
 
-    it('write with missing values', function() {
+    it('write with missing values', function () {
         jsmediatags.read(NodeID3.create(
             nodeTagsMissingValues as NodeID3.WriteTags
         ), {
@@ -249,26 +249,27 @@ describe('Cross tests jsmediatags', function() {
 
                 assert.strictEqual(tags.CTOC.data.ordered, false)
             },
-            onError: function(error) {
+            onError: function (error) {
                 throw error
             }
         })
     })
 
-    it('read from full self-created tags', function() {
+    it('read from full self-created tags', function () {
         const tagsBuffer = NodeID3.create(nodeTagsFull)
         const read = NodeID3.read(tagsBuffer, { noRaw: true })
 
-        if (read.chapter && read.chapter[0].tags) {
+        if (Array.isArray(read.chapter) && read.chapter[0].tags) {
             delete read.chapter[0].tags.raw
         }
-        if (read.tableOfContents && read.tableOfContents[0].tags) {
+        if (Array.isArray(read.tableOfContents)
+            && read.tableOfContents[0].tags) {
             delete read.tableOfContents[0].tags.raw
         }
         assert.deepStrictEqual(nodeTagsFull, read)
     })
 
-    it('read from missing values self-created tags', function() {
+    it('read from missing values self-created tags', function () {
         const tagsBuffer = NodeID3.create(
             nodeTagsMissingValues as unknown as NodeID3.WriteTags
         )
