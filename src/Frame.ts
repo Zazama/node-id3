@@ -88,33 +88,31 @@ export function makeFrameBuffer(identifier: string, value: unknown) {
     return null
 }
 
-function handleMultipleAndMakeFrameBuffer(
+function handleMultipleAndMakeFrameBuffer<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Create extends (value: any, index: number) => Buffer | null
+>(
     identifier: string,
     data: unknown,
-    create: (value: unknown, index: number) => Buffer | null,
-    deduplicate = (values: unknown[]) => values
+    create: Create,
+    deduplicate = (values: ([Parameters<Create>])[]) => values
 ) {
     const values = makeValueArray(identifier, data)
-    if (!values) {
-        return null
-    }
     const frames = deduplicate(values)
         .map(create)
         .filter(isBuffer)
-
     return frames.length ? Buffer.concat(frames) : null
 }
 
 /**
- * When an array is given but not expected, i.e. the contract is not
- * respected, returns null to silently ignore the data, previously the
- * behaviour was undefined.
+ * Throws if an array is given but not expected, i.e. the contract is not
+ * respected, otherwise always return an array.
  */
 function makeValueArray(identifier: string, data: unknown) {
     const isMultiple = ID3Util.getSpecOptions(identifier).multiple
     const isArray = Array.isArray(data)
     if (!isMultiple && isArray) {
-        return null
+        throw new TypeError(`Unexpected array for frame ${identifier}`)
     }
     return isMultiple && isArray ? data : [data]
 }
