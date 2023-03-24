@@ -12,7 +12,7 @@ import {
 /**
  * Returns an array of buffers using specified tags.
  */
-function createBuffersFromTags(tags: WriteTags): Buffer[] {
+function createBuffersFromTags(tags?: WriteTags): Buffer[] {
     if(!tags) {
         return []
     }
@@ -26,7 +26,7 @@ function createBuffersFromTags(tags: WriteTags): Buffer[] {
 /**
  * Returns a buffer with the frames for the specified tags.
  */
-export function createBufferFromTags(tags: WriteTags) {
+export function createBufferFromTags(tags?: WriteTags) {
     return Buffer.concat(createBuffersFromTags(tags))
 }
 

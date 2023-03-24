@@ -22,7 +22,7 @@ export const GENERIC_TEXT = {
 }
 
 export const GENERIC_URL = {
-    create: (frameIdentifier: string, data: Data) => {
+    create: (frameIdentifier: string, data: string) => {
         if(!frameIdentifier || !data) {
             return null
         }

@@ -68,28 +68,53 @@ function createFromBuffer(
 
 export function makeFrameBuffer(identifier: string, value: unknown) {
     if (isKeyOf(identifier, Frames)) {
-        return Frames[identifier].create(value)
+        return handleMultipleAndMakeFrameBuffer(
+            identifier,
+            value,
+            Frames[identifier].create
+        )
     }
     if (identifier.startsWith('T')) {
         return GenericFrames.GENERIC_TEXT.create(identifier, value)
     }
     if (identifier.startsWith('W')) {
-        return makeUrlBuffer(identifier, value)
+        return handleMultipleAndMakeFrameBuffer(
+            identifier,
+            value,
+            url => GenericFrames.GENERIC_URL.create(identifier, url),
+            deduplicate
+        )
     }
     return null
 }
 
-function makeUrlBuffer(identifier: string, value: unknown) {
-    const values =
-        ID3Util.getSpecOptions(identifier).multiple && Array.isArray(value)
-        ? value : [value]
-
-    const frames =
-        deduplicate(values)
-        .map(url => GenericFrames.GENERIC_URL.create(identifier, url))
+function handleMultipleAndMakeFrameBuffer<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Create extends (value: any, index: number) => Buffer | null
+>(
+    identifier: string,
+    data: unknown,
+    create: Create,
+    deduplicate = (values: ([Parameters<Create>])[]) => values
+) {
+    const values = makeValueArray(identifier, data)
+    const frames = deduplicate(values)
+        .map(create)
         .filter(isBuffer)
-
     return frames.length ? Buffer.concat(frames) : null
+}
+
+/**
+ * Throws if an array is given but not expected, i.e. the contract is not
+ * respected, otherwise always return an array.
+ */
+function makeValueArray(identifier: string, data: unknown) {
+    const isMultiple = ID3Util.getSpecOptions(identifier).multiple
+    const isArray = Array.isArray(data)
+    if (!isMultiple && isArray) {
+        throw new TypeError(`Unexpected array for frame ${identifier}`)
+    }
+    return isMultiple && isArray ? data : [data]
 }
 
 function makeFrameValue(identifier:string, body: Buffer, version: number) {
@@ -111,7 +136,8 @@ function getBody({flags, headerSize, bodySize}: HeaderInfo, buffer: Buffer) {
     const bodyEnd = bodyStart + bodySize - bodyOffset
     const body = buffer.subarray(bodyStart, bodyEnd)
     if (flags.unsynchronisation) {
-        // This method should stay in ID3Util for now because it's also used in the Tag's header which we don't have a class for.
+        // This method should stay in ID3Util for now because it's also used
+        // in the Tag's header which we don't have a class for.
         return ID3Util.processUnsynchronisedBuffer(body)
     }
     return body
