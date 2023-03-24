@@ -45,7 +45,10 @@ export interface TagAliases {
     fileType?: TagFrames.FileType,
     fileUrl?: TagFrames.FileUrl,
     genre?: TagFrames.Genre,
-    image?: TagFrames.Image,
+    /**
+     * An Image definition or an image Buffer or an image filename.
+     */
+    image?: TagFrames.Image | Buffer | string,
     initialKey?: TagFrames.InitialKey,
     internetRadioName?: TagFrames.InternetRadioName,
     internetRadioOwner?: TagFrames.InternetRadioOwner,

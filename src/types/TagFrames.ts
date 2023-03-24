@@ -549,11 +549,9 @@ export type UserDefinedText = {
 /**
  * `APIC` (attached picture) tag frames
  *
- * Filename or image data.
- *
  * @public
  */
- export type Image = string | Buffer | {
+ export type Image = {
     mime: string
     /**
      * See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
