@@ -18,9 +18,8 @@ export const SYLT = {
         })
         return frameBuilder.getBuffer()
     },
-    read: (buffer: Buffer) => {
+    read: (buffer: Buffer): SynchronisedLyrics => {
         const reader = new FrameReader(buffer, 0)
-
         return {
             language: reader.consumeStaticValue('string', 3, 0x00),
             timeStampFormat: reader.consumeStaticValue('number', 1),
