@@ -1,24 +1,24 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import type { Data } from "./type"
+import { EventTimingCodes } from "../types/TagFrames"
 
 export const ETCO = {
-    create: (data: Data) => {
+    create: (data: EventTimingCodes) => {
         const builder = new FrameBuilder("ETCO")
             .appendNumber(data.timeStampFormat, 1)
-        data.keyEvents.forEach((keyEvent: Data) => {
+        data.keyEvents.forEach((keyEvent) => {
             builder
                 .appendNumber(keyEvent.type, 1)
                 .appendNumber(keyEvent.timeStamp, 4)
         })
-
         return builder.getBuffer()
     },
-    read: (buffer: Buffer) => {
+    read: (buffer: Buffer): EventTimingCodes => {
         const reader = new FrameReader(buffer)
-
         return {
-            timeStampFormat: reader.consumeStaticValue('number', 1),
+            timeStampFormat: reader.consumeStaticValue(
+                'number', 1
+            ) as EventTimingCodes["timeStampFormat"],
             keyEvents: Array.from((function*() {
                 while(true) {
                     const type = reader.consumeStaticValue('number', 1)
