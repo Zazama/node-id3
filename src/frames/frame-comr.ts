@@ -1,39 +1,43 @@
 import fs = require('fs')
+import { TextEncoding } from '../definitions/Encoding'
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import * as ID3Util from "../ID3Util"
+import { CommercialFrame } from '../types/TagFrames'
 import { isString } from '../util'
-import type { Data } from "./type"
 
 export const COMR = {
-    create: (comr: Data) => {
+    create: (comr: CommercialFrame) => {
         const prices = comr.prices || {}
         const builder = new FrameBuilder("COMR")
 
-        // Text encoding
-        builder.appendNumber(0x01, 1)
+        const textEncoding = TextEncoding.UTF_16_WITH_BOM
+
+        builder.appendNumber(textEncoding, 1)
+
         // Price string
-        const priceString = Object.entries(prices).map((price: Data) => {
+        const priceString = Object.entries(prices).map((price) => {
             return price[0].substring(0, 3) + price[1].toString()
         }).join('/')
-        builder.appendNullTerminatedValue(priceString, 0x00)
+        builder.appendNullTerminatedValue(priceString, TextEncoding.ISO_8859_1)
+
         // Valid until
         builder.appendValue(
             comr.validUntil.year.toString().padStart(4, '0').substring(0, 4) +
             comr.validUntil.month.toString().padStart(2, '0').substring(0, 2) +
             comr.validUntil.day.toString().padStart(2, '0').substring(0, 2),
-            8, 0x00
+            8, TextEncoding.ISO_8859_1
         )
-        // Contact URL
-        builder.appendNullTerminatedValue(comr.contactUrl, 0x00)
-        // Received as
+
+        builder.appendNullTerminatedValue(
+            comr.contactUrl, TextEncoding.ISO_8859_1
+        )
         builder.appendNumber(comr.receivedAs, 1)
-        // Name of seller
-        builder.appendNullTerminatedValue(comr.nameOfSeller, 0x01)
-        // Description
-        builder.appendNullTerminatedValue(comr.description, 0x01)
+        builder.appendNullTerminatedValue(comr.nameOfSeller, textEncoding)
+        builder.appendNullTerminatedValue(comr.description, textEncoding)
+
         // Seller logo
-        if(comr.sellerLogo) {
+        if (comr.sellerLogo) {
             const pictureFilenameOrBuffer = comr.sellerLogo.picture
             const picture = isString(pictureFilenameOrBuffer)
                 ? fs.readFileSync(comr.sellerLogo.picture)
@@ -46,50 +50,63 @@ export const COMR = {
                 mimeType = 'image/'
             }
 
-            builder.appendNullTerminatedValue(mimeType || '', 0x00)
+            builder.appendNullTerminatedValue(
+                mimeType || '', TextEncoding.ISO_8859_1
+            )
             builder.appendValue(picture)
         }
         return builder.getBuffer()
     },
-    read: (buffer: Buffer) => {
+
+    read: (buffer: Buffer): CommercialFrame => {
         const reader = new FrameReader(buffer, 0)
 
-        const tag: Data = {}
-
-        // Price string
-        const priceStrings = reader.consumeNullTerminatedValue('string', 0x00)
+        const prices = reader.consumeNullTerminatedValue('string', 0x00)
             .split('/')
             .filter((price) => price.length > 3)
-        tag.prices = {}
-        for(const price of priceStrings) {
-            tag.prices[price.substring(0, 3)] = price.substring(3)
-        }
+            .reduce<Record<string, string | number>>(
+                (prices, price) => (
+                    prices[price.substring(0, 3)] = price.substring(3),
+                    prices
+                ),
+                {}
+            )
+
         // Valid until
         const validUntilString = reader.consumeStaticValue('string', 8, 0x00)
-        tag.validUntil = { year: 0, month: 0, day: 0 }
+        const validUntil = { year: 0, month: 0, day: 0 }
         if(/^\d+$/.test(validUntilString)) {
-            tag.validUntil.year = parseInt(validUntilString.substring(0, 4))
-            tag.validUntil.month = parseInt(validUntilString.substring(4, 6))
-            tag.validUntil.day = parseInt(validUntilString.substring(6))
-        }
-        // Contact URL
-        tag.contactUrl = reader.consumeNullTerminatedValue('string', 0x00)
-        // Received as
-        tag.receivedAs = reader.consumeStaticValue('number', 1)
-        // Name of seller
-        tag.nameOfSeller = reader.consumeNullTerminatedValue('string')
-        // Description
-        tag.description = reader.consumeNullTerminatedValue('string')
-        // Seller logo
-        const mimeType = reader.consumeNullTerminatedValue('string', 0x00)
-        const picture = reader.consumeStaticValue('buffer')
-        if(picture && picture.length > 0) {
-            tag.sellerLogo = {
-                mimeType,
-                picture
-            }
+            validUntil.year = parseInt(validUntilString.substring(0, 4))
+            validUntil.month = parseInt(validUntilString.substring(4, 6))
+            validUntil.day = parseInt(validUntilString.substring(6))
         }
 
-        return tag
+        const contactUrl = reader.consumeNullTerminatedValue(
+            'string', TextEncoding.ISO_8859_1
+        )
+        const receivedAs = reader.consumeStaticValue('number', 1)
+        const nameOfSeller = reader.consumeNullTerminatedValue('string')
+        const description = reader.consumeNullTerminatedValue('string')
+
+        // Seller logo
+        const mimeType = reader.consumeNullTerminatedValue(
+            'string', TextEncoding.ISO_8859_1
+        )
+        const picture = reader.consumeStaticValue('buffer')
+
+        return {
+            prices,
+            validUntil,
+            contactUrl,
+            receivedAs,
+            nameOfSeller,
+            description,
+            ...(picture && picture.length > 0 ? {
+                sellerLogo: {
+                    mimeType, picture
+                }
+            } : {
+            })
+        }
     }
 }
