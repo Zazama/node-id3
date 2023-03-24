@@ -35,8 +35,10 @@ export const APIC = {
                 : pictureType.id
 
             /*
-             * Fix a bug in iTunes where the artwork is not recognized when the description is empty using UTF-16.
-             * Instead, if the description is empty, use encoding 0x00 (ISO-8859-1).
+             * Fix a bug in iTunes where the artwork is not recognized when the
+             * description is empty using UTF-16.
+             * Instead, if the description is empty, use encoding 0x00
+             * (ISO-8859-1).
              */
             const { description = '' } = data
             const encoding = description ?
@@ -52,27 +54,21 @@ export const APIC = {
             return null
         }
     },
-    read: (buffer: Buffer, version: number) => {
+    read: (buffer: Buffer, version: number): Image => {
         const reader = new FrameReader(buffer, 0)
-        let mime
-        if(version === 2) {
-            mime = reader.consumeStaticValue('string', 3, 0x00)
-        } else {
-            mime = reader.consumeNullTerminatedValue('string', 0x00)
-        }
-
-        const typeId = reader.consumeStaticValue('number', 1)
-        const description = reader.consumeNullTerminatedValue('string')
-        const imageBuffer = reader.consumeStaticValue()
-
         return {
-            mime: mime,
-            type: {
-                id: typeId,
-                name: APIC_TYPES[typeId]
-            },
-            description: description,
-            imageBuffer: imageBuffer
+            mime: version === 2
+                ? reader.consumeStaticValue('string', 3, 0x00)
+                : reader.consumeNullTerminatedValue('string', 0x00),
+            type: (() => {
+                const typeId = reader.consumeStaticValue('number', 1)
+                return {
+                    id: typeId,
+                    name: APIC_TYPES[typeId]
+                }
+            })(),
+            description: reader.consumeNullTerminatedValue('string'),
+            imageBuffer: reader.consumeStaticValue()
         }
     }
 }
