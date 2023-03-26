@@ -46,8 +46,8 @@ export const APIC = {
         const reader = new FrameReader(buffer, 0)
         return {
             mime: version === 2
-                ? reader.consumeStaticValue('string', 3, 0x00)
-                : reader.consumeNullTerminatedValue('string', 0x00),
+                ? reader.consumeStaticValue('string', 3, TextEncoding.ISO_8859_1)
+                : reader.consumeNullTerminatedValue('string', TextEncoding.ISO_8859_1),
             type: (() => {
                 const typeId = reader.consumeStaticValue('number', 1)
                 return {
