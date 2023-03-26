@@ -4,24 +4,25 @@ import * as TagsHelpers from '../TagsHelpers'
 import { TableOfContents } from "../types/TagFrames"
 import { Tags, WriteTags } from "../types/Tags"
 
+const FLAGS = {
+    TOP_LEVEL: 2,
+    ORDERED: 1
+} as const
+
 export const CTOC = {
     create: (toc: TableOfContents<WriteTags>, index: number) => {
         if (!toc.elementID) {
             throw new TypeError("An elementID must be provided")
         }
-        const { elements = [] } = toc
+        const flags =
+            (index === 0 ? FLAGS.TOP_LEVEL : 0) |
+            (toc.isOrdered ? FLAGS.ORDERED : 0)
 
-        const ctocFlags = Buffer.alloc(1, 0)
-        if (index === 0) {
-            ctocFlags[0] += 2
-        }
-        if (toc.isOrdered) {
-            ctocFlags[0] += 1
-        }
+        const { elements = [] } = toc
 
         const builder = new FrameBuilder("CTOC")
             .appendNullTerminatedValue(toc.elementID)
-            .appendValue(ctocFlags, 1)
+            .appendValue(flags, 1)
             .appendNumber(elements.length, 1)
 
         elements.forEach((element) => {
@@ -47,7 +48,7 @@ export const CTOC = {
 
         return {
             elementID,
-            isOrdered: !!(flags & 0x01),
+            isOrdered: !!(flags & FLAGS.ORDERED),
             elements,
             tags
         }
