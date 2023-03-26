@@ -6,7 +6,7 @@
 ![Scrutinizer code quality](https://img.shields.io/scrutinizer/quality/g/Zazama/node-id3?style=flat-square)
 ![npm](https://img.shields.io/npm/dt/node-id3?style=flat-square)
 
-node-id3 is an ID3-Tag library written in Typescript and JavaScript.
+node-id3 is an ID3-Tag library written in Typescript.
 
 ## Installation
 
@@ -139,6 +139,14 @@ NodeID3Promise.create(tags).then((buffer) => /*...*/)
 NodeID3Promise.read(filepath).then(/*...*/.catch(/*...*/)
 NodeID3Promise.removeTags(filepath).then(/*...*/.catch(/*...*/)
 ```
+
+## Errors
+
+The library may throw in various cases.
+
+- file operations may throw, refer to [Node.js](https://nodejs.org/) File System
+  API for information
+- tags are partially validated and the API will throw when a validation fails
 
 ## Supported aliases/fields
 

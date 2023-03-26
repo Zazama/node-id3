@@ -47,6 +47,7 @@ export interface TagAliases {
     genre?: TagFrames.Genre,
     /**
      * An Image definition or an image Buffer or an image filename.
+     * @see {@link TagFrames.Image}
      */
     image?: TagFrames.Image | Buffer | string,
     initialKey?: TagFrames.InitialKey,

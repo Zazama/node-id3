@@ -3,7 +3,17 @@
  *
  * @remarks
  *
- * Used specification: {@link http://id3.org/id3v2.3.0 | id3.org v2.3.0}.
+ * This library (partially, still work in progress) implements
+ * {@link http://id3.org/id3v2.3.0 | id3.org v2.3.0} specifications.
+ *
+ * ## Errors
+ *
+ * The library may throw in various cases.
+ *
+ * - file operations may throw, refer to [Node.js](https://nodejs.org/)
+ *   File System API documentation
+ *   for more information
+ * - tags are partially validated and the API will throw when a validation fails
  *
  * @packageDocumentation
  */
