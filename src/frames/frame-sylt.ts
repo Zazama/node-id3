@@ -4,16 +4,16 @@ import { FrameReader } from "../FrameReader"
 import { SynchronisedLyrics } from "../types/TagFrames"
 
 export const SYLT = {
-    create: (lyrics: SynchronisedLyrics) => {
-        const encoding = TextEncoding.UTF_16_WITH_BOM
+    create: (lyrics: SynchronisedLyrics): Buffer => {
+        const textEncoding = TextEncoding.UTF_16_WITH_BOM
         const frameBuilder = new FrameBuilder("SYLT")
-            .appendNumber(encoding, 1)
+            .appendNumber(textEncoding, 1)
             .appendValue(lyrics.language, 3)
             .appendNumber(lyrics.timeStampFormat, 1)
             .appendNumber(lyrics.contentType, 1)
-            .appendNullTerminatedValue(lyrics.shortText, encoding)
+            .appendNullTerminatedValue(lyrics.shortText, textEncoding)
         lyrics.synchronisedText.forEach(part => {
-            frameBuilder.appendNullTerminatedValue(part.text, encoding)
+            frameBuilder.appendNullTerminatedValue(part.text, textEncoding)
             frameBuilder.appendNumber(part.timeStamp, 4)
         })
         return frameBuilder.getBuffer()
@@ -22,7 +22,8 @@ export const SYLT = {
         const reader = new FrameReader(buffer, 0)
         return {
             language: reader.consumeStaticValue('string', 3, 0x00),
-            timeStampFormat: reader.consumeStaticValue('number', 1),
+            timeStampFormat: reader.consumeStaticValue('number', 1) as
+                SynchronisedLyrics["timeStampFormat"],
             contentType: reader.consumeStaticValue('number', 1),
             shortText: reader.consumeNullTerminatedValue('string'),
             synchronisedText: Array.from((function*() {

@@ -1,15 +1,16 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import type { Data } from "./type"
+import { Private } from "../types/TagFrames"
+import { isBuffer } from "../util"
 
 export const PRIV = {
-    create: (priv: Data) => {
+    create: (priv: Private): Buffer => {
         return new FrameBuilder("PRIV")
             .appendNullTerminatedValue(priv.ownerIdentifier)
-            .appendValue(priv.data instanceof Buffer ? priv.data : Buffer.from(priv.data, "utf8"))
+            .appendValue(isBuffer(priv.data) ? priv.data : Buffer.from(priv.data, "utf8"))
             .getBuffer()
     },
-    read: (buffer: Buffer) => {
+    read: (buffer: Buffer): Private => {
         const reader = new FrameReader(buffer)
         return {
             ownerIdentifier: reader.consumeNullTerminatedValue('string'),

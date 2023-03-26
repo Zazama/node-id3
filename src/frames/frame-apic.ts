@@ -8,7 +8,7 @@ import { Image } from '../types/TagFrames'
 import { retrievePictureAndMimeType } from "./util-picture"
 
 export const APIC = {
-    create: (input: Image | Buffer | string) => {
+    create: (input: Image | Buffer | string): Buffer => {
         const image = (() => {
             const data: Partial<Image> = isBuffer(input) || isString(input) ? {
                 imageBuffer: input
@@ -30,15 +30,15 @@ export const APIC = {
         // Instead, if the description is empty, use encoding 0x00
         // (ISO-8859-1).
         const { description = '' } = image
-        const encoding = description ?
+        const textEncoding = description ?
             TextEncoding.UTF_16_WITH_BOM : TextEncoding.ISO_8859_1
 
         return new FrameBuilder('APIC')
-            .appendNumber(encoding, 1)
+            .appendNumber(textEncoding, 1)
             .appendNullTerminatedValue(image.mimeType)
             .appendNumber(image.type?.id
                 ?? TagConstants.AttachedPicture.PictureType.FRONT_COVER, 1)
-            .appendNullTerminatedValue(description, encoding)
+            .appendNullTerminatedValue(description, textEncoding)
             .appendValue(image.pictureBuffer)
             .getBuffer()
     },

@@ -4,16 +4,17 @@ import { FrameReader } from "../FrameReader"
 import { Comment } from "../types/TagFrames"
 
 export const COMM = {
-    create: (data: Comment) => {
+    create: (data: Comment): Buffer => {
         if(!data.text) {
             throw new TypeError("Missing text from 'Comment' frame")
         }
 
+        const textEncoding = TextEncoding.UTF_16_WITH_BOM
         return new FrameBuilder("COMM")
-            .appendNumber(0x01, 1)
+            .appendNumber(textEncoding, 1)
             .appendValue(data.language)
-            .appendNullTerminatedValue(data.shortText, 0x01)
-            .appendValue(data.text, null, 0x01)
+            .appendNullTerminatedValue(data.shortText, textEncoding)
+            .appendValue(data.text, null, textEncoding)
             .getBuffer()
     },
     read: (buffer: Buffer): Comment => {

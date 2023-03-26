@@ -1,20 +1,28 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import type { Data } from "./type"
+import { Popularimeter } from "../types/TagFrames"
 
 export const POPM = {
-    create: (data: Data) => {
-        const email = data.email
-        let rating = Math.trunc(data.rating)
-        let counter = Math.trunc(data.counter)
+    create: (data: Popularimeter): Buffer => {
+        const { email } = data
+        // Nothing specifies in the documentation that an email must be
+        // provided, it could be empty I suppose.
         if(!email) {
-            return null
+            throw new RangeError("An email is expected")
         }
-        if(isNaN(rating) || rating < 0 || rating > 255) {
-            rating = 0
+
+        const rating = Math.trunc(data.rating)
+        if( isNaN(rating) || rating < 0 || rating > 255) {
+            throw new RangeError(
+                `Provided rating ${rating} is not in the valid range`
+            )
         }
-        if(isNaN(counter) || counter < 0) {
-            counter = 0
+
+        const counter = Math.trunc(data.counter)
+        if (isNaN(counter) || counter < 0) {
+            throw new RangeError(
+                `Provided counter value must be a positive integer`
+            )
         }
 
         return new FrameBuilder("POPM")
@@ -23,7 +31,7 @@ export const POPM = {
             .appendNumber(counter, 4)
             .getBuffer()
     },
-    read: (buffer: Buffer) => {
+    read: (buffer: Buffer): Popularimeter => {
         const reader = new FrameReader(buffer)
         return {
             email: reader.consumeNullTerminatedValue('string'),

@@ -6,8 +6,7 @@ import type { WriteTags } from "../types/Tags"
 
 export const CHAP = {
     create: (chap: Chapter<WriteTags>) => {
-        if (!chap
-            || !chap.elementID
+        if (!chap.elementID
             || typeof chap.startTimeMs === "undefined"
             || !chap.endTimeMs
         ) {
