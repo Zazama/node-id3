@@ -1,35 +1,29 @@
-import * as fs from "fs"
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { APIC_TYPES } from '../definitions/PictureTypes'
 import { TagConstants } from '../definitions/TagConstants'
-import * as ID3Util from "../ID3Util"
 import { isBuffer, isString } from '../util'
 import { TextEncoding } from '../definitions/Encoding'
 import { Image } from '../types/TagFrames'
+import { retrievePictureAndMimeType } from "./util-picture"
 
 export const APIC = {
-    create: (data: Image | Buffer | string) => {
-        const image: Partial<Image> = (() => {
-            if (isBuffer(data)) {
-                return {
-                    imageBuffer: Buffer.from(data)
-                }
+    create: (input: Image | Buffer | string) => {
+        const image = (() => {
+            const data: Partial<Image> = isBuffer(input) || isString(input) ? {
+                imageBuffer: input
+            } : input
+            const { pictureBuffer, mimeType } = retrievePictureAndMimeType({
+                filenameOrBuffer: data.imageBuffer,
+                mimeType: data.mime
+            })
+            return {
+                pictureBuffer,
+                mimeType,
+                type: data.type,
+                description: data.description
             }
-            if (isString(data)) {
-                return {
-                    imageBuffer: fs.readFileSync(data)
-                }
-            }
-            return data
         })()
-        if (!image.imageBuffer) {
-            throw new TypeError("Missing image data")
-        }
-
-        const {
-            mime = ID3Util.getPictureMimeTypeFromBuffer(image.imageBuffer)
-        } = image
 
         // Fix a bug in iTunes where the artwork is not recognized when the
         // description is empty using UTF-16.
@@ -41,11 +35,11 @@ export const APIC = {
 
         return new FrameBuilder('APIC')
             .appendNumber(encoding, 1)
-            .appendNullTerminatedValue(mime)
+            .appendNullTerminatedValue(image.mimeType)
             .appendNumber(image.type?.id
                 ?? TagConstants.AttachedPicture.PictureType.FRONT_COVER, 1)
             .appendNullTerminatedValue(description, encoding)
-            .appendValue(image.imageBuffer)
+            .appendValue(image.pictureBuffer)
             .getBuffer()
     },
     read: (buffer: Buffer, version: number): Image => {

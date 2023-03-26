@@ -568,7 +568,10 @@ export type UserDefinedText = {
         name?: string
     },
     description?: string,
-    imageBuffer: Buffer,
+    /**
+     * Image data or image filename
+     */
+    imageBuffer: Buffer | string,
 }
 
 /**
