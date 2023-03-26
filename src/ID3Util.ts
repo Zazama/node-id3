@@ -220,5 +220,5 @@ export function getPictureMimeTypeFromBuffer(pictureBuffer: Buffer) {
     ) {
         return "image/png"
     }
-    return null
+    return "image/"
 }

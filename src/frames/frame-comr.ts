@@ -43,12 +43,7 @@ export const COMR = {
                 ? fs.readFileSync(comr.sellerLogo.picture)
                 : pictureFilenameOrBuffer
 
-            let mimeType = comr.sellerLogo.mimeType || ID3Util.getPictureMimeTypeFromBuffer(picture)
-
-            // Only image/png and image/jpeg allowed
-            if (mimeType !== 'image/png' && 'image/jpeg') {
-                mimeType = 'image/'
-            }
+            const mimeType = comr.sellerLogo.mimeType ?? ID3Util.getPictureMimeTypeFromBuffer(picture)
 
             builder.appendNullTerminatedValue(
                 mimeType || '', TextEncoding.ISO_8859_1

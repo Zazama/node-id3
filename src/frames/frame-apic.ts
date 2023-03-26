@@ -1,58 +1,52 @@
-import fs = require('fs')
+import * as fs from "fs"
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { APIC_TYPES } from '../definitions/PictureTypes'
 import { TagConstants } from '../definitions/TagConstants'
 import * as ID3Util from "../ID3Util"
-import { isString } from '../util'
+import { isBuffer, isString } from '../util'
 import { TextEncoding } from '../definitions/Encoding'
-import type { Data } from "./type"
+import { Image } from '../types/TagFrames'
 
 export const APIC = {
-    create: (data: Data) => {
-        try {
-            if (data instanceof Buffer) {
-                data = {
+    create: (data: Image | Buffer | string) => {
+        const image: Partial<Image> = (() => {
+            if (isBuffer(data)) {
+                return {
                     imageBuffer: Buffer.from(data)
                 }
-            } else if (isString(data)) {
-                data = {
+            }
+            if (isString(data)) {
+                return {
                     imageBuffer: fs.readFileSync(data)
                 }
-            } else if (!data.imageBuffer) {
-                return Buffer.alloc(0)
             }
-
-            let mime_type = data.mime
-
-            if(!mime_type) {
-                mime_type = ID3Util.getPictureMimeTypeFromBuffer(data.imageBuffer)
-            }
-
-            const pictureType = data.type || {}
-            const pictureTypeId = pictureType.id === undefined
-                ? TagConstants.AttachedPicture.PictureType.FRONT_COVER
-                : pictureType.id
-
-            /*
-             * Fix a bug in iTunes where the artwork is not recognized when the
-             * description is empty using UTF-16.
-             * Instead, if the description is empty, use encoding 0x00
-             * (ISO-8859-1).
-             */
-            const { description = '' } = data
-            const encoding = description ?
-                TextEncoding.UTF_16_WITH_BOM : TextEncoding.ISO_8859_1
-            return new FrameBuilder('APIC')
-              .appendNumber(encoding, 1)
-              .appendNullTerminatedValue(mime_type)
-              .appendNumber(pictureTypeId, 1)
-              .appendNullTerminatedValue(description, encoding)
-              .appendValue(data.imageBuffer)
-              .getBuffer()
-        } catch(error) {
-            return null
+            return data
+        })()
+        if (!image.imageBuffer) {
+            throw new TypeError("Missing image data")
         }
+
+        const {
+            mime = ID3Util.getPictureMimeTypeFromBuffer(image.imageBuffer)
+        } = image
+
+        // Fix a bug in iTunes where the artwork is not recognized when the
+        // description is empty using UTF-16.
+        // Instead, if the description is empty, use encoding 0x00
+        // (ISO-8859-1).
+        const { description = '' } = image
+        const encoding = description ?
+            TextEncoding.UTF_16_WITH_BOM : TextEncoding.ISO_8859_1
+
+        return new FrameBuilder('APIC')
+            .appendNumber(encoding, 1)
+            .appendNullTerminatedValue(mime)
+            .appendNumber(image.type?.id
+                ?? TagConstants.AttachedPicture.PictureType.FRONT_COVER, 1)
+            .appendNullTerminatedValue(description, encoding)
+            .appendValue(image.imageBuffer)
+            .getBuffer()
     },
     read: (buffer: Buffer, version: number): Image => {
         const reader = new FrameReader(buffer, 0)
