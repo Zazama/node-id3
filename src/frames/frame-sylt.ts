@@ -2,13 +2,14 @@ import { TextEncoding } from "../definitions/Encoding"
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { SynchronisedLyrics } from "../types/TagFrames"
+import { validateLanguage } from "./util"
 
 export const SYLT = {
     create: (lyrics: SynchronisedLyrics): Buffer => {
         const textEncoding = TextEncoding.UTF_16_WITH_BOM
         const frameBuilder = new FrameBuilder("SYLT")
             .appendNumber(textEncoding, 1)
-            .appendValue(lyrics.language, 3)
+            .appendValue(validateLanguage(lyrics.language), 3)
             .appendNumber(lyrics.timeStampFormat, 1)
             .appendNumber(lyrics.contentType, 1)
             .appendNullTerminatedValue(lyrics.shortText, textEncoding)

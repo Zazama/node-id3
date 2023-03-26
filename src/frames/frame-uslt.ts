@@ -3,6 +3,7 @@ import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { UnsynchronisedLyrics } from "../types/TagFrames"
 import { isString } from '../util'
+import { validateLanguage } from "./util"
 
 export const USLT = {
     create: (data: UnsynchronisedLyrics | string) => {
@@ -17,16 +18,11 @@ export const USLT = {
         if(!data.text) {
             return null
         }
-        if (data.language.length !== 3) {
-            throw new TypeError(
-                "Language string length must be 3, see ISO 639-2 codes"
-            )
-        }
 
         const textEncoding = TextEncoding.UTF_16_WITH_BOM
         return new FrameBuilder("USLT")
             .appendNumber(textEncoding, 1)
-            .appendValue(data.language, TextEncoding.ISO_8859_1)
+            .appendValue(validateLanguage(data.language), 3, TextEncoding.ISO_8859_1)
             .appendNullTerminatedValue(data.shortText, textEncoding)
             .appendValue(data.text, null, textEncoding)
             .getBuffer()
