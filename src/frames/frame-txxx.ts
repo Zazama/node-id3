@@ -16,7 +16,7 @@ export const TXXX = {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
             description: reader.consumeNullTerminatedValue('string'),
-            value: reader.consumeStaticValue('string')
+            value: reader.consumeString()
         }
     }
 }

@@ -30,11 +30,11 @@ export const USLT = {
     read: (buffer: Buffer): UnsynchronisedLyrics => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
-            language: reader.consumeStaticValue(
-                'string', 3, TextEncoding.ISO_8859_1
+            language: reader.consumeString(
+                { size: 3, encoding: TextEncoding.ISO_8859_1 }
             ),
             shortText: reader.consumeNullTerminatedValue('string'),
-            text: reader.consumeStaticValue('string', null)
+            text: reader.consumeString()
         }
     }
 }

@@ -22,7 +22,7 @@ export const SYLT = {
     read: (buffer: Buffer): SynchronisedLyrics => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
-            language: reader.consumeStaticValue('string', 3, 0x00),
+            language: reader.consumeString({ size: 3, encoding: TextEncoding.ISO_8859_1 }),
             timeStampFormat: reader.consumeStaticValue('number', 1) as
                 SynchronisedLyrics["timeStampFormat"],
             contentType: reader.consumeStaticValue('number', 1),

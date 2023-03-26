@@ -9,7 +9,7 @@ type FrameReaderOptions = {
 }
 
 export class FrameReader {
-    private _encoding: number
+    private _encoding: TextEncoding
     private _splitBuffer: SplitBuffer
 
     constructor(
@@ -20,8 +20,8 @@ export class FrameReader {
     ) {
         if (consumeEncodingByte) {
             const encodingBytePosition = 0
-            this._encoding =
-                buffer[encodingBytePosition] ?? TextEncoding.ISO_8859_1
+            this._encoding = buffer[encodingBytePosition] as TextEncoding ??
+                TextEncoding.ISO_8859_1
             if (consumeEncodingByte) {
                 buffer = encodingBytePosition === 0 ?
                     buffer.subarray(1) :
@@ -34,6 +34,13 @@ export class FrameReader {
             this._encoding = TextEncoding.ISO_8859_1
         }
         this._splitBuffer = new SplitBuffer(null, buffer.subarray(0))
+    }
+
+    consumeString({ size, encoding = this._encoding }: {
+        size?: number
+        encoding?: TextEncoding
+    } = {}): string {
+        return this.consumeStaticValue('string', size, encoding)
     }
 
     consumeStaticValue(

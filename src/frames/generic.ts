@@ -16,8 +16,7 @@ export const GENERIC_TEXT = {
     },
     read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
-
-        return reader.consumeStaticValue('string')
+        return reader.consumeString()
     }
 }
 
@@ -33,7 +32,6 @@ export const GENERIC_URL = {
     },
     read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
-
-        return reader.consumeStaticValue('string')
+        return reader.consumeString()
     }
 }

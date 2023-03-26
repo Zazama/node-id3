@@ -16,7 +16,7 @@ export const WXXX = {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
             description: reader.consumeNullTerminatedValue('string'),
-            url: reader.consumeStaticValue('string', null, TextEncoding.ISO_8859_1)
+            url: reader.consumeString({ encoding: TextEncoding.ISO_8859_1 })
         }
     }
 }

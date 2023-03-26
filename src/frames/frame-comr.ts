@@ -61,7 +61,8 @@ export const COMR = {
             )
 
         // Valid until
-        const validUntilString = reader.consumeStaticValue('string', 8, 0x00)
+        const validUntilString =
+            reader.consumeString({size: 8, encoding: TextEncoding.ISO_8859_1})
         const validUntil = { year: 0, month: 0, day: 0 }
         if(/^\d+$/.test(validUntilString)) {
             validUntil.year = parseInt(validUntilString.substring(0, 4))
