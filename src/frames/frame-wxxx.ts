@@ -13,7 +13,7 @@ export const WXXX = {
             .getBuffer()
     },
     read: (buffer: Buffer): UserDefinedUrl => {
-        const reader = new FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
             description: reader.consumeNullTerminatedValue('string'),
             url: reader.consumeStaticValue('string', null, TextEncoding.ISO_8859_1)

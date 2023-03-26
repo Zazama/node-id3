@@ -15,7 +15,7 @@ export const GENERIC_TEXT = {
             .getBuffer()
     },
     read: (buffer: Buffer) => {
-        const reader = new FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, {consumeEncodingByte: true})
 
         return reader.consumeStaticValue('string')
     }

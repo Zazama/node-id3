@@ -47,7 +47,7 @@ export const COMR = {
     },
 
     read: (buffer: Buffer): CommercialFrame => {
-        const reader = new FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, {consumeEncodingByte: true})
 
         const prices = reader.consumeNullTerminatedValue('string', 0x00)
             .split('/')

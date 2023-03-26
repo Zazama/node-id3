@@ -43,7 +43,7 @@ export const APIC = {
             .getBuffer()
     },
     read: (buffer: Buffer, version: number): Image => {
-        const reader = new FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
             mime: version === 2
                 ? reader.consumeStaticValue('string', 3, TextEncoding.ISO_8859_1)

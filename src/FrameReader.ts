@@ -1,7 +1,12 @@
 import { SplitBuffer, } from "./ID3Util"
 import * as ID3Util from "./ID3Util"
+import { TextEncoding } from "./definitions/Encoding"
 
 type DataType = "string" | "number" | "buffer"
+
+type FrameReaderOptions = {
+    consumeEncodingByte?: boolean
+}
 
 export class FrameReader {
     private _encoding: number
@@ -9,17 +14,14 @@ export class FrameReader {
 
     constructor(
         buffer: Buffer,
-        encodingBytePosition?: number,
-        consumeEncodingByte = true
+        {
+            consumeEncodingByte = false
+        }: FrameReaderOptions = {}
     ) {
-        if (!buffer || !(buffer instanceof Buffer)) {
-            buffer = Buffer.alloc(0)
-        }
-        if (
-            encodingBytePosition !== undefined &&
-            Number.isInteger(encodingBytePosition)
-        ) {
-            this._encoding = buffer[encodingBytePosition] ? buffer[encodingBytePosition] : 0x00
+        if (consumeEncodingByte) {
+            const encodingBytePosition = 0
+            this._encoding =
+                buffer[encodingBytePosition] ?? TextEncoding.ISO_8859_1
             if (consumeEncodingByte) {
                 buffer = encodingBytePosition === 0 ?
                     buffer.subarray(1) :
@@ -29,7 +31,7 @@ export class FrameReader {
                     ])
             }
         } else {
-            this._encoding = 0x00
+            this._encoding = TextEncoding.ISO_8859_1
         }
         this._splitBuffer = new SplitBuffer(null, buffer.subarray(0))
     }

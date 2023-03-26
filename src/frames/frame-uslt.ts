@@ -28,7 +28,7 @@ export const USLT = {
             .getBuffer()
     },
     read: (buffer: Buffer): UnsynchronisedLyrics => {
-        const reader = new FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
             language: reader.consumeStaticValue(
                 'string', 3, TextEncoding.ISO_8859_1
