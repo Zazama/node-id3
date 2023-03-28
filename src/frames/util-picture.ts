@@ -14,7 +14,7 @@ function getPictureMimeTypeFromBuffer(pictureBuffer: Buffer) {
     ) {
         return "image/png"
     }
-    return "image/"
+    return ""
 }
 
 export function retrievePictureAndMimeType({
