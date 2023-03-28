@@ -13,8 +13,8 @@ export const PRIV = {
     read: (buffer: Buffer): Private => {
         const reader = new FrameReader(buffer)
         return {
-            ownerIdentifier: reader.consumeNullTerminatedValue('string'),
-            data: reader.consumeStaticValue()
+            ownerIdentifier: reader.consumeTerminatedText(),
+            data: reader.consumePossiblyEmptyBuffer()
         }
     }
 }

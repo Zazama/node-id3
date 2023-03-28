@@ -39,9 +39,9 @@ export const POPM = {
     read: (buffer: Buffer): Popularimeter => {
         const reader = new FrameReader(buffer)
         return {
-            email: reader.consumeNullTerminatedValue('string'),
-            rating: reader.consumeStaticValue('number', 1),
-            counter: reader.consumeStaticValue('number')
+            email: reader.consumeTerminatedText(),
+            rating: reader.consumeNumber({size: 1}),
+            counter: reader.consumeNumber({size: 4})
         }
     }
 }

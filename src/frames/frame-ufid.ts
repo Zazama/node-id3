@@ -15,8 +15,8 @@ export const UFID = {
     read: (buffer: Buffer): UniqueFileIdentifier => {
         const reader = new FrameReader(buffer)
         return {
-            ownerIdentifier: reader.consumeNullTerminatedValue('string'),
-            identifier: reader.consumeStaticValue()
+            ownerIdentifier: reader.consumeTerminatedText(),
+            identifier: reader.consumePossiblyEmptyBuffer()
         }
     }
 }

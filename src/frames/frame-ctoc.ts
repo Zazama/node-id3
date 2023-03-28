@@ -36,15 +36,17 @@ export const CTOC = {
     read: (buffer: Buffer): TableOfContents<Tags> => {
         const reader = new FrameReader(buffer)
 
-        const elementID = reader.consumeNullTerminatedValue('string')
-        const flags = reader.consumeStaticValue('number', 1)
-        const entries = reader.consumeStaticValue('number', 1)
+        const elementID = reader.consumeTerminatedText()
+        const flags = reader.consumeNumber({size: 1})
+        const entries = reader.consumeNumber({size: 1})
         const elements = []
         for(let i = 0; i < entries; i++) {
-            elements.push(reader.consumeNullTerminatedValue('string'))
+            elements.push(reader.consumeTerminatedText())
         }
         const tags =
-            TagsHelpers.getTagsFromTagBody(reader.consumeStaticValue()) as Tags
+            TagsHelpers.getTagsFromTagBody(
+                reader.consumePossiblyEmptyBuffer()
+            ) as Tags
 
         return {
             elementID,

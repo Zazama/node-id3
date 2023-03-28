@@ -46,17 +46,17 @@ export const APIC = {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
             mime: version === 2
-                ? reader.consumeString({size: 3, encoding: TextEncoding.ISO_8859_1})
-                : reader.consumeNullTerminatedValue('string', TextEncoding.ISO_8859_1),
+                ? reader.consumeText({size: 3})
+                : reader.consumeTerminatedText(),
             type: (() => {
-                const typeId = reader.consumeStaticValue('number', 1)
+                const typeId = reader.consumeNumber({size: 1})
                 return {
                     id: typeId,
                     name: APIC_TYPES[typeId]
                 }
             })(),
-            description: reader.consumeNullTerminatedValue('string'),
-            imageBuffer: reader.consumeStaticValue()
+            description: reader.consumeTerminatedTextWithFrameEncoding(),
+            imageBuffer: reader.consumePossiblyEmptyBuffer()
         }
     }
 }

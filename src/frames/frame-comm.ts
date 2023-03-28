@@ -20,9 +20,9 @@ export const COMM = {
     read: (buffer: Buffer): Comment => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
-            language: reader.consumeString({size: 3, encoding: TextEncoding.ISO_8859_1}),
-            shortText: reader.consumeNullTerminatedValue('string'),
-            text: reader.consumeString()
+            language: reader.consumeText({size: 3}),
+            shortText: reader.consumeTerminatedTextWithFrameEncoding(),
+            text: reader.consumeTextWithFrameEncoding()
         }
     }
 }

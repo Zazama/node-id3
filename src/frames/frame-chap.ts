@@ -25,24 +25,24 @@ export const CHAP = {
     read: (buffer: Buffer): Chapter<Tags> => {
         const reader = new FrameReader(buffer)
 
-        const consumeNumber = () => reader.consumeStaticValue('number', 4)
+        const consumeNumber = () => reader.consumeNumber({size: 4})
 
         const makeOffset = (value: number) => value === 0xFFFFFFFF ? null : value
 
-        const elementID = reader.consumeNullTerminatedValue('string')
+        const elementID = reader.consumeTerminatedText()
         const startTimeMs = consumeNumber()
         const endTimeMs = consumeNumber()
         const startOffsetBytes = makeOffset(consumeNumber())
         const endOffsetBytes = makeOffset(consumeNumber())
-        const tags =
-            TagsHelpers.getTagsFromTagBody(reader.consumeStaticValue()) as Tags
         return {
             elementID,
             startTimeMs,
             endTimeMs,
             ...startOffsetBytes === null ? {} : {startOffsetBytes},
             ...endOffsetBytes === null ? {} : {endOffsetBytes},
-            tags
+            tags: TagsHelpers.getTagsFromTagBody(
+                reader.consumePossiblyEmptyBuffer()
+            ) as Tags
         }
     }
 }

@@ -15,8 +15,8 @@ export const WXXX = {
     read: (buffer: Buffer): UserDefinedUrl => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
-            description: reader.consumeNullTerminatedValue('string'),
-            url: reader.consumeString({ encoding: TextEncoding.ISO_8859_1 })
+            description: reader.consumeTerminatedTextWithFrameEncoding(),
+            url: reader.consumeText()
         }
     }
 }

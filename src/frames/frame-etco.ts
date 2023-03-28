@@ -16,17 +16,14 @@ export const ETCO = {
     read: (buffer: Buffer): EventTimingCodes => {
         const reader = new FrameReader(buffer)
         return {
-            timeStampFormat: reader.consumeStaticValue(
-                'number', 1
-            ) as EventTimingCodes["timeStampFormat"],
+            timeStampFormat: reader.consumeNumber({size: 1}) as
+                EventTimingCodes["timeStampFormat"],
             keyEvents: Array.from((function*() {
-                while(true) {
-                    const type = reader.consumeStaticValue('number', 1)
-                    const timeStamp = reader.consumeStaticValue('number', 4)
-                    if (type === undefined || timeStamp === undefined) {
-                        break
+                while(!reader.isBufferEmpty()) {
+                    yield {
+                        type: reader.consumeNumber({size: 1}),
+                        timeStamp: reader.consumeNumber({size: 4})
                     }
-                    yield {type, timeStamp}
                 }
             })())
         }

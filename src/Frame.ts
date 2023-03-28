@@ -118,14 +118,19 @@ function makeValueArray(identifier: string, data: unknown) {
 }
 
 function makeFrameValue(identifier:string, body: Buffer, version: number) {
-    if (isKeyOf(identifier, Frames)) {
-        return Frames[identifier].read(body, version)
-    }
-    if (identifier.startsWith('T')) {
-        return GenericFrames.GENERIC_TEXT.read(body)
-    }
-    if (identifier.startsWith('W')) {
-        return GenericFrames.GENERIC_URL.read(body)
+    try {
+        if (isKeyOf(identifier, Frames)) {
+            return Frames[identifier].read(body, version)
+        }
+        if (identifier.startsWith('T')) {
+            return GenericFrames.GENERIC_TEXT.read(body)
+        }
+        if (identifier.startsWith('W')) {
+            return GenericFrames.GENERIC_URL.read(body)
+        }
+    } catch(error) {
+        // On read ignore frames with errors
+        return null
     }
     return null
 }
