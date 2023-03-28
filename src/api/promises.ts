@@ -1,4 +1,4 @@
-import { WriteTags } from '../types/Tags'
+import { Tags, TagIdentifiers, WriteTags } from '../types/Tags'
 import { Options } from '../types/Options'
 import { create } from "./create"
 import { read, ReadCallback } from "./read"
@@ -27,6 +27,11 @@ function makePromise<T>(callback: (settle: Settle<T>) => void) {
     })
 }
 
+/**
+ * Asynchronous API for files and buffers operations using promises.
+ *
+ * @public
+ */
 export const Promises = {
     create: (tags: WriteTags) =>
         makePromise((settle: Settle<Buffer>) =>
@@ -41,7 +46,7 @@ export const Promises = {
             update(tags, filebuffer, options ?? {}, callback)
         ),
     read: (file: string | Buffer, options?: Options) =>
-        makePromise((callback: ReadCallback) =>
+        makePromise<Tags | TagIdentifiers>((callback: ReadCallback) =>
             read(file, options ?? {}, callback)
         ),
     removeTags: (filepath: string) =>
@@ -54,7 +59,10 @@ export const Promises = {
 } as const
 
 /**
- * @deprecated consider using `Promises` instead, `Promise` creates conflict
+ * Asynchronous API for files and buffers operations using promises.
+ *
+ * @public
+ * @deprecated Consider using `Promises` instead as `Promise` creates conflict
  *             with the Javascript native promise.
  */
 export { Promises as Promise }

@@ -1,17 +1,17 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { TextEncoding } from "../definitions/Encoding"
-import type { Data } from "./type"
 
 export const GENERIC_TEXT = {
-    create: (frameIdentifier: string, data: Data) => {
-        if(!frameIdentifier || !data) {
+    create: (frameIdentifier: string, text: string): Buffer | null => {
+        if(!frameIdentifier || text == undefined) {
             return null
         }
 
+        const textEncoding = TextEncoding.UTF_16_WITH_BOM
         return new FrameBuilder(frameIdentifier)
-            .appendNumber(0x01, 0x01)
-            .appendValue(data, null, TextEncoding.UTF_16_WITH_BOM)
+            .appendNumber(textEncoding, 1)
+            .appendValue(text, null, textEncoding)
             .getBuffer()
     },
     read: (buffer: Buffer) => {
@@ -22,13 +22,13 @@ export const GENERIC_TEXT = {
 }
 
 export const GENERIC_URL = {
-    create: (frameIdentifier: string, data: string) => {
-        if(!frameIdentifier || !data) {
+    create: (frameIdentifier: string, url: string) => {
+        if(!frameIdentifier || url == undefined) {
             return null
         }
 
         return new FrameBuilder(frameIdentifier)
-            .appendValue(data)
+            .appendValue(url)
             .getBuffer()
     },
     read: (buffer: Buffer) => {

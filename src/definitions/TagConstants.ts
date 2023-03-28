@@ -1,11 +1,16 @@
 
 
+/**
+ * @public
+ */
 export type TagConstants = typeof TagConstants
 
 /**
- * Documented constants used in tag frames.
+ * Constants documented in the id3 specifications used in tag frames.
  *
  * @see {@link https://id3.org/} for more information.
+ *
+ * @public
  */
 export const TagConstants = {
     /**

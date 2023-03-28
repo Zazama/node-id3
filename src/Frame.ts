@@ -75,7 +75,7 @@ export function makeFrameBuffer(identifier: string, value: unknown) {
         )
     }
     if (identifier.startsWith('T')) {
-        return GenericFrames.GENERIC_TEXT.create(identifier, value)
+        return GenericFrames.GENERIC_TEXT.create(identifier, value as string)
     }
     if (identifier.startsWith('W')) {
         return handleMultipleAndMakeFrameBuffer(

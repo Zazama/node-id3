@@ -45,7 +45,11 @@ export interface TagAliases {
     fileType?: TagFrames.FileType,
     fileUrl?: TagFrames.FileUrl,
     genre?: TagFrames.Genre,
-    image?: TagFrames.Image,
+    /**
+     * An Image definition or an image Buffer or an image filename.
+     * @see {@link TagFrames.Image}
+     */
+    image?: TagFrames.Image | Buffer | string,
     initialKey?: TagFrames.InitialKey,
     internetRadioName?: TagFrames.InternetRadioName,
     internetRadioOwner?: TagFrames.InternetRadioOwner,
@@ -95,6 +99,9 @@ export interface TagAliases {
     year?: TagFrames.Year,
 }
 
+/**
+ * @public
+ */
 export interface TagIdentifiers {
     APIC?: TagAliases["image"]
     CHAP?: TagAliases["chapter"]
@@ -173,10 +180,15 @@ export interface TagIdentifiers {
 /**
  * On write either a tag alias or tag identifier can be be specified.
  * This is undefined behaviour when both are specified.
+ *
+ * @public
  */
 export interface WriteTags extends TagAliases, TagIdentifiers {
 }
 
+/**
+ * @public
+ */
 export interface Tags extends TagAliases {
     raw?: TagIdentifiers
 }

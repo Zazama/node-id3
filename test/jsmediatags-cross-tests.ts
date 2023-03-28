@@ -92,6 +92,7 @@ const nodeTagsMissingValues = {
     },
     popularimeter: {
         email: 'test@example.com',
+        rating: 1,
         counter: 12
     },
     private: [{
@@ -287,9 +288,8 @@ describe('Cross tests jsmediatags', function () {
             delete read.image.description
         }
         delete read.image.type
-        assert.strictEqual(read.popularimeter.rating, 0)
+        assert.strictEqual(read.popularimeter.rating, 1)
 
-        delete read.popularimeter.rating
         if (read.private[0].ownerIdentifier === undefined) {
             delete read.private[0].ownerIdentifier
         }

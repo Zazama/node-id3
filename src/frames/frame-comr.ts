@@ -1,10 +1,8 @@
-import fs = require('fs')
 import { TextEncoding } from '../definitions/Encoding'
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import * as ID3Util from "../ID3Util"
 import { CommercialFrame } from '../types/TagFrames'
-import { isString } from '../util'
+import { retrievePictureAndMimeType } from './util-picture'
 
 export const COMR = {
     create: (comr: CommercialFrame) => {
@@ -38,22 +36,12 @@ export const COMR = {
 
         // Seller logo
         if (comr.sellerLogo) {
-            const pictureFilenameOrBuffer = comr.sellerLogo.picture
-            const picture = isString(pictureFilenameOrBuffer)
-                ? fs.readFileSync(comr.sellerLogo.picture)
-                : pictureFilenameOrBuffer
-
-            let mimeType = comr.sellerLogo.mimeType || ID3Util.getPictureMimeTypeFromBuffer(picture)
-
-            // Only image/png and image/jpeg allowed
-            if (mimeType !== 'image/png' && 'image/jpeg') {
-                mimeType = 'image/'
-            }
-
-            builder.appendNullTerminatedValue(
-                mimeType || '', TextEncoding.ISO_8859_1
-            )
-            builder.appendValue(picture)
+            const { pictureBuffer, mimeType } = retrievePictureAndMimeType({
+                filenameOrBuffer: comr.sellerLogo.picture,
+                mimeType: comr.sellerLogo.mimeType
+            })
+            builder.appendNullTerminatedValue(mimeType, TextEncoding.ISO_8859_1)
+            builder.appendValue(pictureBuffer)
         }
         return builder.getBuffer()
     },

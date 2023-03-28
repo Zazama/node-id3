@@ -1,22 +1,19 @@
+import { TextEncoding } from "../definitions/Encoding"
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import type { Data } from "./type"
+import { UserDefinedText } from "../types/TagFrames"
 
 export const TXXX = {
-    create: (data: Data) => {
-        if(!(data instanceof Array)) {
-            data = [data]
-        }
-
-        return Buffer.concat(data.map((udt: Data) => new FrameBuilder("TXXX")
-            .appendNumber(0x01, 1)
-            .appendNullTerminatedValue(udt.description, 0x01)
-            .appendValue(udt.value, null, 0x01)
-            .getBuffer()))
+    create: (udt: UserDefinedText) => {
+        const textEncoding = TextEncoding.UTF_16_WITH_BOM
+        return new FrameBuilder("TXXX")
+            .appendNumber(textEncoding, 1)
+            .appendNullTerminatedValue(udt.description, textEncoding)
+            .appendValue(udt.value, null, textEncoding)
+            .getBuffer()
     },
-    read: (buffer: Buffer) => {
+    read: (buffer: Buffer): UserDefinedText => {
         const reader = new FrameReader(buffer, 0)
-
         return {
             description: reader.consumeNullTerminatedValue('string'),
             value: reader.consumeStaticValue('string')

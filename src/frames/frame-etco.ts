@@ -3,7 +3,7 @@ import { FrameReader } from "../FrameReader"
 import { EventTimingCodes } from "../types/TagFrames"
 
 export const ETCO = {
-    create: (data: EventTimingCodes) => {
+    create: (data: EventTimingCodes): Buffer => {
         const builder = new FrameBuilder("ETCO")
             .appendNumber(data.timeStampFormat, 1)
         data.keyEvents.forEach((keyEvent) => {

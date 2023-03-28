@@ -4,6 +4,8 @@ import { isFunction } from "../util"
 
 /**
  * Remove already written ID3-Frames from a buffer
+ *
+ * @public
  */
 export function removeTagsFromBuffer(data: Buffer) {
     const tagPosition = ID3Util.getTagPosition(data)
@@ -32,14 +34,30 @@ export function removeTagsFromBuffer(data: Buffer) {
     return data
 }
 
+/**
+ * Callback signatures for asynchronous remove operation.
+ *
+ * @param error - `null` indicates success.
+ *
+ * @public
+ */
 export type RemoveCallback =
     (error: NodeJS.ErrnoException | Error | null) => void
 
 /**
- * Remove already written ID3-Frames from a file
+ * Removes synchronously any written ID3-Frames from the specified file.
+ *
+ * @public
  */
 export function removeTags(filepath: string): boolean | Error
+
+/**
+ * Removes asynchronously any written ID3-Frames from the specified file.
+ *
+ * @public
+ */
 export function removeTags(filepath: string, callback: RemoveCallback): void
+
 export function removeTags(filepath: string, callback?: RemoveCallback) {
     if(isFunction(callback)) {
         return removeTagsAsync(filepath, callback)

@@ -88,6 +88,13 @@ describe('NodeID3 frames', function () {
                 }]
             }],
             /**
+             * TXXX
+             */
+            userDefinedText: [{
+                description: "description",
+                value: "value"
+            }],
+            /**
              * POPM
              */
             popularimeter: {

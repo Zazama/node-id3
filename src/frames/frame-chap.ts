@@ -2,12 +2,11 @@ import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import * as TagsHelpers from '../TagsHelpers'
 import type { Chapter } from "../types/TagFrames"
-import type { WriteTags } from "../types/Tags"
+import type { Tags, WriteTags } from "../types/Tags"
 
 export const CHAP = {
     create: (chap: Chapter<WriteTags>) => {
-        if (!chap
-            || !chap.elementID
+        if (!chap.elementID
             || typeof chap.startTimeMs === "undefined"
             || !chap.endTimeMs
         ) {
@@ -23,7 +22,7 @@ export const CHAP = {
             .appendValue(TagsHelpers.createBufferFromTags(chap.tags))
             .getBuffer()
     },
-    read: (buffer: Buffer) => {
+    read: (buffer: Buffer): Chapter<Tags> => {
         const reader = new FrameReader(buffer)
 
         const consumeNumber = () => reader.consumeStaticValue('number', 4)
@@ -35,7 +34,8 @@ export const CHAP = {
         const endTimeMs = consumeNumber()
         const startOffsetBytes = makeOffset(consumeNumber())
         const endOffsetBytes = makeOffset(consumeNumber())
-        const tags = TagsHelpers.getTagsFromTagBody(reader.consumeStaticValue())
+        const tags =
+            TagsHelpers.getTagsFromTagBody(reader.consumeStaticValue()) as Tags
         return {
             elementID,
             startTimeMs,
