@@ -600,9 +600,12 @@ Picture data    <binary data>
 export type Popularimeter = {
     email: string,
     /**
-     * 1-255
+     * 0-255
      */
     rating: number,
+    /**
+     * A positive integer
+     */
     counter: number,
 }
 

@@ -6,7 +6,7 @@ import { validateLanguage } from "./util"
 
 export const COMM = {
     create: (data: Comment): Buffer => {
-        if(!data.text) {
+        if(data.text == undefined) {
             throw new TypeError("Missing text from 'Comment' frame")
         }
         const textEncoding = TextEncoding.UTF_16_WITH_BOM

@@ -4,7 +4,7 @@ import { TextEncoding } from "../definitions/Encoding"
 
 export const GENERIC_TEXT = {
     create: (frameIdentifier: string, text: string): Buffer | null => {
-        if(!frameIdentifier || !text) {
+        if(!frameIdentifier || text == undefined) {
             return null
         }
 
@@ -23,7 +23,7 @@ export const GENERIC_TEXT = {
 
 export const GENERIC_URL = {
     create: (frameIdentifier: string, url: string) => {
-        if(!frameIdentifier || !url) {
+        if(!frameIdentifier || url == undefined) {
             return null
         }
 
