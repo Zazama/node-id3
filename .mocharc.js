@@ -5,5 +5,6 @@ module.exports = {
         "source-map-support/register",
         "ts-node/register",
     ],
-    recursive: true
+    recursive: true,
+    spec: "./test/**/*.ts"
 }

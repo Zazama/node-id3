@@ -36,7 +36,7 @@
     "build": "tsc --build --incremental",
     "clean": "rm -rf dist",
     "build-watch": "tsc --build --watch --incremental",
-    "test": "mocha test/**/*.ts",
+    "test": "mocha",
     "test-watch": "mocha --watch --watch-files src/**/*,test/**/* test/**/*.ts",
     "test-coverage": "nyc mocha test/**/*.ts",
     "prepublishOnly": "npm run clean && tsc",
