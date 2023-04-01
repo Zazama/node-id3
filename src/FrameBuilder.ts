@@ -47,6 +47,10 @@ export class FrameBuilder {
         return this
     }
 
+    getBuffer() {
+        return this.buffer
+    }
+
     getBufferWithPartialHeader() {
         const header = Buffer.alloc(10)
         header.write(this.identifier, 0)
