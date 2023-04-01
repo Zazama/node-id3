@@ -470,7 +470,7 @@ export type Comment = {
 }
 
 /**
- * Unsychronised lyrics/text transcription
+ * Unsychronised lyrics/text transcription `USLT` frame
  *
  * @remarks
  * This frame contains the lyrics of the song or a text transcription of

@@ -101,12 +101,12 @@ const nodeTagsMissingValues = {
         data: Buffer.from([0x01, 0x02, 0x05])
     }],
     chapter: [{
-        elementID: "Hey!", // THIS MUST BE UNIQUE!
+        elementID: "chapter 1", // THIS MUST BE UNIQUE!
         startTimeMs: 5000,
         endTimeMs: 8000
     }],
     tableOfContents: [{
-        elementID: "toc1",    // THIS MUST BE UNIQUE!
+        elementID: "toc 1",    // THIS MUST BE UNIQUE!
         elements: ['chap1']
     }],
 }
@@ -275,9 +275,8 @@ describe('Cross tests jsmediatags', function () {
             nodeTagsMissingValues as unknown as NodeID3.WriteTags
         )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const read: any = NodeID3.read(tagsBuffer)
+        const read: any = NodeID3.read(tagsBuffer, {noRaw: true})
 
-        delete read.raw
         assert.deepStrictEqual(read.chapter[0].tags.raw, {})
 
         delete read.chapter[0].tags
