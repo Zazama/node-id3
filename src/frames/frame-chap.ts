@@ -25,21 +25,16 @@ export const CHAP = {
     read: (buffer: Buffer): Chapter<Tags> => {
         const reader = new FrameReader(buffer)
 
-        const consumeNumber = () => reader.consumeNumber({size: 4})
-
-        const makeOffset = (value: number) => value === 0xFFFFFFFF ? null : value
-
-        const elementID = reader.consumeTerminatedText()
-        const startTimeMs = consumeNumber()
-        const endTimeMs = consumeNumber()
-        const startOffsetBytes = makeOffset(consumeNumber())
-        const endOffsetBytes = makeOffset(consumeNumber())
+        const consumeOffset= <Key extends keyof Chapter<never>>(key: Key) => {
+            const offset = reader.consumeNumber({size: 4})
+            return offset === 0xFFFFFFFF ? {} : {[key]: offset}
+        }
         return {
-            elementID,
-            startTimeMs,
-            endTimeMs,
-            ...startOffsetBytes === null ? {} : {startOffsetBytes},
-            ...endOffsetBytes === null ? {} : {endOffsetBytes},
+            elementID: reader.consumeTerminatedText(),
+            startTimeMs: reader.consumeNumber({size: 4}),
+            endTimeMs: reader.consumeNumber({size: 4}),
+            ...consumeOffset("startOffsetBytes"),
+            ...consumeOffset("endOffsetBytes"),
             tags: TagsHelpers.getTagsFromTagBody(
                 reader.consumePossiblyEmptyBuffer()
             ) as Tags
