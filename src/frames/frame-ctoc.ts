@@ -38,15 +38,15 @@ export const CTOC = {
 
         const elementID = reader.consumeTerminatedText()
         const flags = reader.consumeNumber({size: 1})
+
         const entries = reader.consumeNumber({size: 1})
         const elements = []
         for(let i = 0; i < entries; i++) {
             elements.push(reader.consumeTerminatedText())
         }
-        const tags =
-            TagsHelpers.getTagsFromTagBody(
-                reader.consumePossiblyEmptyBuffer()
-            ) as Tags
+        const tags = TagsHelpers.getTagsFromTagBody(
+            reader.consumePossiblyEmptyBuffer()
+        ) as Tags
 
         return {
             elementID,

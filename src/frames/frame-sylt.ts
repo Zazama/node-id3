@@ -4,6 +4,8 @@ import { FrameReader } from "../FrameReader"
 import { SynchronisedLyrics } from "../types/TagFrames"
 import { validateLanguage } from "./util"
 
+type TimeStampFormat = SynchronisedLyrics["timeStampFormat"]
+
 export const SYLT = {
     create: (lyrics: SynchronisedLyrics): Buffer => {
         const textEncoding = TextEncoding.UTF_16_WITH_BOM
@@ -23,8 +25,7 @@ export const SYLT = {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
             language: reader.consumeText({ size: 3}),
-            timeStampFormat: reader.consumeNumber({size: 1}) as
-                SynchronisedLyrics["timeStampFormat"],
+            timeStampFormat: reader.consumeNumber({size: 1}) as TimeStampFormat,
             contentType: reader.consumeNumber({size: 1}),
             shortText: reader.consumeTerminatedTextWithFrameEncoding(),
             synchronisedText: Array.from((function*() {
