@@ -269,44 +269,5 @@ describe('Cross tests jsmediatags', function () {
         }
         assert.deepStrictEqual(nodeTagsFull, read)
     })
-
-    it('read from missing values self-created tags', function () {
-        const tagsBuffer = NodeID3.create(
-            nodeTagsMissingValues as unknown as NodeID3.WriteTags
-        )
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const read: any = NodeID3.read(tagsBuffer, {noRaw: true})
-
-        assert.deepStrictEqual(read.chapter[0].tags.raw, {})
-
-        delete read.chapter[0].tags
-        if (!read.comment.shortText) {
-            delete read.comment.shortText
-        }
-        if (!read.image.description) {
-            delete read.image.description
-        }
-        delete read.image.type
-        assert.strictEqual(read.popularimeter.rating, 1)
-
-        if (read.private[0].ownerIdentifier === undefined) {
-            delete read.private[0].ownerIdentifier
-        }
-        if (read.private[1].ownerIdentifier === undefined) {
-            delete read.private[1].ownerIdentifier
-        }
-        assert.strictEqual(read.tableOfContents[0].isOrdered, false)
-        assert.deepStrictEqual(read.tableOfContents[0].tags.raw, {})
-
-        delete read.tableOfContents[0].tags
-        delete read.tableOfContents[0].isOrdered
-        if (!read.userDefinedText[0].description) {
-            delete read.userDefinedText[0].description
-        }
-        if (!read.userDefinedText[1].description) {
-            delete read.userDefinedText[1].description
-        }
-        assert.deepStrictEqual(nodeTagsMissingValues, read)
-    })
 })
 

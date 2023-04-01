@@ -550,7 +550,7 @@ export type SynchronisedLyrics = {
  * @public
  */
 export type UserDefinedText = {
-    description: string,
+    description?: string,
     value: string
 }
 
@@ -576,7 +576,7 @@ Picture data    <binary data>
     /**
      * See https://en.wikipedia.org/wiki/ID3#ID3v2_embedded_image_extension
      */
-    type: {
+    type?: {
         /**
          * {@link TagConstants.AttachedPicture.PictureType}
          */
@@ -613,7 +613,7 @@ export type Popularimeter = {
  * @public
  */
 export type Private = {
-    ownerIdentifier: string,
+    ownerIdentifier?: string,
     data: Buffer
 }
 
