@@ -34,7 +34,7 @@ export const POPM = {
             .appendNullTerminatedValue(data.email)
             .appendNumber(rating, 1)
             .appendNumber(counter, 4)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Popularimeter => {
         const reader = new FrameReader(buffer)

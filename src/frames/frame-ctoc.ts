@@ -31,7 +31,7 @@ export const CTOC = {
         if (toc.tags) {
             builder.appendValue(TagsHelpers.createBufferFromTags(toc.tags))
         }
-        return builder.getBuffer()
+        return builder.getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): TableOfContents<Tags> => {
         const reader = new FrameReader(buffer)

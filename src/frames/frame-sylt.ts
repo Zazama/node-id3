@@ -19,7 +19,7 @@ export const SYLT = {
             frameBuilder.appendNullTerminatedValue(part.text, textEncoding)
             frameBuilder.appendNumber(part.timeStamp, 4)
         })
-        return frameBuilder.getBuffer()
+        return frameBuilder.getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): SynchronisedLyrics => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})

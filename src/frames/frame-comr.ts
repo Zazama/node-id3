@@ -43,7 +43,7 @@ export const COMR = {
             builder.appendNullTerminatedValue(mimeType, TextEncoding.ISO_8859_1)
             builder.appendValue(pictureBuffer)
         }
-        return builder.getBuffer()
+        return builder.getBufferWithPartialHeader()
     },
 
     read: (buffer: Buffer): CommercialFrame => {

@@ -12,7 +12,7 @@ export const GENERIC_TEXT = {
         return new FrameBuilder(frameIdentifier)
             .appendNumber(textEncoding, 1)
             .appendValue(text, null, textEncoding)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})
@@ -28,7 +28,7 @@ export const GENERIC_URL = {
 
         return new FrameBuilder(frameIdentifier)
             .appendValue(url)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)

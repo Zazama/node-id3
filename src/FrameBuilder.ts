@@ -47,7 +47,7 @@ export class FrameBuilder {
         return this
     }
 
-    getBuffer() {
+    getBufferWithPartialHeader() {
         const header = Buffer.alloc(10)
         header.write(this.identifier, 0)
         header.writeUInt32BE(this.buffer.length, 4)

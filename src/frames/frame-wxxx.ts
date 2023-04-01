@@ -10,7 +10,7 @@ export const WXXX = {
             .appendNumber(textEncoding, 1)
             .appendNullTerminatedValue(data.description, textEncoding)
             .appendValue(data.url, null, TextEncoding.ISO_8859_1)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): UserDefinedUrl => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})

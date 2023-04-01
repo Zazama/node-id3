@@ -15,7 +15,7 @@ export const COMM = {
             .appendValue(validateLanguage(data.language))
             .appendNullTerminatedValue(data.shortText, textEncoding)
             .appendValue(data.text, null, textEncoding)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Comment => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})

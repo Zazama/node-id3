@@ -20,7 +20,7 @@ export const CHAP = {
             .appendNumber(getOffset(chap.startOffsetBytes), 4)
             .appendNumber(getOffset(chap.endOffsetBytes), 4)
             .appendValue(TagsHelpers.createBufferFromTags(chap.tags))
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Chapter<Tags> => {
         const reader = new FrameReader(buffer)

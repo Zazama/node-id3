@@ -25,7 +25,7 @@ export const USLT = {
             .appendValue(validateLanguage(data.language), 3, TextEncoding.ISO_8859_1)
             .appendNullTerminatedValue(data.shortText, textEncoding)
             .appendValue(data.text, null, textEncoding)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): UnsynchronisedLyrics => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})

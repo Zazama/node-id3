@@ -11,7 +11,7 @@ export const ETCO = {
                 .appendNumber(keyEvent.type, 1)
                 .appendNumber(keyEvent.timeStamp, 4)
         })
-        return builder.getBuffer()
+        return builder.getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): EventTimingCodes => {
         const reader = new FrameReader(buffer)

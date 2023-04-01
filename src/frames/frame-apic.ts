@@ -40,7 +40,7 @@ export const APIC = {
                 ?? TagConstants.AttachedPicture.PictureType.FRONT_COVER, 1)
             .appendNullTerminatedValue(description, textEncoding)
             .appendValue(image.pictureBuffer)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer, version: number): Image => {
         const reader = new FrameReader(buffer, {consumeEncodingByte: true})

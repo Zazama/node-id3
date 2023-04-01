@@ -10,7 +10,7 @@ export const UFID = {
                 ufid.identifier instanceof Buffer ?
                 ufid.identifier : Buffer.from(ufid.identifier, "utf8")
             )
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): UniqueFileIdentifier => {
         const reader = new FrameReader(buffer)
