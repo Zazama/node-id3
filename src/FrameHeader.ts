@@ -1,8 +1,8 @@
-import * as ID3Util from './ID3Util'
 import {
     FRAME_IDENTIFIERS,
     FRAME_ALIASES }
 from "./definitions/FrameIdentifiers"
+import { decodeSize } from './util-size'
 
 export type Flags = {
     tagAlterPreservation?: boolean
@@ -99,7 +99,7 @@ function getBodySize(headerBuffer: Buffer, version: number) {
         [headerBuffer[4], headerBuffer[5], headerBuffer[6], headerBuffer[7]]
 
     if (isEncoded) {
-        return ID3Util.decodeSize(Buffer.from(bytes))
+        return decodeSize(Buffer.from(bytes))
     }
     return Buffer.from(bytes).readUIntBE(0, bytes.length)
 }

@@ -1,4 +1,4 @@
-import { decodeSize, encodeSize } from "./ID3Util"
+import { decodeSize, encodeSize } from "./util-size"
 
 export function createId3Tag(frames: Buffer) {
     const header = Buffer.alloc(10)

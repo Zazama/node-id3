@@ -6,13 +6,14 @@ import { Tags, TagIdentifiers } from './types/Tags'
 import { isBuffer } from "./util"
 import { convertRawTagsToTagAliases } from "./TagsConverters"
 import { getId3TagPosition } from './id3-tag'
+import { decodeSize } from './util-size'
 
 export function getTagsFromBuffer(buffer: Buffer, options: Options) {
     const framePosition = getId3TagPosition(buffer)
     if (framePosition === -1) {
         return getTagsFromFrames([], 3, options)
     }
-    const frameSize = ID3Util.decodeSize(buffer.subarray(framePosition + 6, framePosition + 10)) + 10
+    const frameSize = decodeSize(buffer.subarray(framePosition + 6, framePosition + 10)) + 10
     const frame = Buffer.alloc(frameSize + 1)
     buffer.copy(frame, 0, framePosition)
     //ID3 version e.g. 3 if ID3v2.3.0
@@ -23,7 +24,7 @@ export function getTagsFromBuffer(buffer: Buffer, options: Options) {
         if (version === 3) {
             extendedHeaderOffset = 4 + buffer.readUInt32BE(10)
         } else if(version === 4) {
-            extendedHeaderOffset = ID3Util.decodeSize(buffer.subarray(10, 14))
+            extendedHeaderOffset = decodeSize(buffer.subarray(10, 14))
         }
     }
     const frameBody = Buffer.alloc(frameSize - 10 - extendedHeaderOffset)
