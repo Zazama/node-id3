@@ -12,7 +12,7 @@ export function getTagsFromBuffer(buffer: Buffer, options: Options) {
     if (tagBody === undefined) {
         return getTagsFromFrames([], 3, options)
     }
-    return getTagsFromTagBody(tagBody.tagBody, tagBody.version, options)
+    return getTagsFromTagBody(tagBody.body, tagBody.version, options)
 }
 
 export function getTagsFromTagBody(

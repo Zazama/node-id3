@@ -69,11 +69,11 @@ export function getId3TagBody(buffer: Buffer) {
 
     // Copy for now, it might not be necessary, but we are not really sure for
     // now, will be re-assessed if we can avoid the copy.
-    const tagBody = Buffer.alloc(bodySize)
-    tagData.copy(tagBody, 0, totalHeaderSize)
+    const body = Buffer.alloc(bodySize)
+    tagData.copy(body, 0, totalHeaderSize)
 
     return {
-        version, tagBody
+        version, body
     }
 }
 
