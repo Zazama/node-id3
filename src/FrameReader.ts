@@ -1,5 +1,5 @@
-import * as ID3Util from "./ID3Util"
 import { TextEncoding } from "./definitions/Encoding"
+import { bufferToDecodedString } from "./util-text-encoding"
 
 type FrameReaderOptions = {
     consumeEncodingByte?: boolean
@@ -60,7 +60,7 @@ export class FrameReader {
         encoding?: TextEncoding
     } = {}): string {
         const buffer = this.consumeBuffer({ size })
-        return ID3Util.bufferToDecodedString(buffer, encoding)
+        return bufferToDecodedString(buffer, encoding)
     }
 
     consumeTextWithFrameEncoding(size: Size = {}): string {
@@ -73,7 +73,7 @@ export class FrameReader {
         const [consumed, remainder] =
             splitNullTerminatedBuffer(this._buffer, encoding)
         this._buffer = remainder
-        return ID3Util.bufferToDecodedString(consumed, encoding)
+        return bufferToDecodedString(consumed, encoding)
     }
 
     consumeTerminatedTextWithFrameEncoding(): string {

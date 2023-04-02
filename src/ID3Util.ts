@@ -1,43 +1,5 @@
-import iconv = require('iconv-lite')
 import { FrameOptions, FRAME_OPTIONS } from './definitions/FrameOptions'
-import { isKeyOf, isString } from './util'
-
-export function encodingFromStringOrByte(encoding: string | number) {
-    const ENCODINGS = [
-        'ISO-8859-1', 'UTF-16', 'UTF-16BE', 'UTF-8'
-    ]
-
-    if (isString(encoding) && ENCODINGS.includes(encoding)) {
-        return encoding
-    }
-    if (
-        typeof encoding === "number" &&
-        encoding >= 0 && encoding < ENCODINGS.length
-    ) {
-        return ENCODINGS[encoding]
-    }
-    return ENCODINGS[0]
-}
-
-export function stringToEncodedBuffer(
-    value: string,
-    encodingByte: string | number
-) {
-    return iconv.encode(
-        value,
-        encodingFromStringOrByte(encodingByte)
-    )
-}
-
-export function bufferToDecodedString(
-    buffer: Buffer,
-    encodingByte: string | number
-) {
-    return iconv.decode(
-        buffer,
-        encodingFromStringOrByte(encodingByte)
-    ).replace(/\0/g, '')
-}
+import { isKeyOf } from './util'
 
 export function getFrameOptions(frameIdentifier: string): FrameOptions {
     if (isKeyOf(frameIdentifier, FRAME_OPTIONS)) {
