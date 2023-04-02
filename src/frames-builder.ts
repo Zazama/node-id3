@@ -3,7 +3,7 @@ import { Frames } from "./frames/frames"
 import { WriteTags } from "./types/Tags"
 import { deduplicate, isBuffer, isKeyOf, isNotUndefinedEntry } from "./util"
 import * as GenericFrames from './frames/generic'
-import { getFrameOptions } from "./ID3Util"
+import { getFrameOptions } from "./util-frame-options"
 
 /**
  * Returns a buffer with the frames for the specified tags.

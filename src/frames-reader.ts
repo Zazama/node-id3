@@ -1,4 +1,3 @@
-import * as ID3Util from './ID3Util'
 import { Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
 import { Options } from "./types/Options"
@@ -6,6 +5,7 @@ import { Tags, TagIdentifiers } from './types/Tags'
 import { isBuffer } from "./util"
 import { convertRawTagsToTagAliases } from "./TagsConverters"
 import { getId3TagBody } from './id3-tag'
+import { getFrameOptions } from './util-frame-options'
 
 export function getTagsFromBuffer(buffer: Buffer, options: Options) {
     const tagBody = getId3TagBody(buffer)
@@ -77,7 +77,7 @@ function getTagsFromFrames(
 
     const rawTags = frames.reduce<TagIdentifiers>((tags, frame) => {
         const frameId = frame.identifier as keyof TagIdentifiers
-        const isMultiple = ID3Util.getFrameOptions(frameId).multiple
+        const isMultiple = getFrameOptions(frameId).multiple
         const makeValue = isMultiple ? pushValue : getValue
         tags[frameId] = makeValue(tags[frameId], frame.getValue()) as never
         return tags

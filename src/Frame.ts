@@ -6,7 +6,6 @@ import {
 } from './FrameHeader'
 import * as GenericFrames from './frames/generic'
 import { Frames } from './frames/frames'
-import * as ID3Util from './ID3Util'
 import { isKeyOf } from "./util"
 
 type HeaderInfo = {
@@ -110,9 +109,23 @@ function getBody({flags, headerSize, bodySize}: HeaderInfo, buffer: Buffer) {
     if (flags.unsynchronisation) {
         // This method should stay in ID3Util for now because it's also used
         // in the Tag's header which we don't have a class for.
-        return ID3Util.processUnsynchronisedBuffer(body)
+        return processUnsynchronisedBuffer(body)
     }
     return body
+}
+
+function processUnsynchronisedBuffer(buffer: Buffer) {
+    const newDataArr = []
+    if (buffer.length > 0) {
+        newDataArr.push(buffer[0])
+    }
+    for(let i = 1; i < buffer.length; i++) {
+        if (buffer[i - 1] === 0xFF && buffer[i] === 0x00) {
+            continue
+        }
+        newDataArr.push(buffer[i])
+    }
+    return Buffer.from(newDataArr)
 }
 
 function getDataLength({flags, headerSize}: HeaderInfo, buffer: Buffer) {
