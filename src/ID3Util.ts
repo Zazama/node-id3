@@ -48,59 +48,11 @@ export function getFrameOptions(frameIdentifier: string): FrameOptions {
     }
 }
 
-export function isValidID3Header(buffer: Buffer) {
-    if (buffer.length < 10) {
-        return false
-    }
-    if (buffer.readUIntBE(0, 3) !== 0x494433) {
-        return false
-    }
-    if ([0x02, 0x03, 0x04].indexOf(buffer[3]) === -1 || buffer[4] !== 0x00) {
-        return false
-    }
-    return isValidEncodedSize(buffer.subarray(6, 10))
-}
-
-/**
- * Returns -1 if no tag was found.
- */
-export function getTagPosition(buffer: Buffer) {
-    // Search Buffer for valid ID3 frame
-    const tagHeaderSize = 10
-    let position = -1
-    let headerValid = false
-    do {
-        position = buffer.indexOf("ID3", position + 1)
-        if (position !== -1) {
-            // It's possible that there is a "ID3" sequence without being an
-            // ID3 Frame, so we need to check for validity of the next 10 bytes.
-            headerValid = isValidID3Header(
-                buffer.subarray(position, position + tagHeaderSize)
-            )
-        }
-    } while (position !== -1 && !headerValid)
-
-    if (!headerValid) {
-        return -1
-    }
-    return position
-}
-
- export function isValidEncodedSize(encodedSize: Buffer) {
-    // The size must not have the bit 7 set
-    return ((
-        encodedSize[0] |
-        encodedSize[1] |
-        encodedSize[2] |
-        encodedSize[3]
-    ) & 128) === 0
-}
-
 /**
  * ID3 header size uses only 7 bits of a byte, bit shift is needed.
  * @returns Return a Buffer of 4 bytes with the encoded size
  */
- export function encodeSize(size: number) {
+export function encodeSize(size: number) {
     const byte_3 = size & 0x7F
     const byte_2 = (size >> 7) & 0x7F
     const byte_1 = (size >> 14) & 0x7F
@@ -111,7 +63,7 @@ export function getTagPosition(buffer: Buffer) {
 /**
  * Decode the encoded size from an ID3 header.
  */
- export function decodeSize(encodedSize: Buffer) {
+export function decodeSize(encodedSize: Buffer) {
     return (
         (encodedSize[0] << 21) +
         (encodedSize[1] << 14) +

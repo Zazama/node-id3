@@ -5,9 +5,10 @@ import { Options } from "./types/Options"
 import { Tags, TagIdentifiers } from './types/Tags'
 import { isBuffer } from "./util"
 import { convertRawTagsToTagAliases } from "./TagsConverters"
+import { getId3TagPosition } from './id3-tag'
 
 export function getTagsFromBuffer(buffer: Buffer, options: Options) {
-    const framePosition = ID3Util.getTagPosition(buffer)
+    const framePosition = getId3TagPosition(buffer)
     if (framePosition === -1) {
         return getTagsFromFrames([], 3, options)
     }
