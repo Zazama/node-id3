@@ -12,7 +12,7 @@ export function updateTags(newTags: WriteTags, currentTags: Tags): TagIdentifier
         const frameIdentifier = frameIdentifierString as keyof TagIdentifiers
         const newFrame = newRawTags[frameIdentifier]
         const updatedFrame = updateFrameIfMultiple(
-            ID3Util.getSpecOptions(frameIdentifier),
+            ID3Util.getFrameOptions(frameIdentifier),
             newFrame,
             currentRawTags[frameIdentifier]
         )

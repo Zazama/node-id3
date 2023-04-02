@@ -1,7 +1,7 @@
 import { WriteTags } from "../types/Tags"
 import { isFunction } from  "../util"
-import { createBufferFromTags } from "../TagsHelpers"
-import { createId3Data } from "../id3-data"
+import { buildFramesBuffer } from "../frames-builder"
+import { createId3Tag } from "../id3-data"
 
 /**
  * Callback used to return a buffer with the created ID Tag.
@@ -26,7 +26,7 @@ export function create(tags: WriteTags): Buffer
 export function create(tags: WriteTags, callback: CreateCallback): void
 
 export function create(tags: WriteTags, callback?: CreateCallback) {
-    const id3Data = createId3Data(createBufferFromTags(tags))
+    const id3Data = createId3Tag(buildFramesBuffer(tags))
     if (isFunction(callback)) {
         return callback(id3Data)
     }

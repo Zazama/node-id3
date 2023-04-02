@@ -7,7 +7,7 @@ import {
 import * as GenericFrames from './frames/generic'
 import { Frames } from './frames/frames'
 import * as ID3Util from './ID3Util'
-import { deduplicate, isBuffer, isKeyOf } from "./util"
+import { isKeyOf } from "./util"
 
 type HeaderInfo = {
     identifier: string
@@ -82,57 +82,6 @@ function createFromBuffer(
         return null
     }
     return new Frame(header.identifier, value, header.flags)
-}
-
-export function makeFrameBuffer(identifier: string, value: unknown) {
-    if (isKeyOf(identifier, Frames)) {
-        return handleMultipleAndMakeFrameBuffer(
-            identifier,
-            value,
-            Frames[identifier].create
-        )
-    }
-    if (identifier.startsWith('T')) {
-        return GenericFrames.GENERIC_TEXT.create(identifier, value as string)
-    }
-    if (identifier.startsWith('W')) {
-        return handleMultipleAndMakeFrameBuffer(
-            identifier,
-            value,
-            url => GenericFrames.GENERIC_URL.create(identifier, url),
-            deduplicate
-        )
-    }
-    return null
-}
-
-function handleMultipleAndMakeFrameBuffer<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Create extends (value: any, index: number) => Buffer | null
->(
-    identifier: string,
-    data: unknown,
-    create: Create,
-    deduplicate = (values: ([Parameters<Create>])[]) => values
-) {
-    const values = makeValueArray(identifier, data)
-    const frames = deduplicate(values)
-        .map(create)
-        .filter(isBuffer)
-    return frames.length ? Buffer.concat(frames) : null
-}
-
-/**
- * Throws if an array is given but not expected, i.e. the contract is not
- * respected, otherwise always return an array.
- */
-function makeValueArray(identifier: string, data: unknown) {
-    const isMultiple = ID3Util.getSpecOptions(identifier).multiple
-    const isArray = Array.isArray(data)
-    if (!isMultiple && isArray) {
-        throw new TypeError(`Unexpected array for frame ${identifier}`)
-    }
-    return isMultiple && isArray ? data : [data]
 }
 
 function makeFrameValue(identifier:string, body: Buffer, version: number) {

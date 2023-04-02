@@ -1,6 +1,6 @@
 import { encodeSize } from "./ID3Util"
 
-export function createId3Data(frames: Buffer) {
+export function createId3Tag(frames: Buffer) {
     const header = Buffer.alloc(10)
     header.fill(0)
     header.write("ID3", 0)              // File identifier

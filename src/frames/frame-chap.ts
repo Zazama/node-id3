@@ -1,6 +1,7 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import * as TagsHelpers from '../TagsHelpers'
+import { buildFramesBuffer } from "../frames-builder"
 import type { Chapter } from "../types/TagFrames"
 import type { Tags, WriteTags } from "../types/Tags"
 
@@ -19,7 +20,7 @@ export const CHAP = {
             .appendNumber(chap.endTimeMs, 4)
             .appendNumber(getOffset(chap.startOffsetBytes), 4)
             .appendNumber(getOffset(chap.endOffsetBytes), 4)
-            .appendValue(TagsHelpers.createBufferFromTags(chap.tags))
+            .appendValue(buildFramesBuffer(chap.tags))
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Chapter<Tags> => {

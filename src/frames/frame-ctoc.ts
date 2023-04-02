@@ -1,6 +1,7 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import * as TagsHelpers from '../TagsHelpers'
+import { buildFramesBuffer } from "../frames-builder"
 import { TableOfContents } from "../types/TagFrames"
 import { Tags, WriteTags } from "../types/Tags"
 
@@ -29,7 +30,7 @@ export const CTOC = {
             builder.appendNullTerminatedValue(element)
         })
         if (toc.tags) {
-            builder.appendValue(TagsHelpers.createBufferFromTags(toc.tags))
+            builder.appendValue(buildFramesBuffer(toc.tags))
         }
         return builder.getBufferWithPartialHeader()
     },

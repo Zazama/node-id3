@@ -39,7 +39,7 @@ export function bufferToDecodedString(
     ).replace(/\0/g, '')
 }
 
-export function getSpecOptions(frameIdentifier: string): FrameOptions {
+export function getFrameOptions(frameIdentifier: string): FrameOptions {
     if (isKeyOf(frameIdentifier, FRAME_OPTIONS)) {
         return FRAME_OPTIONS[frameIdentifier]
     }

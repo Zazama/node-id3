@@ -1,34 +1,10 @@
 import * as ID3Util from './ID3Util'
-import { makeFrameBuffer, Frame } from './Frame'
+import { Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
 import { Options } from "./types/Options"
-import { Tags, TagIdentifiers, WriteTags } from './types/Tags'
-import { isBuffer, isNotUndefinedEntry } from "./util"
-import {
-    convertWriteTagsToRawTags,
-    convertRawTagsToTagAliases
-} from "./TagsConverters"
-
-/**
- * Returns an array of buffers using specified tags.
- */
-function createBuffersFromTags(tags?: WriteTags): Buffer[] {
-    if(!tags) {
-        return []
-    }
-    const rawTags = convertWriteTagsToRawTags(tags)
-    return Object.entries(rawTags)
-        .filter(isNotUndefinedEntry)
-        .map(([identifier, value]) => makeFrameBuffer(identifier, value))
-        .filter(isBuffer)
-}
-
-/**
- * Returns a buffer with the frames for the specified tags.
- */
-export function createBufferFromTags(tags?: WriteTags) {
-    return Buffer.concat(createBuffersFromTags(tags))
-}
+import { Tags, TagIdentifiers } from './types/Tags'
+import { isBuffer } from "./util"
+import { convertRawTagsToTagAliases } from "./TagsConverters"
 
 export function getTagsFromBuffer(buffer: Buffer, options: Options) {
     const framePosition = ID3Util.getTagPosition(buffer)
@@ -117,7 +93,7 @@ function getTagsFromFrames(
 
     const rawTags = frames.reduce<TagIdentifiers>((tags, frame) => {
         const frameId = frame.identifier as keyof TagIdentifiers
-        const isMultiple = ID3Util.getSpecOptions(frameId).multiple
+        const isMultiple = ID3Util.getFrameOptions(frameId).multiple
         const makeValue = isMultiple ? pushValue : getValue
         tags[frameId] = makeValue(tags[frameId], frame.getValue()) as never
         return tags
