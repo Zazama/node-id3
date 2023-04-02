@@ -16,7 +16,6 @@ export function createId3Tag(frames: Buffer) {
  */
 export function removeId3Tag(data: Buffer) {
     const tagPosition = getId3TagPosition(data)
-
     if (tagPosition === -1) {
         return data
     }
@@ -41,10 +40,69 @@ export function removeId3Tag(data: Buffer) {
     return data
 }
 
+export function getId3TagBody(buffer: Buffer) {
+    const tagPosition = getId3TagPosition(buffer)
+    if (tagPosition === -1) {
+        return undefined
+    }
+    const tagSize = 10 + decodeSize(
+        buffer.subarray(tagPosition + 6, tagPosition + 10)
+    )
+    const tagData = buffer.subarray(tagPosition, tagPosition + tagSize)
+    const tagHeader = tagData.subarray(0, 10)
+
+    // ID3 version e.g. 3 if ID3v2.3.0
+    const version = tagHeader[3]
+    const tagFlags = parseTagHeaderFlags(tagHeader)
+    let extendedHeaderOffset = 0
+    if (tagFlags.extendedHeader) {
+        if (version === 3) {
+            extendedHeaderOffset = 4 + tagData.readUInt32BE(10)
+        } else if(version === 4) {
+            extendedHeaderOffset = decodeSize(tagData.subarray(10, 14))
+        }
+    }
+    const totalHeaderSize = 10 + extendedHeaderOffset
+    const bodySize = tagSize - totalHeaderSize
+
+    // Copy for now, it might not be necessary, but we are not really sure for
+    // now, will be re-assessed if we can avoid the copy.
+    const tagBody = Buffer.alloc(bodySize)
+    tagData.copy(tagBody, 0, totalHeaderSize)
+
+    return {
+        version, tagBody
+    }
+}
+
+function parseTagHeaderFlags(header: Buffer) {
+    if (header.length < 10) {
+        return {}
+    }
+    const version = header[3]
+    const flagsByte = header[5]
+    if (version === 3) {
+        return {
+            unsynchronisation: !!(flagsByte & 128),
+            extendedHeader: !!(flagsByte & 64),
+            experimentalIndicator: !!(flagsByte & 32)
+        }
+    }
+    if (version === 4) {
+        return {
+            unsynchronisation: !!(flagsByte & 128),
+            extendedHeader: !!(flagsByte & 64),
+            experimentalIndicator: !!(flagsByte & 32),
+            footerPresent: !!(flagsByte & 16)
+        }
+    }
+    return {}
+}
+
 /**
  * Returns -1 if no tag was found.
  */
-export function getId3TagPosition(buffer: Buffer) {
+function getId3TagPosition(buffer: Buffer) {
     // Search Buffer for valid ID3 frame
     const tagHeaderSize = 10
     let position = -1

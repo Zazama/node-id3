@@ -10,30 +10,6 @@ export function getFrameOptions(frameIdentifier: string): FrameOptions {
     }
 }
 
-export function parseTagHeaderFlags(header: Buffer) {
-    if (!(header instanceof Buffer && header.length >= 10)) {
-        return {}
-    }
-    const version = header[3]
-    const flagsByte = header[5]
-    if (version === 3) {
-        return {
-            unsynchronisation: !!(flagsByte & 128),
-            extendedHeader: !!(flagsByte & 64),
-            experimentalIndicator: !!(flagsByte & 32)
-        }
-    }
-    if (version === 4) {
-        return {
-            unsynchronisation: !!(flagsByte & 128),
-            extendedHeader: !!(flagsByte & 64),
-            experimentalIndicator: !!(flagsByte & 32),
-            footerPresent: !!(flagsByte & 16)
-        }
-    }
-    return {}
-}
-
 export function processUnsynchronisedBuffer(buffer: Buffer) {
     const newDataArr = []
     if (buffer.length > 0) {
