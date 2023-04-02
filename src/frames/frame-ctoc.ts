@@ -1,6 +1,6 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import * as TagsHelpers from '../TagsHelpers'
+import * as TagsHelpers from '../frames-reader'
 import { buildFramesBuffer } from "../frames-builder"
 import { TableOfContents } from "../types/TagFrames"
 import { Tags, WriteTags } from "../types/Tags"

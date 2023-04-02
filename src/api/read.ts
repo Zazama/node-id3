@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import { getTagsFromBuffer } from '../TagsHelpers'
+import { getTagsFromBuffer } from '../frames-reader'
 import { isFunction, isString } from '../util'
 import { Tags, TagIdentifiers } from '../types/Tags'
 import { Options } from '../types/Options'
