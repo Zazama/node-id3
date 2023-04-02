@@ -1,45 +1,6 @@
 import iconv = require('iconv-lite')
 import { FrameOptions, FRAME_OPTIONS } from './definitions/FrameOptions'
 import { isKeyOf, isString } from './util'
-import { TextEncoding } from './definitions/Encoding'
-
-export class SplitBuffer {
-    value: Buffer | null
-    remainder: Buffer | null
-    constructor(value: Buffer | null = null, remainder: Buffer | null = null) {
-        this.value = value
-        this.remainder = remainder
-    }
-}
-
-/**
- * @param buffer A buffer starting with a null-terminated text string.
- * @param encoding The encoding type in which the text string is encoded.
- * @returns A split buffer containing the bytes before and after the null
- *          termination. If no null termination is found, considers that
- *          the buffer was not containing a text string and returns
- *          the given buffer as the remainder in the split buffer.
- */
-export function splitNullTerminatedBuffer(
-    buffer: Buffer,
-    encoding: number = TextEncoding.ISO_8859_1
-) {
-    const charSize = ([
-        TextEncoding.UTF_16_WITH_BOM,
-        TextEncoding.UTF_16_BE
-    ] as number[]).includes(encoding) ? 2 : 1
-
-    for (let pos = 0; pos <= buffer.length - charSize; pos += charSize) {
-        if (buffer.readUIntBE(pos, charSize) === 0) {
-            return new SplitBuffer(
-                buffer.subarray(0, pos),
-                buffer.subarray(pos + charSize)
-            )
-        }
-    }
-
-    return new SplitBuffer(null, buffer.subarray(0))
-}
 
 export function encodingFromStringOrByte(encoding: string | number) {
     const ENCODINGS = [

@@ -20,29 +20,26 @@ export const CHAP = {
             .appendNumber(getOffset(chap.startOffsetBytes), 4)
             .appendNumber(getOffset(chap.endOffsetBytes), 4)
             .appendValue(TagsHelpers.createBufferFromTags(chap.tags))
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Chapter<Tags> => {
         const reader = new FrameReader(buffer)
 
-        const consumeNumber = () => reader.consumeStaticValue('number', 4)
-
-        const makeOffset = (value: number) => value === 0xFFFFFFFF ? null : value
-
-        const elementID = reader.consumeNullTerminatedValue('string')
-        const startTimeMs = consumeNumber()
-        const endTimeMs = consumeNumber()
-        const startOffsetBytes = makeOffset(consumeNumber())
-        const endOffsetBytes = makeOffset(consumeNumber())
-        const tags =
-            TagsHelpers.getTagsFromTagBody(reader.consumeStaticValue()) as Tags
+        // Returns a spreadable object to insert an optional offset property
+        // when the consumed offset is valid.
+        const consumeOffset= <Key extends keyof Chapter<never>>(key: Key) => {
+            const offset = reader.consumeNumber({size: 4})
+            return offset === 0xFFFFFFFF ? {} : {[key]: offset}
+        }
         return {
-            elementID,
-            startTimeMs,
-            endTimeMs,
-            ...startOffsetBytes === null ? {} : {startOffsetBytes},
-            ...endOffsetBytes === null ? {} : {endOffsetBytes},
-            tags
+            elementID: reader.consumeTerminatedText(),
+            startTimeMs: reader.consumeNumber({size: 4}),
+            endTimeMs: reader.consumeNumber({size: 4}),
+            ...consumeOffset("startOffsetBytes"),
+            ...consumeOffset("endOffsetBytes"),
+            tags: TagsHelpers.getTagsFromTagBody(
+                reader.consumePossiblyEmptyBuffer()
+            ) as Tags
         }
     }
 }

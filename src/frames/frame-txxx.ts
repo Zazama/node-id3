@@ -10,13 +10,13 @@ export const TXXX = {
             .appendNumber(textEncoding, 1)
             .appendNullTerminatedValue(udt.description, textEncoding)
             .appendValue(udt.value, null, textEncoding)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): UserDefinedText => {
-        const reader = new FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
-            description: reader.consumeNullTerminatedValue('string'),
-            value: reader.consumeStaticValue('string')
+            description: reader.consumeTerminatedTextWithFrameEncoding(),
+            value: reader.consumeTextWithFrameEncoding()
         }
     }
 }

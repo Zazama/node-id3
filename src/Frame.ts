@@ -34,10 +34,15 @@ export class Frame {
     }
 }
 
-function createFromBuffer(
+type FrameData = {
+    header: HeaderInfo
+    body: Buffer
+}
+
+function getFrameDataFromFrameBuffer(
     frameBuffer: Buffer,
     version: number
-): Frame | null {
+): FrameData | null {
     const headerSize = getHeaderSize(version)
     // Specification requirement
     if (frameBuffer.length < headerSize + 1) {
@@ -57,13 +62,26 @@ function createFromBuffer(
         getDataLength(header, frameBuffer),
         getBody(header, frameBuffer)
     )
-    if (body) {
-        const value = makeFrameValue(header.identifier, body, version)
-        if (value) {
-            return new Frame(header.identifier, value, header.flags)
-        }
+    if (!body) {
+        return null
     }
-    return null
+    return { header, body }
+}
+
+function createFromBuffer(
+    frameBuffer: Buffer,
+    version: number
+): Frame | null {
+    const frameData = getFrameDataFromFrameBuffer(frameBuffer, version)
+    if (!frameData) {
+        return null
+    }
+    const { header, body } = frameData
+    const value = makeFrameValue(header.identifier, body, version)
+    if (!value) {
+        return null
+    }
+    return new Frame(header.identifier, value, header.flags)
 }
 
 export function makeFrameBuffer(identifier: string, value: unknown) {
@@ -118,14 +136,19 @@ function makeValueArray(identifier: string, data: unknown) {
 }
 
 function makeFrameValue(identifier:string, body: Buffer, version: number) {
-    if (isKeyOf(identifier, Frames)) {
-        return Frames[identifier].read(body, version)
-    }
-    if (identifier.startsWith('T')) {
-        return GenericFrames.GENERIC_TEXT.read(body)
-    }
-    if (identifier.startsWith('W')) {
-        return GenericFrames.GENERIC_URL.read(body)
+    try {
+        if (isKeyOf(identifier, Frames)) {
+            return Frames[identifier].read(body, version)
+        }
+        if (identifier.startsWith('T')) {
+            return GenericFrames.GENERIC_TEXT.read(body)
+        }
+        if (identifier.startsWith('W')) {
+            return GenericFrames.GENERIC_URL.read(body)
+        }
+    } catch(error) {
+        // On read ignore frames with errors
+        return null
     }
     return null
 }

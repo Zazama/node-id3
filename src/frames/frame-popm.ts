@@ -34,14 +34,14 @@ export const POPM = {
             .appendNullTerminatedValue(data.email)
             .appendNumber(rating, 1)
             .appendNumber(counter, 4)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Popularimeter => {
         const reader = new FrameReader(buffer)
         return {
-            email: reader.consumeNullTerminatedValue('string'),
-            rating: reader.consumeStaticValue('number', 1),
-            counter: reader.consumeStaticValue('number')
+            email: reader.consumeTerminatedText(),
+            rating: reader.consumeNumber({size: 1}),
+            counter: reader.consumeNumber({size: 4})
         }
     }
 }

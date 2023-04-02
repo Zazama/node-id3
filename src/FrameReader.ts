@@ -1,154 +1,110 @@
-import { SplitBuffer, } from "./ID3Util"
 import * as ID3Util from "./ID3Util"
+import { TextEncoding } from "./definitions/Encoding"
 
-type DataType = "string" | "number" | "buffer"
+type FrameReaderOptions = {
+    consumeEncodingByte?: boolean
+}
+
+type Size = {
+    size?: number
+}
 
 export class FrameReader {
-    private _encoding: number
-    private _splitBuffer: SplitBuffer
+    private _encoding: TextEncoding = TextEncoding.ISO_8859_1
+    private _buffer: Buffer
 
     constructor(
         buffer: Buffer,
-        encodingBytePosition?: number,
-        consumeEncodingByte = true
+        {
+            consumeEncodingByte = false
+        }: FrameReaderOptions = {}
     ) {
-        if (!buffer || !(buffer instanceof Buffer)) {
-            buffer = Buffer.alloc(0)
+        this._buffer = buffer
+        if (consumeEncodingByte) {
+            const encoding = this.consumeBuffer({ size: 1 })
+            this._encoding = encoding[0] as TextEncoding
         }
-        if (
-            encodingBytePosition !== undefined &&
-            Number.isInteger(encodingBytePosition)
-        ) {
-            this._encoding = buffer[encodingBytePosition] ? buffer[encodingBytePosition] : 0x00
-            if (consumeEncodingByte) {
-                buffer = encodingBytePosition === 0 ?
-                    buffer.subarray(1) :
-                    Buffer.concat([
-                        buffer.subarray(0, encodingBytePosition),
-                        buffer.subarray(encodingBytePosition)
-                    ])
-            }
-        } else {
-            this._encoding = 0x00
-        }
-        this._splitBuffer = new SplitBuffer(null, buffer.subarray(0))
     }
 
-    consumeStaticValue(
-        dataType: 'string',
-        size?: number | null,
-        encoding?: number
-    ): string
-    consumeStaticValue(
-        dataType: 'number',
-        size?: number | null,
-        encoding?: number
-    ): number
-    consumeStaticValue(
-        dataType: 'buffer',
-        size?: number | null,
-        encoding?: number
-    ): Buffer
-    consumeStaticValue(
-    ): Buffer
-    consumeStaticValue(
-        dataType: DataType = 'buffer',
-        size?: number | null,
-        encoding = this._encoding
-    ) {
-        return this._consumeByFunction(
-            // TODO check if this._splitBuffer.remainder can be null!
-            // eslint-disable-next-line
-            () => staticValueFromBuffer(this._splitBuffer.remainder!, size),
-            dataType,
-            encoding
-        )
+    isBufferEmpty() {
+        return this._buffer.length === 0
     }
 
-    consumeNullTerminatedValue(
-        dataType: 'string',
-        encoding?: number
-     ): string
-     consumeNullTerminatedValue(
-        dataType: 'number',
-        encoding?: number
-     ): number
-    consumeNullTerminatedValue(
-        dataType: DataType,
-        encoding = this._encoding
-    ) {
-        return this._consumeByFunction(
-            () => ID3Util.splitNullTerminatedBuffer(
-                // TODO check if this._splitBuffer.remainder can be null!
-                // eslint-disable-next-line
-                this._splitBuffer.remainder!,
-                encoding
-            ),
-            dataType,
-            encoding
-        )
-    }
-
-    private _consumeByFunction(
-        fn: () => SplitBuffer,
-        dataType: DataType,
-        encoding: number
-    ) {
-        if (
-            !this._splitBuffer.remainder ||
-            this._splitBuffer.remainder.length === 0
-        ) {
-            return undefined
+    consumePossiblyEmptyBuffer(
+        { size = this._buffer.length }: Size = {}
+    ): Buffer {
+        if (size > this._buffer.length) {
+            throw new RangeError(
+                `Requested size ${size} larger than the buffer size ${this._buffer.length}`
+            )
         }
-        this._splitBuffer = fn()
-        if (dataType) {
-            return convertValue(this._splitBuffer.value, dataType, encoding)
-        }
-        return this._splitBuffer.value
+        const consumed = this._buffer.subarray(0, size)
+        this._buffer = this._buffer.subarray(size)
+        return consumed
     }
-}
 
-function convertValue(
-    buffer: Buffer | number | string | null,
-    dataType: DataType,
-    encoding = 0x00
-) {
-    // TODO: Check this behaviour:
-    // - if 0 or an empty string is given it will return `undefined`
-    //   I don't think this should behave that way.
-    //   I would think this test should not exist, the following one
-    //   !(buffer instanceof Buffer)) should be sufficient and more correct,
-    //   removing this test would:
-    //   - return 0 if 0 is given (instead of undefined)
-    //   - return "" if "" is given (instead of undefined)
-    //   - return null if null is given (instead of undefined)
-    if (!buffer) {
-        return undefined
+    consumeBuffer(size?: Size): Buffer {
+        if (this._buffer.length === 0) {
+            throw new RangeError("Buffer empty")
+        }
+        return this.consumePossiblyEmptyBuffer(size)
     }
-    if (!(buffer instanceof Buffer)) {
-        return buffer
-    }
-    if (buffer.length === 0) {
-        return undefined
-    }
-    if (dataType === "number") {
+
+    consumeNumber({ size }: { size: number }): number {
+        const buffer = this.consumeBuffer({ size })
         return parseInt(buffer.toString('hex'), 16)
     }
-    if (dataType === "string") {
+
+    consumeText({ size, encoding = TextEncoding.ISO_8859_1 }: {
+        size?: number
+        encoding?: TextEncoding
+    } = {}): string {
+        const buffer = this.consumeBuffer({ size })
         return ID3Util.bufferToDecodedString(buffer, encoding)
     }
-    return buffer
+
+    consumeTextWithFrameEncoding(size: Size = {}): string {
+        return this.consumeText({...size, encoding: this._encoding})
+    }
+
+    consumeTerminatedText(
+        encoding: TextEncoding = TextEncoding.ISO_8859_1
+    ): string {
+        const [consumed, remainder] =
+            splitNullTerminatedBuffer(this._buffer, encoding)
+        this._buffer = remainder
+        return ID3Util.bufferToDecodedString(consumed, encoding)
+    }
+
+    consumeTerminatedTextWithFrameEncoding(): string {
+        return this.consumeTerminatedText(this._encoding)
+    }
 }
 
-function staticValueFromBuffer(
+/**
+ * @param buffer A buffer starting with a null-terminated text string.
+ * @param encoding The encoding type in which the text string is encoded.
+ * @returns A split buffer containing the bytes before and after the null
+ *          termination. If no null termination is found, considers that
+ *          the buffer was not containing a text string and returns
+ *          the given buffer as the remainder in the split buffer.
+ */
+export function splitNullTerminatedBuffer(
     buffer: Buffer,
-    size?: number | null
-): SplitBuffer {
-    size = size ?? buffer.length
-    if (buffer.length > size) {
-        return new SplitBuffer(
-            buffer.subarray(0, size), buffer.subarray(size)
-        )
+    encoding: TextEncoding
+) {
+    const charSize = ([
+        TextEncoding.UTF_16_WITH_BOM,
+        TextEncoding.UTF_16_BE
+    ] as number[]).includes(encoding) ? 2 : 1
+
+    for (let pos = 0; pos <= buffer.length - charSize; pos += charSize) {
+        if (buffer.readUIntBE(pos, charSize) === 0) {
+            return [
+                buffer.subarray(0, pos),
+                buffer.subarray(pos + charSize)
+            ] as const
+        }
     }
-    return new SplitBuffer(buffer.subarray(0), null)
+    throw new RangeError("Terminating character not found")
 }

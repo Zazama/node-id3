@@ -8,13 +8,13 @@ export const PRIV = {
         return new FrameBuilder("PRIV")
             .appendNullTerminatedValue(priv.ownerIdentifier)
             .appendValue(isBuffer(priv.data) ? priv.data : Buffer.from(priv.data, "utf8"))
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Private => {
         const reader = new FrameReader(buffer)
         return {
-            ownerIdentifier: reader.consumeNullTerminatedValue('string'),
-            data: reader.consumeStaticValue()
+            ownerIdentifier: reader.consumeTerminatedText(),
+            data: reader.consumePossiblyEmptyBuffer()
         }
     }
 }

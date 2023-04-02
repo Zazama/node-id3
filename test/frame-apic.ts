@@ -56,9 +56,7 @@ describe('NodeID3 APIC frame', function () {
             const withoutDescription = Buffer.from("494433030000000000264150494300000012000000696D6167652F6A70656700030061626364", "hex")
 
             const imageWithoutDescription = {
-                // TODO: read should return either no description property
-                // or an empty string, this is closer to ID3 documentation.
-                description: undefined,
+                description: "",
                 imageBuffer: Buffer.from([0x61, 0x62, 0x63, 0x64]),
                 mime: "image/jpeg",
                 type: {

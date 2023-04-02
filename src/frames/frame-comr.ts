@@ -43,13 +43,13 @@ export const COMR = {
             builder.appendNullTerminatedValue(mimeType, TextEncoding.ISO_8859_1)
             builder.appendValue(pictureBuffer)
         }
-        return builder.getBuffer()
+        return builder.getBufferWithPartialHeader()
     },
 
     read: (buffer: Buffer): CommercialFrame => {
-        const reader = new FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, {consumeEncodingByte: true})
 
-        const prices = reader.consumeNullTerminatedValue('string', 0x00)
+        const prices = reader.consumeTerminatedText()
             .split('/')
             .filter((price) => price.length > 3)
             .reduce<Record<string, string | number>>(
@@ -61,7 +61,7 @@ export const COMR = {
             )
 
         // Valid until
-        const validUntilString = reader.consumeStaticValue('string', 8, 0x00)
+        const validUntilString = reader.consumeText({size: 8})
         const validUntil = { year: 0, month: 0, day: 0 }
         if(/^\d+$/.test(validUntilString)) {
             validUntil.year = parseInt(validUntilString.substring(0, 4))
@@ -69,31 +69,18 @@ export const COMR = {
             validUntil.day = parseInt(validUntilString.substring(6))
         }
 
-        const contactUrl = reader.consumeNullTerminatedValue(
-            'string', TextEncoding.ISO_8859_1
-        )
-        const receivedAs = reader.consumeStaticValue('number', 1)
-        const nameOfSeller = reader.consumeNullTerminatedValue('string')
-        const description = reader.consumeNullTerminatedValue('string')
-
-        // Seller logo
-        const mimeType = reader.consumeNullTerminatedValue(
-            'string', TextEncoding.ISO_8859_1
-        )
-        const picture = reader.consumeStaticValue('buffer')
-
         return {
             prices,
             validUntil,
-            contactUrl,
-            receivedAs,
-            nameOfSeller,
-            description,
-            ...(picture && picture.length > 0 ? {
+            contactUrl: reader.consumeTerminatedText(),
+            receivedAs: reader.consumeNumber({size: 1}),
+            nameOfSeller: reader.consumeTerminatedTextWithFrameEncoding(),
+            description: reader.consumeTerminatedTextWithFrameEncoding(),
+            ...(reader.isBufferEmpty() ? {} : {
                 sellerLogo: {
-                    mimeType, picture
+                    mimeType: reader.consumeTerminatedText(),
+                    picture: reader.consumePossiblyEmptyBuffer()
                 }
-            } : {
             })
         }
     }

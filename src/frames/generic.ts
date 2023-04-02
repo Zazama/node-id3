@@ -12,12 +12,11 @@ export const GENERIC_TEXT = {
         return new FrameBuilder(frameIdentifier)
             .appendNumber(textEncoding, 1)
             .appendValue(text, null, textEncoding)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer) => {
-        const reader = new FrameReader(buffer, 0)
-
-        return reader.consumeStaticValue('string')
+        const reader = new FrameReader(buffer, {consumeEncodingByte: true})
+        return reader.consumeTextWithFrameEncoding()
     }
 }
 
@@ -29,11 +28,10 @@ export const GENERIC_URL = {
 
         return new FrameBuilder(frameIdentifier)
             .appendValue(url)
-            .getBuffer()
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer) => {
         const reader = new FrameReader(buffer)
-
-        return reader.consumeStaticValue('string')
+        return reader.consumeText()
     }
 }

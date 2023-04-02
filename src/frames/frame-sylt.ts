@@ -4,6 +4,8 @@ import { FrameReader } from "../FrameReader"
 import { SynchronisedLyrics } from "../types/TagFrames"
 import { validateLanguage } from "./util"
 
+type TimeStampFormat = SynchronisedLyrics["timeStampFormat"]
+
 export const SYLT = {
     create: (lyrics: SynchronisedLyrics): Buffer => {
         const textEncoding = TextEncoding.UTF_16_WITH_BOM
@@ -17,24 +19,21 @@ export const SYLT = {
             frameBuilder.appendNullTerminatedValue(part.text, textEncoding)
             frameBuilder.appendNumber(part.timeStamp, 4)
         })
-        return frameBuilder.getBuffer()
+        return frameBuilder.getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): SynchronisedLyrics => {
-        const reader = new FrameReader(buffer, 0)
+        const reader = new FrameReader(buffer, {consumeEncodingByte: true})
         return {
-            language: reader.consumeStaticValue('string', 3, 0x00),
-            timeStampFormat: reader.consumeStaticValue('number', 1) as
-                SynchronisedLyrics["timeStampFormat"],
-            contentType: reader.consumeStaticValue('number', 1),
-            shortText: reader.consumeNullTerminatedValue('string'),
+            language: reader.consumeText({ size: 3}),
+            timeStampFormat: reader.consumeNumber({size: 1}) as TimeStampFormat,
+            contentType: reader.consumeNumber({size: 1}),
+            shortText: reader.consumeTerminatedTextWithFrameEncoding(),
             synchronisedText: Array.from((function*() {
-                while(true) {
-                    const text = reader.consumeNullTerminatedValue('string')
-                    const timeStamp = reader.consumeStaticValue('number', 4)
-                    if (text === undefined || timeStamp === undefined) {
-                        break
+                while(!reader.isBufferEmpty()) {
+                    yield {
+                        text: reader.consumeTerminatedTextWithFrameEncoding(),
+                        timeStamp: reader.consumeNumber({size: 4})
                     }
-                    yield {text, timeStamp}
                 }
             })())
         }
