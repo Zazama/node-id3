@@ -1,7 +1,7 @@
 import * as NodeID3 from '../index'
 import assert = require('assert')
 import { expect } from 'chai'
-import { createId3Tag } from '../src/id3-data'
+import { createId3Tag } from '../src/id3-tag'
 import { FrameBuilder } from '../src/FrameBuilder'
 import { Frames } from '../src/frames/frames'
 

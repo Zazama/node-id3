@@ -1,7 +1,7 @@
 import { WriteTags } from "../types/Tags"
 import { isFunction } from  "../util"
 import { buildFramesBuffer } from "../frames-builder"
-import { createId3Tag } from "../id3-data"
+import { createId3Tag } from "../id3-tag"
 
 /**
  * Callback used to return a buffer with the created ID Tag.
