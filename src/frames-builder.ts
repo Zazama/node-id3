@@ -9,26 +9,26 @@ import { getFrameOptions } from "./ID3Util"
  * Returns a buffer with the frames for the specified tags.
  */
 export function buildFramesBuffer(tags?: WriteTags) {
-    return Buffer.concat(createBuffersFromTags(tags))
+    return Buffer.concat(buildFramesBuffers(tags))
 }
 
 /**
  * Returns an array of buffers using specified tags.
  */
-function createBuffersFromTags(tags?: WriteTags): Buffer[] {
+function buildFramesBuffers(tags?: WriteTags): Buffer[] {
     if(!tags) {
         return []
     }
     const rawTags = convertWriteTagsToRawTags(tags)
     return Object.entries(rawTags)
         .filter(isNotUndefinedEntry)
-        .map(([identifier, value]) => makeFrameBuffer(identifier, value))
+        .map(([identifier, value]) => buildFrameBuffer(identifier, value))
         .filter(isBuffer)
 }
 
-function makeFrameBuffer(identifier: string, value: unknown) {
+function buildFrameBuffer(identifier: string, value: unknown) {
     if (isKeyOf(identifier, Frames)) {
-        return handleMultipleAndMakeFrameBuffer(
+        return handleMultipleAndBuildFrameBuffer(
             identifier,
             value,
             Frames[identifier].create
@@ -38,7 +38,7 @@ function makeFrameBuffer(identifier: string, value: unknown) {
         return GenericFrames.GENERIC_TEXT.create(identifier, value as string)
     }
     if (identifier.startsWith('W')) {
-        return handleMultipleAndMakeFrameBuffer(
+        return handleMultipleAndBuildFrameBuffer(
             identifier,
             value,
             url => GenericFrames.GENERIC_URL.create(identifier, url),
@@ -48,7 +48,7 @@ function makeFrameBuffer(identifier: string, value: unknown) {
     return null
 }
 
-function handleMultipleAndMakeFrameBuffer<
+function handleMultipleAndBuildFrameBuffer<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Create extends (value: any, index: number) => Buffer | null
 >(
