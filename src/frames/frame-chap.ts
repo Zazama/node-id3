@@ -25,6 +25,8 @@ export const CHAP = {
     read: (buffer: Buffer): Chapter<Tags> => {
         const reader = new FrameReader(buffer)
 
+        // Returns a spreadable object to insert an optional offset property
+        // when the consumed offset is valid.
         const consumeOffset= <Key extends keyof Chapter<never>>(key: Key) => {
             const offset = reader.consumeNumber({size: 4})
             return offset === 0xFFFFFFFF ? {} : {[key]: offset}
