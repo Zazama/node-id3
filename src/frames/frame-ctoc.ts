@@ -1,6 +1,6 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import * as TagsHelpers from '../frames-reader'
+import { getTags } from '../frames-reader'
 import { buildFramesBuffer } from "../frames-builder"
 import { TableOfContents } from "../types/TagFrames"
 import { Tags, WriteTags } from "../types/Tags"
@@ -45,7 +45,7 @@ export const CTOC = {
         for(let i = 0; i < entries; i++) {
             elements.push(reader.consumeTerminatedText())
         }
-        const tags = TagsHelpers.getTags(
+        const tags = getTags(
             { buffer: reader.consumePossiblyEmptyBuffer(), version }
         ) as Tags
 

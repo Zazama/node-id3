@@ -1,6 +1,6 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import * as TagsHelpers from '../frames-reader'
+import { getTags } from '../frames-reader'
 import { buildFramesBuffer } from "../frames-builder"
 import type { Chapter } from "../types/TagFrames"
 import type { Tags, WriteTags } from "../types/Tags"
@@ -38,7 +38,7 @@ export const CHAP = {
             endTimeMs: reader.consumeNumber({size: 4}),
             ...consumeOffset("startOffsetBytes"),
             ...consumeOffset("endOffsetBytes"),
-            tags: TagsHelpers.getTags(
+            tags: getTags(
                 { buffer: reader.consumePossiblyEmptyBuffer(), version }
             ) as Tags
         }
