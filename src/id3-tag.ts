@@ -4,8 +4,16 @@ import { Options } from "./types/Options"
 import { WriteTags } from "./types/Tags"
 import { decodeSize, encodeSize } from "./util-size"
 
-const headerSize = 10
-const sizeOffset = 6
+const Header = {
+    identifier: "ID3",
+    size: 10,
+    offset: {
+        id: 0,
+        version: 3,
+        flags: 5,
+        size: 6
+    }
+} as const
 
 const subarray = (buffer: Buffer, offset: number, size: number) =>
     buffer.subarray(offset, offset + size)
@@ -16,12 +24,12 @@ export function createId3Tag(tags: WriteTags) {
 }
 
 export function addId3TagHeaderToFrames(frames: Buffer) {
-    const header = Buffer.alloc(headerSize)
+    const header = Buffer.alloc(Header.size)
     header.fill(0)
-    header.write("ID3", 0)              // File identifier
-    header.writeUInt16BE(0x0300, 3)     // Version 2.3.0  --  03 00
-    header.writeUInt16BE(0x0000, 5)     // Flags 00
-    encodeSize(frames.length).copy(header, sizeOffset)
+    header.write(Header.identifier, Header.offset.id)
+    header.writeUInt16BE(0x0300, Header.offset.version)
+    header.writeUInt16BE(0x0000, Header.offset.flags)
+    encodeSize(frames.length).copy(header, Header.offset.size)
 
     return Buffer.concat([header, frames])
 }
@@ -34,17 +42,17 @@ export function removeId3Tag(data: Buffer) {
     if (tagPosition === -1) {
         return data
     }
-    const encodedSize = subarray(data, tagPosition + sizeOffset, 4)
+    const encodedSize = subarray(data, tagPosition + Header.offset.size, 4)
 
     if (!isValidEncodedSize(encodedSize)) {
         return false
     }
 
-    if (data.length >= tagPosition + headerSize) {
+    if (data.length >= tagPosition + Header.size) {
         const size = decodeSize(encodedSize)
         return Buffer.concat([
             data.subarray(0, tagPosition),
-            data.subarray(tagPosition + size + headerSize)
+            data.subarray(tagPosition + size + Header.size)
         ])
     }
 
@@ -61,24 +69,24 @@ function findId3TagBody(buffer: Buffer) {
     if (tagPosition === -1) {
         return undefined
     }
-    const encodedSize = subarray(buffer, tagPosition + sizeOffset, 4)
-    const tagSize = headerSize + decodeSize(encodedSize)
+    const encodedSize = subarray(buffer, tagPosition + Header.offset.size, 4)
+    const tagSize = Header.size + decodeSize(encodedSize)
 
     const tagData = subarray(buffer, tagPosition, tagSize)
-    const tagHeader = tagData.subarray(0, headerSize)
+    const tagHeader = tagData.subarray(0, Header.size)
 
     // ID3 version e.g. 3 if ID3v2.3.0
-    const version = tagHeader[3]
+    const version = tagHeader[Header.offset.version]
     const tagFlags = parseTagHeaderFlags(tagHeader)
     let extendedHeaderSize = 0
     if (tagFlags.extendedHeader) {
         if (version === 3) {
-            extendedHeaderSize = 4 + tagData.readUInt32BE(headerSize)
+            extendedHeaderSize = 4 + tagData.readUInt32BE(Header.size)
         } else if(version === 4) {
-            extendedHeaderSize = decodeSize(subarray(tagData, headerSize, 4))
+            extendedHeaderSize = decodeSize(subarray(tagData, Header.size, 4))
         }
     }
-    const totalHeaderSize = headerSize + extendedHeaderSize
+    const totalHeaderSize = Header.size + extendedHeaderSize
     const bodySize = tagSize - totalHeaderSize
 
     // Copy for now, it might not be necessary, but we are not really sure for
@@ -92,7 +100,7 @@ function findId3TagBody(buffer: Buffer) {
 }
 
 function parseTagHeaderFlags(header: Buffer) {
-    if (header.length < headerSize) {
+    if (header.length < Header.size) {
         return {}
     }
     const version = header[3]
@@ -123,12 +131,12 @@ function getId3TagPosition(buffer: Buffer) {
     let position = -1
     let headerValid = false
     do {
-        position = buffer.indexOf("ID3", position + 1)
+        position = buffer.indexOf(Header.identifier, position + 1)
         if (position !== -1) {
             // It's possible that there is a "ID3" sequence without being an
             // ID3 Frame, so we need to check for validity of the next 10 bytes.
             headerValid = isValidId3Header(
-                buffer.subarray(position, position + headerSize)
+                buffer.subarray(position, position + Header.size)
             )
         }
     } while (position !== -1 && !headerValid)
@@ -140,7 +148,7 @@ function getId3TagPosition(buffer: Buffer) {
 }
 
 function isValidId3Header(buffer: Buffer) {
-    if (buffer.length < headerSize) {
+    if (buffer.length < Header.size) {
         return false
     }
     if (buffer.readUIntBE(0, 3) !== 0x494433) {
@@ -149,7 +157,7 @@ function isValidId3Header(buffer: Buffer) {
     if ([0x02, 0x03, 0x04].indexOf(buffer[3]) === -1 || buffer[4] !== 0x00) {
         return false
     }
-    return isValidEncodedSize(subarray(buffer, sizeOffset, 4))
+    return isValidEncodedSize(subarray(buffer, Header.offset.size, 4))
 }
 
 function isValidEncodedSize(encodedSize: Buffer) {
