@@ -1,5 +1,7 @@
+import { buildFramesBuffer } from "./frames-builder"
 import { getTags } from "./frames-reader"
 import { Options } from "./types/Options"
+import { WriteTags } from "./types/Tags"
 import { decodeSize, encodeSize } from "./util-size"
 
 const headerSize = 10
@@ -8,7 +10,12 @@ const sizeOffset = 6
 const subarray = (buffer: Buffer, offset: number, size: number) =>
     buffer.subarray(offset, offset + size)
 
-export function createId3Tag(frames: Buffer) {
+export function createId3Tag(tags: WriteTags) {
+    const frames = buildFramesBuffer(tags)
+    return addId3TagHeaderToFrames(frames)
+}
+
+export function addId3TagHeaderToFrames(frames: Buffer) {
     const header = Buffer.alloc(headerSize)
     header.fill(0)
     header.write("ID3", 0)              // File identifier
