@@ -20,10 +20,10 @@ const subarray = (buffer: Buffer, offset: number, size: number) =>
 
 export function createId3Tag(tags: WriteTags) {
     const frames = buildFramesBuffer(tags)
-    return addId3TagHeaderToFrames(frames)
+    return embedFramesInId3Tag(frames)
 }
 
-export function addId3TagHeaderToFrames(frames: Buffer) {
+export function embedFramesInId3Tag(frames: Buffer) {
     const header = Buffer.alloc(Header.size)
     header.fill(0)
     header.write(Header.identifier, Header.offset.id)
@@ -38,7 +38,7 @@ export function addId3TagHeaderToFrames(frames: Buffer) {
  * Remove already written ID3-Frames from a buffer
  */
 export function removeId3Tag(data: Buffer) {
-    const tagPosition = getId3TagPosition(data)
+    const tagPosition = findId3TagPosition(data)
     if (tagPosition === -1) {
         return data
     }
@@ -60,12 +60,12 @@ export function removeId3Tag(data: Buffer) {
 }
 
 export function getTagsFromId3Tag(buffer: Buffer, options: Options) {
-    const tagBody = findId3TagBody(buffer)
+    const tagBody = getId3TagBody(buffer)
     return getTags(tagBody, options)
 }
 
-function findId3TagBody(buffer: Buffer) {
-    const tagPosition = getId3TagPosition(buffer)
+function getId3TagBody(buffer: Buffer) {
+    const tagPosition = findId3TagPosition(buffer)
     if (tagPosition === -1) {
         return undefined
     }
@@ -126,7 +126,7 @@ function parseTagHeaderFlags(header: Buffer) {
 /**
  * Returns -1 if no tag was found.
  */
-function getId3TagPosition(buffer: Buffer) {
+function findId3TagPosition(buffer: Buffer) {
     // Search Buffer for valid ID3 frame
     let position = -1
     let headerValid = false
