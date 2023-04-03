@@ -34,7 +34,7 @@ export const CTOC = {
         }
         return builder.getBufferWithPartialHeader()
     },
-    read: (buffer: Buffer): TableOfContents<Tags> => {
+    read: (buffer: Buffer, version: number): TableOfContents<Tags> => {
         const reader = new FrameReader(buffer)
 
         const elementID = reader.consumeTerminatedText()
@@ -45,8 +45,8 @@ export const CTOC = {
         for(let i = 0; i < entries; i++) {
             elements.push(reader.consumeTerminatedText())
         }
-        const tags = TagsHelpers.getTagsFromTagBody(
-            reader.consumePossiblyEmptyBuffer()
+        const tags = TagsHelpers.getTags(
+            { buffer: reader.consumePossiblyEmptyBuffer(), version }
         ) as Tags
 
         return {

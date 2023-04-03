@@ -1,3 +1,5 @@
+import { getTags } from "./frames-reader"
+import { Options } from "./types/Options"
 import { decodeSize, encodeSize } from "./util-size"
 
 const headerSize = 10
@@ -42,7 +44,12 @@ export function removeId3Tag(data: Buffer) {
     return data
 }
 
-export function getId3TagBody(buffer: Buffer) {
+export function getTagsFromId3Tag(buffer: Buffer, options: Options) {
+    const tagBody = findId3TagBody(buffer)
+    return getTags(tagBody, options)
+}
+
+function findId3TagBody(buffer: Buffer) {
     const tagPosition = getId3TagPosition(buffer)
     if (tagPosition === -1) {
         return undefined
@@ -73,7 +80,7 @@ export function getId3TagBody(buffer: Buffer) {
     tagData.copy(body, 0, totalHeaderSize)
 
     return {
-        version, body
+        version, buffer: body
     }
 }
 

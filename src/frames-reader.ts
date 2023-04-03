@@ -2,68 +2,26 @@ import { Frame } from './Frame'
 import { getFrameSize } from './FrameHeader'
 import { Options } from "./types/Options"
 import { Tags, TagIdentifiers } from './types/Tags'
-import { isBuffer } from "./util"
 import { convertRawTagsToTagAliases } from "./TagsConverters"
-import { getId3TagBody } from './id3-tag'
 import { getFrameOptions } from './util-frame-options'
 
-export function getTagsFromBuffer(buffer: Buffer, options: Options) {
-    const tagBody = getId3TagBody(buffer)
-    if (tagBody === undefined) {
-        return getTagsFromFrames([], 3, options)
-    }
-    return getTagsFromTagBody(tagBody.body, tagBody.version, options)
+type FramesData = {
+    buffer: Buffer
+    version: number
 }
 
-export function getTagsFromTagBody(
-    body: Buffer,
-    version = 3,
+export function getTags(
+    framesData: FramesData | undefined,
     options: Options = {}
 ) {
-    return getTagsFromFrames(
-        getFramesFromTagBody(body, version, options),
-        version,
-        options
-    )
+    const { buffer, version } =
+        framesData ?? { buffer: Buffer.alloc(0), version: 3 }
+
+    const frames = decodeFrames(buffer, version, options)
+    return convertFramesToTags(frames, version, options)
 }
 
-function isFrameDiscarded(frameId: string, options: Options) {
-    if (Array.isArray(options.exclude) && options.exclude.includes(frameId)) {
-        return true
-    }
-    return Array.isArray(options.include) && !options.include.includes(frameId)
-}
-
-function getFramesFromTagBody(
-    tagBody: Buffer,
-    version: number,
-    options: Options = {}
-) {
-    if (!isBuffer(tagBody)) {
-        return []
-    }
-
-    const frames = []
-    while(tagBody.length && tagBody[0] !== 0x00) {
-        const frameSize = getFrameSize(tagBody, version)
-
-        // Prevent errors due to broken data.
-        if (frameSize > tagBody.length) {
-            break
-        }
-
-        const frameBuffer = tagBody.subarray(0, frameSize)
-        const frame = Frame.createFromBuffer(frameBuffer, version)
-        if (frame && !isFrameDiscarded(frame.identifier, options)) {
-            frames.push(frame)
-        }
-
-        tagBody = tagBody.subarray(frameSize)
-    }
-    return frames
-}
-
-function getTagsFromFrames(
+function convertFramesToTags(
     frames: Frame[],
     _version: number,
     options: Options = {}
@@ -92,4 +50,36 @@ function getTagsFromFrames(
         return tags
     }
     return { ...tags, raw: rawTags }
+}
+
+function decodeFrames(
+    buffer: Buffer,
+    version: number,
+    options: Options = {}
+): Frame[] {
+    const frames = []
+    while(buffer.length && buffer[0] !== 0x00) {
+        const frameSize = getFrameSize(buffer, version)
+
+        // Prevent errors due to broken data.
+        if (frameSize > buffer.length) {
+            break
+        }
+
+        const frameBuffer = buffer.subarray(0, frameSize)
+        const frame = Frame.createFromBuffer(frameBuffer, version)
+        if (frame && !isFrameDiscarded(frame.identifier, options)) {
+            frames.push(frame)
+        }
+
+        buffer = buffer.subarray(frameSize)
+    }
+    return frames
+}
+
+function isFrameDiscarded(frameId: string, options: Options) {
+    if (Array.isArray(options.exclude) && options.exclude.includes(frameId)) {
+        return true
+    }
+    return Array.isArray(options.include) && !options.include.includes(frameId)
 }
