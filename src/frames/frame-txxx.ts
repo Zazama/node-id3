@@ -5,11 +5,9 @@ import { UserDefinedText } from "../types/TagFrames"
 
 export const TXXX = {
     create: (udt: UserDefinedText) => {
-        const textEncoding = TextEncoding.UTF_16_WITH_BOM
-        return new FrameBuilder("TXXX")
-            .appendNumber(textEncoding, 1)
-            .appendNullTerminatedValue(udt.description, textEncoding)
-            .appendValue(udt.value, null, textEncoding)
+        return new FrameBuilder("TXXX", TextEncoding.UTF_16_WITH_BOM)
+            .appendTerminatedTextWithFrameEncoding(udt.description ?? "")
+            .appendTextWithFrameEncoding(udt.value)
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): UserDefinedText => {

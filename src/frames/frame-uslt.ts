@@ -19,12 +19,10 @@ export const USLT = {
             return null
         }
 
-        const textEncoding = TextEncoding.UTF_16_WITH_BOM
-        return new FrameBuilder("USLT")
-            .appendNumber(textEncoding, 1)
-            .appendValue(validateLanguage(data.language), 3, TextEncoding.ISO_8859_1)
-            .appendNullTerminatedValue(data.shortText, textEncoding)
-            .appendValue(data.text, null, textEncoding)
+        return new FrameBuilder("USLT", TextEncoding.UTF_16_WITH_BOM)
+            .appendText(validateLanguage(data.language))
+            .appendTerminatedTextWithFrameEncoding(data.shortText ?? "")
+            .appendTextWithFrameEncoding(data.text)
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): UnsynchronisedLyrics => {

@@ -1,28 +1,30 @@
-import { isString } from "./util"
 import { TextEncoding } from "./definitions/Encoding"
 import { stringToEncodedBuffer } from "./util-text-encoding"
 
-type Value = Buffer | number | string
+type Size = { size: number }
 
 export class FrameBuilder {
     private identifier: string
+    private encoding: TextEncoding = TextEncoding.ISO_8859_1
     private buffer = Buffer.alloc(0)
 
-    constructor(identifier: string) {
+    constructor(
+        identifier: string,
+        encoding?: TextEncoding
+    ) {
         this.identifier = identifier
+        if (encoding !== undefined) {
+            this.encoding = encoding
+            this.appendNumber(encoding, {size: 1})
+        }
     }
 
-    appendValue(
-        value: Value,
-        size?: number | null,
-        encoding: TextEncoding = TextEncoding.ISO_8859_1
-    ) {
-        const convertedValue = convertValue(value, encoding)
-        this.appendBuffer(staticValueToBuffer(convertedValue, size))
+    appendBuffer(buffer: Buffer) {
+        this.buffer = Buffer.concat([this.buffer, buffer])
         return this
     }
 
-    appendNumber(value: number, size: number) {
+    appendNumber(value: number, {size}: Size) {
         if (!Number.isInteger(value)) {
             throw new RangeError("An integer value is expected")
         }
@@ -30,20 +32,41 @@ export class FrameBuilder {
         if (hexValue.length % 2 !== 0) {
             hexValue = "0" + hexValue
         }
-        this.appendBuffer(
-            staticValueToBuffer(Buffer.from(hexValue, 'hex'), size)
+        const valueBuffer = Buffer.from(hexValue, 'hex')
+        const zeroPad = Buffer.alloc(size - valueBuffer.length)
+        return this.appendBuffer(
+            Buffer.concat([zeroPad, valueBuffer]).subarray(0, size)
         )
-        return this
     }
 
-    appendNullTerminatedValue(
-        value = '',
+    appendText(text: string, encoding: TextEncoding = TextEncoding.ISO_8859_1) {
+        // TODO remove the .toString() for new API release
+        return this.appendBuffer(
+            stringToEncodedBuffer(text.toString(), encoding)
+        )
+    }
+
+    appendTextWithFrameEncoding(text: string) {
+        return this.appendText(text, this.encoding)
+    }
+
+    appendTerminatedText(
+        text: string,
         encoding: TextEncoding = TextEncoding.ISO_8859_1
     ) {
-        this.appendBuffer(
-            convertValue(value, encoding),
-            getTerminatingMarker(encoding)
-        )
+        // TODO remove the .toString() for new API release
+        return this.appendText(text.toString() + "\0", encoding)
+    }
+
+    appendTerminatedTextWithFrameEncoding(text: string) {
+        return this.appendTerminatedText(text, this.encoding)
+    }
+
+    appendArray<T>(
+        values: T[],
+        callback: (builder: FrameBuilder, value: T) => void
+    ) {
+        values.forEach(value => callback(this, value))
         return this
     }
 
@@ -58,37 +81,4 @@ export class FrameBuilder {
         return Buffer.concat([header, this.buffer])
     }
 
-    private appendBuffer(...buffers: Buffer[]) {
-        this.buffer = Buffer.concat([this.buffer, ...buffers])
-    }
 }
-
-function convertValue(
-    value: Value,
-    encoding: TextEncoding = TextEncoding.ISO_8859_1
-) {
-    if (value instanceof Buffer) {
-        return value
-    }
-    if (Number.isInteger(value) || isString(value)) {
-        return stringToEncodedBuffer(value.toString(), encoding)
-    }
-    return Buffer.alloc(0)
-}
-
-function staticValueToBuffer(buffer: Buffer, size?: number | null) {
-    if (size && buffer.length < size) {
-        return Buffer.concat([Buffer.alloc(size - buffer.length, 0x00), buffer])
-    }
-    return buffer
-}
-
-function getTerminatingMarker(encoding: TextEncoding) {
-    if (encoding === TextEncoding.UTF_16_WITH_BOM ||
-        encoding === TextEncoding.UTF_16_BE
-    ) {
-        return Buffer.alloc(2, 0x00)
-    }
-    return Buffer.alloc(1, 0x00)
-}
-

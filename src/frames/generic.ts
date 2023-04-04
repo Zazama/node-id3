@@ -7,11 +7,8 @@ export const GENERIC_TEXT = {
         if(!frameIdentifier || text == undefined) {
             return null
         }
-
-        const textEncoding = TextEncoding.UTF_16_WITH_BOM
-        return new FrameBuilder(frameIdentifier)
-            .appendNumber(textEncoding, 1)
-            .appendValue(text, null, textEncoding)
+        return new FrameBuilder(frameIdentifier, TextEncoding.UTF_16_WITH_BOM)
+            .appendTextWithFrameEncoding(text)
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer) => {
@@ -25,9 +22,8 @@ export const GENERIC_URL = {
         if(!frameIdentifier || url == undefined) {
             return null
         }
-
         return new FrameBuilder(frameIdentifier)
-            .appendValue(url)
+            .appendText(url)
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer) => {

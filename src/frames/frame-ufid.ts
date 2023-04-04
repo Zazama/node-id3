@@ -5,8 +5,8 @@ import { UniqueFileIdentifier } from "../types/TagFrames"
 export const UFID = {
     create: (ufid: UniqueFileIdentifier): Buffer => {
         return new FrameBuilder("UFID")
-            .appendNullTerminatedValue(ufid.ownerIdentifier)
-            .appendValue(
+            .appendTerminatedText(ufid.ownerIdentifier)
+            .appendBuffer(
                 ufid.identifier instanceof Buffer ?
                 ufid.identifier : Buffer.from(ufid.identifier, "utf8")
             )

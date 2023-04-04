@@ -15,12 +15,12 @@ export const CHAP = {
         }
         const getOffset = (offset?: number) => offset ?? 0xFFFFFFFF
         return new FrameBuilder("CHAP")
-            .appendNullTerminatedValue(chap.elementID)
-            .appendNumber(chap.startTimeMs, 4)
-            .appendNumber(chap.endTimeMs, 4)
-            .appendNumber(getOffset(chap.startOffsetBytes), 4)
-            .appendNumber(getOffset(chap.endOffsetBytes), 4)
-            .appendValue(buildFramesBuffer(chap.tags))
+            .appendTerminatedText(chap.elementID)
+            .appendNumber(chap.startTimeMs, {size: 4})
+            .appendNumber(chap.endTimeMs, {size: 4})
+            .appendNumber(getOffset(chap.startOffsetBytes), {size: 4})
+            .appendNumber(getOffset(chap.endOffsetBytes), {size: 4})
+            .appendBuffer(buildFramesBuffer(chap.tags))
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer, version: number): Chapter<Tags> => {

@@ -9,12 +9,10 @@ export const COMM = {
         if(data.text == undefined) {
             throw new TypeError("Missing text from 'Comment' frame")
         }
-        const textEncoding = TextEncoding.UTF_16_WITH_BOM
-        return new FrameBuilder("COMM")
-            .appendNumber(textEncoding, 1)
-            .appendValue(validateLanguage(data.language))
-            .appendNullTerminatedValue(data.shortText, textEncoding)
-            .appendValue(data.text, null, textEncoding)
+        return new FrameBuilder("COMM", TextEncoding.UTF_16_WITH_BOM)
+            .appendText(validateLanguage(data.language))
+            .appendTerminatedTextWithFrameEncoding(data.shortText ?? "")
+            .appendTerminatedTextWithFrameEncoding(data.text)
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Comment => {
