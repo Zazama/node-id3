@@ -151,24 +151,21 @@ function decompressBuffer(buffer: Buffer, expectedDecompressedLength: number) {
     // 1. try if header + body decompression
     // 2. else try if header is not stored (assume that all content is deflated "body")
     // 3. else try if inflation works if the header is omitted (implementation dependent)
-    const tryDecompress = () => {
-        try {
-            return zlib.inflateSync(buffer)
-        } catch (error) {
-            try {
-                return zlib.inflateRawSync(buffer)
-            } catch (error) {
-                try {
-                    return zlib.inflateRawSync(buffer.subarray(2))
-                } catch (error) {
-                    return null
-                }
-            }
-        }
-    }
-    const decompressed = tryDecompress()
+    const decompressed = (
+        tryFunc(() => zlib.inflateSync(buffer)) ??
+        tryFunc(() => zlib.inflateRawSync(buffer)) ??
+        tryFunc(() => zlib.inflateRawSync(buffer.subarray(2)))
+    )
     if (decompressed && decompressed.length === expectedDecompressedLength) {
         return decompressed
     }
     return null
+}
+
+const tryFunc = (func: () => Buffer) => {
+    try {
+        return func()
+    } catch(error) {
+        return null
+    }
 }
