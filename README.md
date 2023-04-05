@@ -1,12 +1,13 @@
 # node-id3
 
-![GitHub package.json version](https://img.shields.io/github/package-json/v/zazama/node-id3?style=flat-square)
-![GitHub build status](https://img.shields.io/github/checks-status/Zazama/node-id3/master?style=flat-square)
-![Codecov](https://img.shields.io/codecov/c/github/Zazama/node-id3?style=flat-square)
-![Scrutinizer code quality](https://img.shields.io/scrutinizer/quality/g/Zazama/node-id3?style=flat-square)
-![npm](https://img.shields.io/npm/dt/node-id3?style=flat-square)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/zazama/node-id3?style=flat-square)](https://github.com/Zazama/node-id3/releases)
+[![Continuous Integration](https://github.com/Zazama/node-id3/actions/workflows/ci.yml/badge.svg)](https://github.com/Zazama/node-id3/actions/workflows/ci.yml)
+[![GitHub build status](https://img.shields.io/github/checks-status/Zazama/node-id3/master?style=flat-square)](https://github.com/Zazama/node-id3/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/Zazama/node-id3?style=flat-square)](https://app.codecov.io/gh/Zazama/node-id3)
+[![Scrutinizer code quality](https://img.shields.io/scrutinizer/quality/g/Zazama/node-id3?style=flat-square)](https://scrutinizer-ci.com/g/Zazama/node-id3/)
+[![npm](https://img.shields.io/npm/dt/node-id3?style=flat-square)](https://www.npmjs.com/package/node-id3?activeTab=versions)
 
-node-id3 is an ID3-Tag library written in Typescript.
+node-id3 is a JavaScript ID3-Tag library written in TypeScript.
 
 ## Installation
 
