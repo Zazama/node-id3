@@ -8,6 +8,7 @@ export class FrameBuilder {
     private encoding: TextEncoding = TextEncoding.ISO_8859_1
     private buffer = Buffer.alloc(0)
 
+    // TODO remove identifier
     constructor(
         identifier: string,
         encoding?: TextEncoding
@@ -74,6 +75,7 @@ export class FrameBuilder {
         return this.buffer
     }
 
+    // TODO remove this function
     getBufferWithPartialHeader() {
         const header = Buffer.alloc(10)
         header.write(this.identifier, 0)
