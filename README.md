@@ -146,7 +146,8 @@ The library may throw in various cases.
 
 - file operations may throw, refer to [Node.js](https://nodejs.org/) File System
   API for information
-- tags are partially validated and the API will throw when a validation fails
+- tags are partially validated and the API will throw when the first validation
+  fails, there maybe more issues after this one
 - read operations will ignore frames with decoding errors, i.e. frames which do
   not comply to the specification
 
