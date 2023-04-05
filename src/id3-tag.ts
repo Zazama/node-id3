@@ -112,6 +112,11 @@ export function getTagsFromId3Tag(buffer: Buffer, options: Options) {
     return getTags(tagBody, options)
 }
 
+export function getId3TagSize(buffer: Buffer): number {
+    const encodedSize = subarray(buffer, Header.offset.size, 4)
+    return Header.size + decodeSize(encodedSize);
+}
+
 function getId3TagBody(buffer: Buffer) {
     const tagPosition = findId3TagPosition(buffer)
     if (tagPosition === -1) {
@@ -202,7 +207,7 @@ function parseTagHeaderFlags(header: Buffer): TagHeaderFlags {
 /**
  * Returns the position of the first valid tag found or -1 if no tag was found.
  */
-function findId3TagPosition(buffer: Buffer) {
+export function findId3TagPosition(buffer: Buffer) {
     // Search Buffer for valid ID3 frame
     let position = -1
     do {
