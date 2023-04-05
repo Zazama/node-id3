@@ -1,6 +1,7 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import * as TagsHelpers from '../TagsHelpers'
+import { getTags } from '../frames-reader'
+import { buildFramesBuffer } from "../frames-builder"
 import type { Chapter } from "../types/TagFrames"
 import type { Tags, WriteTags } from "../types/Tags"
 
@@ -19,10 +20,10 @@ export const CHAP = {
             .appendNumber(chap.endTimeMs, 4)
             .appendNumber(getOffset(chap.startOffsetBytes), 4)
             .appendNumber(getOffset(chap.endOffsetBytes), 4)
-            .appendValue(TagsHelpers.createBufferFromTags(chap.tags))
+            .appendValue(buildFramesBuffer(chap.tags))
             .getBufferWithPartialHeader()
     },
-    read: (buffer: Buffer): Chapter<Tags> => {
+    read: (buffer: Buffer, version: number): Chapter<Tags> => {
         const reader = new FrameReader(buffer)
 
         // Returns a spreadable object to insert an optional offset property
@@ -37,8 +38,8 @@ export const CHAP = {
             endTimeMs: reader.consumeNumber({size: 4}),
             ...consumeOffset("startOffsetBytes"),
             ...consumeOffset("endOffsetBytes"),
-            tags: TagsHelpers.getTagsFromTagBody(
-                reader.consumePossiblyEmptyBuffer()
+            tags: getTags(
+                { buffer: reader.consumePossiblyEmptyBuffer(), version }
             ) as Tags
         }
     }

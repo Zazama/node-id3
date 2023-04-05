@@ -1,7 +1,7 @@
 import * as NodeID3 from '../../index'
 import assert = require('assert')
 import iconv = require('iconv-lite')
-import * as ID3Util from '../../src/ID3Util'
+import { encodeSize } from '../../src/util-size'
 
 describe('NodeID3 API', function () {
     describe('#create()', function () {
@@ -36,7 +36,7 @@ describe('NodeID3 API', function () {
             assert.ok(buffer.includes(
                 Buffer.concat([
                     Buffer.from([0x49, 0x44, 0x33, 0x03, 0x00, 0x00]),
-                    Buffer.from(ID3Util.encodeSize(titleSize + albumSize + yearSize))
+                    Buffer.from(encodeSize(titleSize + albumSize + yearSize))
                 ])
             ))
 

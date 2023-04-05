@@ -1,7 +1,7 @@
 import * as NodeID3 from '../index'
 import assert = require('assert')
 import { expect } from 'chai'
-import { createId3Data } from '../src/id3-data'
+import { embedFramesInId3Tag } from '../src/id3-tag'
 import { FrameBuilder } from '../src/FrameBuilder'
 import { Frames } from '../src/frames/frames'
 
@@ -14,7 +14,7 @@ describe('Frames with errors', function () {
     }),
     it('a frame with a decode error is ignored', function () {
         const invalidPrivateFrame = new FrameBuilder('PRIV').getBufferWithPartialHeader()
-        const id3Data = createId3Data(invalidPrivateFrame)
+        const id3Data = embedFramesInId3Tag(invalidPrivateFrame)
         const readFrames = NodeID3.read(id3Data, {noRaw: true})
         assert.deepStrictEqual(readFrames, {})
     })

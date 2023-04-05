@@ -1,6 +1,6 @@
 import * as fs from "fs"
-import * as ID3Util from "../ID3Util"
 import { isFunction } from "../util"
+import { removeId3Tag } from "../id3-tag"
 
 /**
  * Remove already written ID3-Frames from a buffer
@@ -8,30 +8,7 @@ import { isFunction } from "../util"
  * @public
  */
 export function removeTagsFromBuffer(data: Buffer) {
-    const tagPosition = ID3Util.getTagPosition(data)
-
-    if (tagPosition === -1) {
-        return data
-    }
-
-    const tagHeaderSize = 10
-    const encodedSize = data.subarray(
-        tagPosition + 6,
-        tagPosition + tagHeaderSize
-    )
-    if (!ID3Util.isValidEncodedSize(encodedSize)) {
-        return false
-    }
-
-    if (data.length >= tagPosition + tagHeaderSize) {
-        const size = ID3Util.decodeSize(encodedSize)
-        return Buffer.concat([
-            data.subarray(0, tagPosition),
-            data.subarray(tagPosition + size + tagHeaderSize)
-        ])
-    }
-
-    return data
+    return removeId3Tag(data)
 }
 
 /**

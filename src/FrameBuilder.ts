@@ -1,6 +1,6 @@
-import * as ID3Util from "./ID3Util"
 import { isString } from "./util"
 import { TextEncoding } from "./definitions/Encoding"
+import { stringToEncodedBuffer } from "./util-text-encoding"
 
 type Value = Buffer | number | string
 
@@ -71,7 +71,7 @@ function convertValue(
         return value
     }
     if (Number.isInteger(value) || isString(value)) {
-        return ID3Util.stringToEncodedBuffer(value.toString(), encoding)
+        return stringToEncodedBuffer(value.toString(), encoding)
     }
     return Buffer.alloc(0)
 }

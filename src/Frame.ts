@@ -6,8 +6,7 @@ import {
 } from './FrameHeader'
 import * as GenericFrames from './frames/generic'
 import { Frames } from './frames/frames'
-import * as ID3Util from './ID3Util'
-import { deduplicate, isBuffer, isKeyOf } from "./util"
+import { isKeyOf } from "./util"
 
 type HeaderInfo = {
     identifier: string
@@ -84,57 +83,6 @@ function createFromBuffer(
     return new Frame(header.identifier, value, header.flags)
 }
 
-export function makeFrameBuffer(identifier: string, value: unknown) {
-    if (isKeyOf(identifier, Frames)) {
-        return handleMultipleAndMakeFrameBuffer(
-            identifier,
-            value,
-            Frames[identifier].create
-        )
-    }
-    if (identifier.startsWith('T')) {
-        return GenericFrames.GENERIC_TEXT.create(identifier, value as string)
-    }
-    if (identifier.startsWith('W')) {
-        return handleMultipleAndMakeFrameBuffer(
-            identifier,
-            value,
-            url => GenericFrames.GENERIC_URL.create(identifier, url),
-            deduplicate
-        )
-    }
-    return null
-}
-
-function handleMultipleAndMakeFrameBuffer<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Create extends (value: any, index: number) => Buffer | null
->(
-    identifier: string,
-    data: unknown,
-    create: Create,
-    deduplicate = (values: ([Parameters<Create>])[]) => values
-) {
-    const values = makeValueArray(identifier, data)
-    const frames = deduplicate(values)
-        .map(create)
-        .filter(isBuffer)
-    return frames.length ? Buffer.concat(frames) : null
-}
-
-/**
- * Throws if an array is given but not expected, i.e. the contract is not
- * respected, otherwise always return an array.
- */
-function makeValueArray(identifier: string, data: unknown) {
-    const isMultiple = ID3Util.getSpecOptions(identifier).multiple
-    const isArray = Array.isArray(data)
-    if (!isMultiple && isArray) {
-        throw new TypeError(`Unexpected array for frame ${identifier}`)
-    }
-    return isMultiple && isArray ? data : [data]
-}
-
 function makeFrameValue(identifier:string, body: Buffer, version: number) {
     try {
         if (isKeyOf(identifier, Frames)) {
@@ -161,9 +109,23 @@ function getBody({flags, headerSize, bodySize}: HeaderInfo, buffer: Buffer) {
     if (flags.unsynchronisation) {
         // This method should stay in ID3Util for now because it's also used
         // in the Tag's header which we don't have a class for.
-        return ID3Util.processUnsynchronisedBuffer(body)
+        return processUnsynchronisedBuffer(body)
     }
     return body
+}
+
+function processUnsynchronisedBuffer(buffer: Buffer) {
+    const newDataArr = []
+    if (buffer.length > 0) {
+        newDataArr.push(buffer[0])
+    }
+    for(let i = 1; i < buffer.length; i++) {
+        if (buffer[i - 1] === 0xFF && buffer[i] === 0x00) {
+            continue
+        }
+        newDataArr.push(buffer[i])
+    }
+    return Buffer.from(newDataArr)
 }
 
 function getDataLength({flags, headerSize}: HeaderInfo, buffer: Buffer) {
@@ -189,24 +151,21 @@ function decompressBuffer(buffer: Buffer, expectedDecompressedLength: number) {
     // 1. try if header + body decompression
     // 2. else try if header is not stored (assume that all content is deflated "body")
     // 3. else try if inflation works if the header is omitted (implementation dependent)
-    const tryDecompress = () => {
-        try {
-            return zlib.inflateSync(buffer)
-        } catch (error) {
-            try {
-                return zlib.inflateRawSync(buffer)
-            } catch (error) {
-                try {
-                    return zlib.inflateRawSync(buffer.subarray(2))
-                } catch (error) {
-                    return null
-                }
-            }
-        }
-    }
-    const decompressed = tryDecompress()
+    const decompressed = (
+        tryFunc(() => zlib.inflateSync(buffer)) ??
+        tryFunc(() => zlib.inflateRawSync(buffer)) ??
+        tryFunc(() => zlib.inflateRawSync(buffer.subarray(2)))
+    )
     if (decompressed && decompressed.length === expectedDecompressedLength) {
         return decompressed
     }
     return null
+}
+
+const tryFunc = (func: () => Buffer) => {
+    try {
+        return func()
+    } catch(error) {
+        return null
+    }
 }

@@ -1,6 +1,7 @@
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
-import * as TagsHelpers from '../TagsHelpers'
+import { getTags } from '../frames-reader'
+import { buildFramesBuffer } from "../frames-builder"
 import { TableOfContents } from "../types/TagFrames"
 import { Tags, WriteTags } from "../types/Tags"
 
@@ -29,11 +30,11 @@ export const CTOC = {
             builder.appendNullTerminatedValue(element)
         })
         if (toc.tags) {
-            builder.appendValue(TagsHelpers.createBufferFromTags(toc.tags))
+            builder.appendValue(buildFramesBuffer(toc.tags))
         }
         return builder.getBufferWithPartialHeader()
     },
-    read: (buffer: Buffer): TableOfContents<Tags> => {
+    read: (buffer: Buffer, version: number): TableOfContents<Tags> => {
         const reader = new FrameReader(buffer)
 
         const elementID = reader.consumeTerminatedText()
@@ -44,8 +45,8 @@ export const CTOC = {
         for(let i = 0; i < entries; i++) {
             elements.push(reader.consumeTerminatedText())
         }
-        const tags = TagsHelpers.getTagsFromTagBody(
-            reader.consumePossiblyEmptyBuffer()
+        const tags = getTags(
+            { buffer: reader.consumePossiblyEmptyBuffer(), version }
         ) as Tags
 
         return {

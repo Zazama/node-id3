@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import { getTagsFromBuffer } from '../TagsHelpers'
+import { getTagsFromId3Tag } from '../id3-tag'
 import { isFunction, isString } from '../util'
 import { Tags, TagIdentifiers } from '../types/Tags'
 import { Options } from '../types/Options'
@@ -73,7 +73,7 @@ function readSync(filebuffer: string | Buffer, options: Options) {
     if (isString(filebuffer)) {
         filebuffer = fs.readFileSync(filebuffer)
     }
-    return getTagsFromBuffer(filebuffer, options)
+    return getTagsFromId3Tag(filebuffer, options)
 }
 
 function readAsync(
@@ -86,10 +86,10 @@ function readAsync(
             if(error) {
                 callback(error, null)
             } else {
-                callback(null, getTagsFromBuffer(data, options))
+                callback(null, getTagsFromId3Tag(data, options))
             }
         })
     } else {
-        callback(null, getTagsFromBuffer(filebuffer, options))
+        callback(null, getTagsFromId3Tag(filebuffer, options))
     }
 }
