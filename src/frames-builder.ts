@@ -59,6 +59,7 @@ function handleMultipleAndBuildFrameBuffer<
 ) {
     const values = makeValueArray(identifier, data)
     const frames = deduplicate(values).map(create)
+    // TODO: check if length can be 0, but I believe it can't
     return frames.length ? Buffer.concat(frames) : null
 }
 
