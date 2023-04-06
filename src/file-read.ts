@@ -63,12 +63,24 @@ async function findPartialId3TagAsync(fileDescriptor: number): Promise<Buffer|nu
 }
 
 function getNextBufferSubarraySync(fileDescriptor: number, buffer: Buffer): Buffer {
-    const bytesRead = fs.readSync(fileDescriptor, buffer, {offset: Header.size})
+    const bytesRead = fs.readSync(
+        fileDescriptor,
+        buffer,
+        Header.size,
+        buffer.length - Header.size,
+        null
+    )
     return buffer.subarray(0, bytesRead + Header.size)
 }
 
 async function getNextBufferSubarrayAsync(fileDescriptor: number, buffer: Buffer): Promise<Buffer> {
-    const bytesRead = (await fsReadPromise(fileDescriptor, {buffer, offset: Header.size})).bytesRead
+    const bytesRead = (await fsReadPromise(
+        fileDescriptor,
+        buffer,
+        Header.size,
+        buffer.length - Header.size,
+        null
+    )).bytesRead
     return buffer.subarray(0, bytesRead + Header.size)
 }
 
@@ -80,9 +92,6 @@ function processFile<T>(
     const fileDescriptor = fs.openSync(filepath, flags)
     try {
         return process(fileDescriptor)
-    }
-    catch (error) {
-        throw error
     }
     finally {
         fs.closeSync(fileDescriptor)
@@ -97,9 +106,6 @@ async function processFileAsync<T>(
     const fileDescriptor = await fsOpenPromise(filepath, flags)
     try {
         return await process(fileDescriptor)
-    }
-    catch (error) {
-        throw error
     }
     finally {
         await fsClosePromise(fileDescriptor)
