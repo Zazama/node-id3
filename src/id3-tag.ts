@@ -8,12 +8,60 @@ const Header = {
     identifier: "ID3",
     size: 10,
     offset: {
-        id: 0,
-        version: 3,
-        flags: 5,
-        size: 6
+        identifier: 0,  // 3 bytes
+        version: 3,     // major version: 1 byte
+        revision: 4,    // 1 byte
+        flags: 5,       // 1 byte
+        size: 6         // 4 bytes
     }
 } as const
+
+/**
+ * ID3v2 Header
+ */
+type TagHeader = {
+    /**
+     * The sum of the header size and the tag data size.
+     */
+    tagSize: number
+    /**
+     * Version format is v2.major.revision
+     */
+    version: {
+        /**
+         * Major versions are not backwards compatible.
+         */
+        major: number
+        /**
+         * Revisions are backwards compatible.
+         */
+        revision: number
+    }
+    flags: TagHeaderFlags
+}
+
+type TagHeaderFlags = {
+    /**
+     * Indicates whether or not unsynchronisation is applied on all frames
+     * (see section 6.1 for details); true indicates usage.
+     */
+    unsynchronisation: boolean
+    /**
+     * Indicates whether or not the header is followed by an extended
+     * header. The extended header is described in section 3.2.
+     * True indicates the presence of an extended header.
+     */
+    extendedHeader: boolean
+    /**
+     * This flag SHALL always be set when the tag is in an experimental stage.
+     */
+    experimentalIndicator: boolean
+    /**
+     * A footer (section 3.4) is present at the very end of the tag.
+     * True indicates the presence of a footer.
+     */
+    footerPresent?: boolean
+}
 
 const subarray = (buffer: Buffer, offset: number, size: number) =>
     buffer.subarray(offset, offset + size)
@@ -26,7 +74,7 @@ export function createId3Tag(tags: WriteTags) {
 export function embedFramesInId3Tag(frames: Buffer) {
     const header = Buffer.alloc(Header.size)
     header.fill(0)
-    header.write(Header.identifier, Header.offset.id)
+    header.write(Header.identifier, Header.offset.identifier)
     header.writeUInt16BE(0x0300, Header.offset.version)
     header.writeUInt16BE(0x0000, Header.offset.flags)
     encodeSize(frames.length).copy(header, Header.offset.size)
@@ -69,42 +117,66 @@ function getId3TagBody(buffer: Buffer) {
     if (tagPosition === -1) {
         return undefined
     }
-    const encodedSize = subarray(buffer, tagPosition + Header.offset.size, 4)
-    const tagSize = Header.size + decodeSize(encodedSize)
-
-    const tagData = subarray(buffer, tagPosition, tagSize)
-    const tagHeader = tagData.subarray(0, Header.size)
-
-    // ID3 version e.g. 3 if ID3v2.3.0
-    const version = tagHeader[Header.offset.version]
-    const tagFlags = parseTagHeaderFlags(tagHeader)
-    let extendedHeaderSize = 0
-    if (tagFlags.extendedHeader) {
-        if (version === 3) {
-            extendedHeaderSize = 4 + tagData.readUInt32BE(Header.size)
-        } else if(version === 4) {
-            extendedHeaderSize = decodeSize(subarray(tagData, Header.size, 4))
-        }
-    }
-    const totalHeaderSize = Header.size + extendedHeaderSize
-    const bodySize = tagSize - totalHeaderSize
+    const tagBuffer = buffer.subarray(tagPosition)
+    const tagHeader = decodeId3TagHeader(tagBuffer)
+    const totalHeaderSize =
+        Header.size + getExtendedHeaderSize(tagHeader, tagBuffer)
+    const bodySize = tagHeader.tagSize - totalHeaderSize
 
     // Copy for now, it might not be necessary, but we are not really sure for
     // now, will be re-assessed if we can avoid the copy.
     const body = Buffer.alloc(bodySize)
-    tagData.copy(body, 0, totalHeaderSize)
+    tagBuffer.copy(body, 0, totalHeaderSize)
 
     return {
-        version, buffer: body
+        version: tagHeader.version.major,
+        buffer: body
     }
 }
 
-function parseTagHeaderFlags(header: Buffer) {
-    if (header.length < Header.size) {
-        return {}
+/**
+ * @param tagBuffer A buffer starting with a valid id3 tag header.
+ * @returns The size of the extended header.
+ */
+function getExtendedHeaderSize(header: TagHeader, tagBuffer: Buffer) {
+    if (header.flags.extendedHeader) {
+        if (header.version.major === 3) {
+            return 4 + tagBuffer.readUInt32BE(Header.size)
+        }
+        if (header.version.major === 4) {
+            return decodeSize(subarray(tagBuffer, Header.size, 4))
+        }
     }
-    const version = header[3]
-    const flagsByte = header[5]
+    return 0
+}
+
+/**
+ * @param tagBuffer A buffer starting with a valid id3 tag header.
+ * @returns The decoded header.
+ */
+function decodeId3TagHeader(tagBuffer: Buffer): TagHeader {
+    return {
+        tagSize: decodeId3TagSize(tagBuffer),
+        version: {
+            major: tagBuffer[Header.offset.version],
+            revision: tagBuffer[Header.offset.revision]
+        },
+        flags: parseTagHeaderFlags(tagBuffer)
+    }
+}
+
+/**
+ * @param tagBuffer A buffer starting with a valid id3 tag header.
+ * @returns The size of tag including the header.
+ */
+function decodeId3TagSize(tagBuffer: Buffer) {
+    const encodedSize = subarray(tagBuffer, Header.offset.size, 4)
+    return Header.size + decodeSize(encodedSize)
+}
+
+function parseTagHeaderFlags(header: Buffer): TagHeaderFlags {
+    const version = header[Header.offset.version]
+    const flagsByte = header[Header.offset.flags]
     if (version === 3) {
         return {
             unsynchronisation: !!(flagsByte & 128),
@@ -120,41 +192,52 @@ function parseTagHeaderFlags(header: Buffer) {
             footerPresent: !!(flagsByte & 16)
         }
     }
-    return {}
+    return {
+        unsynchronisation: false,
+        extendedHeader: false,
+        experimentalIndicator: false
+    }
 }
 
 /**
- * Returns -1 if no tag was found.
+ * Returns the position of the first valid tag found or -1 if no tag was found.
  */
 function findId3TagPosition(buffer: Buffer) {
     // Search Buffer for valid ID3 frame
     let position = -1
-    let headerValid = false
     do {
         position = buffer.indexOf(Header.identifier, position + 1)
         if (position !== -1) {
             // It's possible that there is a "ID3" sequence without being an
             // ID3 Frame, so we need to check for validity of the next 10 bytes.
-            headerValid = isValidId3Header(
-                buffer.subarray(position, position + Header.size)
-            )
+            if (isValidId3Header(buffer.subarray(position))) {
+                return position
+            }
         }
-    } while (position !== -1 && !headerValid)
-
-    if (!headerValid) {
-        return -1
-    }
-    return position
+    } while (position !== -1)
+    return -1
 }
 
 function isValidId3Header(buffer: Buffer) {
+    // From id3.org:
+    // An ID3v2 tag can be detected with the following pattern:
+    // $49 44 33 yy yy xx zz zz zz zz
+    // Where yy is less than $FF, xx is the 'flags' byte and zz is less than
+    // $80.
     if (buffer.length < Header.size) {
         return false
     }
-    if (buffer.readUIntBE(0, 3) !== 0x494433) {
+    const identifier = buffer.readUIntBE(Header.offset.identifier, 3)
+    if (identifier !== 0x494433) {
         return false
     }
-    if ([0x02, 0x03, 0x04].indexOf(buffer[3]) === -1 || buffer[4] !== 0x00) {
+    const majorVersion = buffer[Header.offset.version]
+    const revision = buffer[Header.offset.revision]
+    if (majorVersion === 0xFF || revision === 0xFF) {
+        return false
+    }
+    // This library currently only handle these versions.
+    if ([0x02, 0x03, 0x04].indexOf(majorVersion) === -1) {
         return false
     }
     return isValidEncodedSize(subarray(buffer, Header.offset.size, 4))
