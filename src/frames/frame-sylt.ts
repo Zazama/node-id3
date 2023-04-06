@@ -2,14 +2,14 @@ import { TextEncoding } from "../definitions/Encoding"
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { SynchronisedLyrics } from "../types/TagFrames"
-import { validateLanguage } from "./util"
+import { validateLanguageCode } from "./util"
 
 type TimeStampFormat = SynchronisedLyrics["timeStampFormat"]
 
 export const SYLT = {
     create: (lyrics: SynchronisedLyrics): Buffer => {
         return new FrameBuilder("SYLT", TextEncoding.UTF_16_WITH_BOM)
-            .appendText(validateLanguage(lyrics.language))
+            .appendText(validateLanguageCode(lyrics.language))
             .appendNumber(lyrics.timeStampFormat, {size: 1})
             .appendNumber(lyrics.contentType, {size: 1})
             .appendTerminatedTextWithFrameEncoding(lyrics.shortText ?? "")

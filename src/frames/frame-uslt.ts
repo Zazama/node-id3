@@ -3,7 +3,7 @@ import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { UnsynchronisedLyrics } from "../types/TagFrames"
 import { isString } from '../util'
-import { validateLanguage } from "./util"
+import { validateLanguageCode } from "./util"
 
 export const USLT = {
     create: (data: UnsynchronisedLyrics | string) => {
@@ -20,7 +20,7 @@ export const USLT = {
         }
 
         return new FrameBuilder("USLT", TextEncoding.UTF_16_WITH_BOM)
-            .appendText(validateLanguage(data.language))
+            .appendText(validateLanguageCode(data.language))
             .appendTerminatedTextWithFrameEncoding(data.shortText ?? "")
             .appendTextWithFrameEncoding(data.text)
             .getBufferWithPartialHeader()

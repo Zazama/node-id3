@@ -2,6 +2,7 @@ import { TextEncoding } from '../definitions/Encoding'
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { CommercialFrame } from '../types/TagFrames'
+import { validateCurrencyCode } from './util'
 import { retrievePictureAndMimeType } from './util-picture'
 
 const toZeroPaddedString = (value: number, width: number) =>
@@ -17,8 +18,7 @@ export const COMR = {
                 .entries(comr.prices || {})
                 .map(
                     ([currencyCode, price]) =>
-                        // TODO validate currency code is 3 character long
-                        currencyCode.substring(0, 3) + price.toString()
+                        validateCurrencyCode(currencyCode) + price.toString()
                 )
                 .join("/")
 
