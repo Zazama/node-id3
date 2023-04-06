@@ -3,9 +3,11 @@ import { FrameReader } from "../FrameReader"
 import { TextEncoding } from "../definitions/Encoding"
 
 export const GENERIC_TEXT = {
-    create: (frameIdentifier: string, text: string): Buffer | null => {
-        if(!frameIdentifier || text == undefined) {
-            return null
+    create: (frameIdentifier: string, text: string): Buffer => {
+        if(text == undefined) {
+            throw new TypeError(
+                `A text must be provided for frame id ${frameIdentifier}`
+            )
         }
         return new FrameBuilder(frameIdentifier, TextEncoding.UTF_16_WITH_BOM)
             .appendTextWithFrameEncoding(text)
@@ -18,9 +20,11 @@ export const GENERIC_TEXT = {
 }
 
 export const GENERIC_URL = {
-    create: (frameIdentifier: string, url: string) => {
-        if(!frameIdentifier || url == undefined) {
-            return null
+    create: (frameIdentifier: string, url: string): Buffer => {
+        if(url == undefined) {
+            throw new TypeError(
+                `An url must be provided for frame id ${frameIdentifier}`
+            )
         }
         return new FrameBuilder(frameIdentifier)
             .appendText(url)

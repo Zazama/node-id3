@@ -11,7 +11,7 @@ const FLAGS = {
 } as const
 
 export const CTOC = {
-    create: (toc: TableOfContents<WriteTags>, index: number) => {
+    create: (toc: TableOfContents<WriteTags>, index: number): Buffer => {
         if (toc.elementID == undefined) {
             throw new TypeError("An elementID must be provided")
         }

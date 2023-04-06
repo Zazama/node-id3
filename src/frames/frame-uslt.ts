@@ -6,7 +6,7 @@ import { isString } from '../util'
 import { validateLanguageCode } from "./util"
 
 export const USLT = {
-    create: (data: UnsynchronisedLyrics | string) => {
+    create: (data: UnsynchronisedLyrics | string): Buffer => {
         if(isString(data)) {
             // TODO: we should probably not accept a string only,
             // as the language is not optionalm default to eng for now.
@@ -15,8 +15,8 @@ export const USLT = {
                 text: data
             }
         }
-        if(!data.text) {
-            return null
+        if (data.text == undefined) {
+            throw new TypeError("A description text must be provided")
         }
 
         return new FrameBuilder("USLT", TextEncoding.UTF_16_WITH_BOM)

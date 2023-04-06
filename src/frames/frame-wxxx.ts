@@ -4,7 +4,7 @@ import { FrameReader } from "../FrameReader"
 import { UserDefinedUrl } from "../types/TagFrames"
 
 export const WXXX = {
-    create: (data: UserDefinedUrl) => {
+    create: (data: UserDefinedUrl): Buffer => {
         return new FrameBuilder("WXXX", TextEncoding.UTF_16_WITH_BOM)
             .appendTerminatedTextWithFrameEncoding(data.description)
             .appendText(data.url)

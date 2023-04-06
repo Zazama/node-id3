@@ -6,12 +6,14 @@ import type { Chapter } from "../types/TagFrames"
 import type { Tags, WriteTags } from "../types/Tags"
 
 export const CHAP = {
-    create: (chap: Chapter<WriteTags>) => {
-        if (!chap.elementID
-            || typeof chap.startTimeMs === "undefined"
-            || !chap.endTimeMs
+    create: (chap: Chapter<WriteTags>): Buffer => {
+        if (chap.elementID == undefined
+            || chap.startTimeMs == undefined
+            || chap.endTimeMs == undefined
         ) {
-            return null
+            throw new TypeError(
+                "elementID, startTimeMs, endTimeMs must all be provided"
+            )
         }
         const getOffset = (offset?: number) => offset ?? 0xFFFFFFFF
         return new FrameBuilder("CHAP")

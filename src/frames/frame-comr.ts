@@ -9,7 +9,7 @@ const toZeroPaddedString = (value: number, width: number) =>
     value.toString().padStart(width, '0').substring(0, width)
 
 export const COMR = {
-    create: (comr: CommercialFrame) => {
+    create: (comr: CommercialFrame): Buffer => {
         const builder = new FrameBuilder("COMR", TextEncoding.UTF_16_WITH_BOM)
 
         // Price string

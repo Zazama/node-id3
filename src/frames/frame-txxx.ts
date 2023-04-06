@@ -4,7 +4,7 @@ import { FrameReader } from "../FrameReader"
 import { UserDefinedText } from "../types/TagFrames"
 
 export const TXXX = {
-    create: (udt: UserDefinedText) => {
+    create: (udt: UserDefinedText): Buffer => {
         return new FrameBuilder("TXXX", TextEncoding.UTF_16_WITH_BOM)
             .appendTerminatedTextWithFrameEncoding(udt.description ?? "")
             .appendTextWithFrameEncoding(udt.value)
