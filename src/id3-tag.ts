@@ -8,10 +8,11 @@ const Header = {
     identifier: "ID3",
     size: 10,
     offset: {
-        id: 0,
-        version: 3,
-        flags: 5,
-        size: 6
+        identifier: 0,  // 3 bytes
+        version: 3,     // major version: 1 byte
+        revision: 4,    // 1 byte
+        flags: 5,       // 1 byte
+        size: 6         // 4 bytes
     }
 } as const
 
@@ -26,7 +27,7 @@ export function createId3Tag(tags: WriteTags) {
 export function embedFramesInId3Tag(frames: Buffer) {
     const header = Buffer.alloc(Header.size)
     header.fill(0)
-    header.write(Header.identifier, Header.offset.id)
+    header.write(Header.identifier, Header.offset.identifier)
     header.writeUInt16BE(0x0300, Header.offset.version)
     header.writeUInt16BE(0x0000, Header.offset.flags)
     encodeSize(frames.length).copy(header, Header.offset.size)
