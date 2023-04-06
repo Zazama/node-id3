@@ -1,7 +1,7 @@
 # node-id3
 
 [![GitHub package.json version](https://img.shields.io/github/package-json/v/zazama/node-id3?style=flat-square)](https://github.com/Zazama/node-id3/releases)
-[![Continuous Integration](https://github.com/Zazama/node-id3/actions/workflows/ci.yml/badge.svg)](https://github.com/Zazama/node-id3/actions/workflows/ci.yml)
+[![GitHub CI](https://img.shields.io/github/actions/workflow/status/zazama/node-id3/ci.yml?branch=master&style=flat-square)](https://github.com/Zazama/node-id3/actions/workflows/ci.yml?query=branch%3Amaster)
 [![Codecov](https://img.shields.io/codecov/c/github/Zazama/node-id3?style=flat-square)](https://app.codecov.io/gh/Zazama/node-id3)
 [![Scrutinizer code quality](https://img.shields.io/scrutinizer/quality/g/Zazama/node-id3?style=flat-square)](https://scrutinizer-ci.com/g/Zazama/node-id3/)
 [![npm](https://img.shields.io/npm/dt/node-id3?style=flat-square)](https://www.npmjs.com/package/node-id3?activeTab=versions)
