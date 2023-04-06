@@ -13,7 +13,10 @@
  * - file operations may throw, refer to [Node.js](https://nodejs.org/)
  *   File System API documentation
  *   for more information
- * - tags are partially validated and the API will throw when a validation fails
+ * - tags are partially validated and the API will throw when the first
+ *   validation fails, there is maybe more issues after this one
+ * - read operations will ignore frames with decoding errors, i.e. frames which
+ *  do not comply to the specification
  *
  * @packageDocumentation
  */
