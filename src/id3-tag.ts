@@ -124,27 +124,22 @@ function parseTagHeaderFlags(header: Buffer) {
 }
 
 /**
- * Returns -1 if no tag was found.
+ * Returns the position of the first valid tag found or -1 if no tag was found.
  */
 function findId3TagPosition(buffer: Buffer) {
     // Search Buffer for valid ID3 frame
     let position = -1
-    let headerValid = false
     do {
         position = buffer.indexOf(Header.identifier, position + 1)
         if (position !== -1) {
             // It's possible that there is a "ID3" sequence without being an
             // ID3 Frame, so we need to check for validity of the next 10 bytes.
-            headerValid = isValidId3Header(
-                buffer.subarray(position, position + Header.size)
-            )
+            if (isValidId3Header(buffer.subarray(position))) {
+                return position
+            }
         }
-    } while (position !== -1 && !headerValid)
-
-    if (!headerValid) {
-        return -1
-    }
-    return position
+    } while (position !== -1)
+    return -1
 }
 
 function isValidId3Header(buffer: Buffer) {
