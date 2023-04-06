@@ -11,7 +11,7 @@ const FLAGS = {
 } as const
 
 export const CTOC = {
-    create: (toc: TableOfContents<WriteTags>, index: number) => {
+    create: (toc: TableOfContents<WriteTags>, index: number): Buffer => {
         if (toc.elementID == undefined) {
             throw new TypeError("An elementID must be provided")
         }
@@ -21,18 +21,15 @@ export const CTOC = {
 
         const { elements = [] } = toc
 
-        const builder = new FrameBuilder("CTOC")
-            .appendNullTerminatedValue(toc.elementID)
-            .appendValue(flags, 1)
-            .appendNumber(elements.length, 1)
-
-        elements.forEach((element) => {
-            builder.appendNullTerminatedValue(element)
-        })
-        if (toc.tags) {
-            builder.appendValue(buildFramesBuffer(toc.tags))
-        }
-        return builder.getBufferWithPartialHeader()
+        return new FrameBuilder("CTOC")
+            .appendTerminatedText(toc.elementID)
+            .appendNumber(flags, {size: 1})
+            .appendNumber(elements.length, {size: 1})
+            .appendArray(elements, (builder, elementId) => builder
+                .appendTerminatedText(elementId)
+            )
+            .appendBuffer(buildFramesBuffer(toc.tags))
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer, version: number): TableOfContents<Tags> => {
         const reader = new FrameReader(buffer)

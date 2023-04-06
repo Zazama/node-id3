@@ -31,9 +31,9 @@ export const POPM = {
         }
 
         return new FrameBuilder("POPM")
-            .appendNullTerminatedValue(data.email)
-            .appendNumber(rating, 1)
-            .appendNumber(counter, 4)
+            .appendTerminatedText(data.email)
+            .appendNumber(rating, {size: 1})
+            .appendNumber(counter, {size: 4})
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Popularimeter => {

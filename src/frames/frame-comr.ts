@@ -2,37 +2,37 @@ import { TextEncoding } from '../definitions/Encoding'
 import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { CommercialFrame } from '../types/TagFrames'
+import { validateCurrencyCode } from './util'
 import { retrievePictureAndMimeType } from './util-picture'
 
+const toZeroPaddedString = (value: number, width: number) =>
+    value.toString().padStart(width, '0').substring(0, width)
+
 export const COMR = {
-    create: (comr: CommercialFrame) => {
-        const prices = comr.prices || {}
-        const builder = new FrameBuilder("COMR")
-
-        const textEncoding = TextEncoding.UTF_16_WITH_BOM
-
-        builder.appendNumber(textEncoding, 1)
+    create: (comr: CommercialFrame): Buffer => {
+        const builder = new FrameBuilder("COMR", TextEncoding.UTF_16_WITH_BOM)
 
         // Price string
-        const priceString = Object.entries(prices).map((price) => {
-            return price[0].substring(0, 3) + price[1].toString()
-        }).join('/')
-        builder.appendNullTerminatedValue(priceString, TextEncoding.ISO_8859_1)
+        const priceString =
+            Object
+                .entries(comr.prices || {})
+                .map(
+                    ([currencyCode, price]) =>
+                        validateCurrencyCode(currencyCode) + price.toString()
+                )
+                .join("/")
 
-        // Valid until
-        builder.appendValue(
-            comr.validUntil.year.toString().padStart(4, '0').substring(0, 4) +
-            comr.validUntil.month.toString().padStart(2, '0').substring(0, 2) +
-            comr.validUntil.day.toString().padStart(2, '0').substring(0, 2),
-            8, TextEncoding.ISO_8859_1
-        )
-
-        builder.appendNullTerminatedValue(
-            comr.contactUrl, TextEncoding.ISO_8859_1
-        )
-        builder.appendNumber(comr.receivedAs, 1)
-        builder.appendNullTerminatedValue(comr.nameOfSeller, textEncoding)
-        builder.appendNullTerminatedValue(comr.description, textEncoding)
+        builder
+            .appendTerminatedText(priceString)
+            .appendText(
+                toZeroPaddedString(comr.validUntil.year, 4) +
+                toZeroPaddedString(comr.validUntil.month, 2) +
+                toZeroPaddedString(comr.validUntil.day, 2)
+            )
+            .appendTerminatedText(comr.contactUrl ?? "")
+            .appendNumber(comr.receivedAs, {size: 1})
+            .appendTerminatedTextWithFrameEncoding(comr.nameOfSeller ?? "")
+            .appendTerminatedTextWithFrameEncoding(comr.description ?? "")
 
         // Seller logo
         if (comr.sellerLogo) {
@@ -40,8 +40,8 @@ export const COMR = {
                 filenameOrBuffer: comr.sellerLogo.picture,
                 mimeType: comr.sellerLogo.mimeType
             })
-            builder.appendNullTerminatedValue(mimeType, TextEncoding.ISO_8859_1)
-            builder.appendValue(pictureBuffer)
+            builder.appendTerminatedText(mimeType)
+            builder.appendBuffer(pictureBuffer)
         }
         return builder.getBufferWithPartialHeader()
     },

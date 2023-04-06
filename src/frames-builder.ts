@@ -50,7 +50,7 @@ function buildFrameBuffer(identifier: string, value: unknown) {
 
 function handleMultipleAndBuildFrameBuffer<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Create extends (value: any, index: number) => Buffer | null
+    Create extends (value: any, index: number) => Buffer
 >(
     identifier: string,
     data: unknown,
@@ -58,9 +58,8 @@ function handleMultipleAndBuildFrameBuffer<
     deduplicate = (values: ([Parameters<Create>])[]) => values
 ) {
     const values = makeValueArray(identifier, data)
-    const frames = deduplicate(values)
-        .map(create)
-        .filter(isBuffer)
+    const frames = deduplicate(values).map(create)
+    // TODO: check if length can be 0, but I believe it can't
     return frames.length ? Buffer.concat(frames) : null
 }
 

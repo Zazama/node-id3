@@ -4,14 +4,13 @@ import { EventTimingCodes } from "../types/TagFrames"
 
 export const ETCO = {
     create: (data: EventTimingCodes): Buffer => {
-        const builder = new FrameBuilder("ETCO")
-            .appendNumber(data.timeStampFormat, 1)
-        data.keyEvents.forEach((keyEvent) => {
-            builder
-                .appendNumber(keyEvent.type, 1)
-                .appendNumber(keyEvent.timeStamp, 4)
-        })
-        return builder.getBufferWithPartialHeader()
+        return new FrameBuilder("ETCO")
+            .appendNumber(data.timeStampFormat, {size: 1})
+            .appendArray(data.keyEvents, (builder, keyEvent) => builder
+                .appendNumber(keyEvent.type, {size: 1})
+                .appendNumber(keyEvent.timeStamp, {size: 4})
+            )
+            .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): EventTimingCodes => {
         const reader = new FrameReader(buffer)

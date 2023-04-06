@@ -3,10 +3,10 @@ import { FrameBuilder } from "../FrameBuilder"
 import { FrameReader } from "../FrameReader"
 import { UnsynchronisedLyrics } from "../types/TagFrames"
 import { isString } from '../util'
-import { validateLanguage } from "./util"
+import { validateLanguageCode } from "./util"
 
 export const USLT = {
-    create: (data: UnsynchronisedLyrics | string) => {
+    create: (data: UnsynchronisedLyrics | string): Buffer => {
         if(isString(data)) {
             // TODO: we should probably not accept a string only,
             // as the language is not optionalm default to eng for now.
@@ -15,16 +15,14 @@ export const USLT = {
                 text: data
             }
         }
-        if(!data.text) {
-            return null
+        if (data.text == undefined) {
+            throw new TypeError("A description text must be provided")
         }
 
-        const textEncoding = TextEncoding.UTF_16_WITH_BOM
-        return new FrameBuilder("USLT")
-            .appendNumber(textEncoding, 1)
-            .appendValue(validateLanguage(data.language), 3, TextEncoding.ISO_8859_1)
-            .appendNullTerminatedValue(data.shortText, textEncoding)
-            .appendValue(data.text, null, textEncoding)
+        return new FrameBuilder("USLT", TextEncoding.UTF_16_WITH_BOM)
+            .appendText(validateLanguageCode(data.language))
+            .appendTerminatedTextWithFrameEncoding(data.shortText ?? "")
+            .appendTextWithFrameEncoding(data.text)
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): UnsynchronisedLyrics => {

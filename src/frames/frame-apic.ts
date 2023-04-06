@@ -33,13 +33,15 @@ export const APIC = {
         const textEncoding = description ?
             TextEncoding.UTF_16_WITH_BOM : TextEncoding.ISO_8859_1
 
-        return new FrameBuilder('APIC')
-            .appendNumber(textEncoding, 1)
-            .appendNullTerminatedValue(image.mimeType)
-            .appendNumber(image.type?.id
-                ?? TagConstants.AttachedPicture.PictureType.FRONT_COVER, 1)
-            .appendNullTerminatedValue(description, textEncoding)
-            .appendValue(image.pictureBuffer)
+        return new FrameBuilder('APIC', textEncoding)
+            .appendTerminatedText(image.mimeType)
+            .appendNumber(
+                image.type?.id
+                ?? TagConstants.AttachedPicture.PictureType.FRONT_COVER,
+                {size: 1}
+            )
+            .appendTerminatedTextWithFrameEncoding(description)
+            .appendBuffer(image.pictureBuffer)
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer, version: number): Image => {

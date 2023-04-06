@@ -6,8 +6,8 @@ import { isBuffer } from "../util"
 export const PRIV = {
     create: (priv: Private): Buffer => {
         return new FrameBuilder("PRIV")
-            .appendNullTerminatedValue(priv.ownerIdentifier)
-            .appendValue(isBuffer(priv.data) ? priv.data : Buffer.from(priv.data, "utf8"))
+            .appendTerminatedText(priv.ownerIdentifier ?? "")
+            .appendBuffer(isBuffer(priv.data) ? priv.data : Buffer.from(priv.data, "utf8"))
             .getBufferWithPartialHeader()
     },
     read: (buffer: Buffer): Private => {
