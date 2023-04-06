@@ -143,13 +143,25 @@ function findId3TagPosition(buffer: Buffer) {
 }
 
 function isValidId3Header(buffer: Buffer) {
+    // From id3.org:
+    // An ID3v2 tag can be detected with the following pattern:
+    // $49 44 33 yy yy xx zz zz zz zz
+    // Where yy is less than $FF, xx is the 'flags' byte and zz is less than
+    // $80.
     if (buffer.length < Header.size) {
         return false
     }
-    if (buffer.readUIntBE(0, 3) !== 0x494433) {
+    const identifier = buffer.readUIntBE(Header.offset.identifier, 3)
+    if (identifier !== 0x494433) {
         return false
     }
-    if ([0x02, 0x03, 0x04].indexOf(buffer[3]) === -1 || buffer[4] !== 0x00) {
+    const majorVersion = buffer[Header.offset.version]
+    const revision = buffer[Header.offset.revision]
+    if (majorVersion === 0xFF || revision === 0xFF) {
+        return false
+    }
+    // This library currently only handle these versions.
+    if ([0x02, 0x03, 0x04].indexOf(majorVersion) === -1) {
         return false
     }
     return isValidEncodedSize(subarray(buffer, Header.offset.size, 4))
