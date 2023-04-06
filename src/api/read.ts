@@ -3,7 +3,7 @@ import { getTagsFromId3Tag } from '../id3-tag'
 import { isFunction, isString } from '../util'
 import { Tags, TagIdentifiers } from '../types/Tags'
 import { Options } from '../types/Options'
-import { getId3TagDataFromFileAsync, getId3TagDataFromFileSync } from '../util-file'
+import { getId3TagDataFromFileAsync, getId3TagDataFromFileSync } from '../file-read'
 
 /**
  * Callback signature for successful asynchronous read operation.
@@ -72,7 +72,7 @@ export function read(
 
 function readSync(filebuffer: string | Buffer, options: Options) {
     if (isString(filebuffer)) {
-        filebuffer = getId3TagDataFromFileSync(filebuffer)
+        filebuffer = getId3TagDataFromFileSync(filebuffer) ?? Buffer.alloc(0)
     }
     return getTagsFromId3Tag(filebuffer, options)
 }
@@ -87,7 +87,7 @@ function readAsync(
             if(error) {
                 callback(error, null)
             } else {
-                callback(null, getTagsFromId3Tag(data, options))
+                callback(null, getTagsFromId3Tag(data ?? Buffer.alloc(0), options))
             }
         })
     } else {

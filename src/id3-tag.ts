@@ -4,7 +4,7 @@ import { Options } from "./types/Options"
 import { WriteTags } from "./types/Tags"
 import { decodeSize, encodeSize } from "./util-size"
 
-const Header = {
+export const Header = {
     identifier: "ID3",
     size: 10,
     offset: {
@@ -114,7 +114,7 @@ export function getTagsFromId3Tag(buffer: Buffer, options: Options) {
 
 export function getId3TagSize(buffer: Buffer): number {
     const encodedSize = subarray(buffer, Header.offset.size, 4)
-    return Header.size + decodeSize(encodedSize);
+    return Header.size + decodeSize(encodedSize)
 }
 
 function getId3TagBody(buffer: Buffer) {
