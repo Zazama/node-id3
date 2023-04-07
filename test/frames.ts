@@ -1,14 +1,15 @@
 import * as NodeID3 from '../index'
 import assert = require('assert')
+import { expect } from 'chai'
 
 /**
  * Some characters to test unicode encoding.
  */
 const unicodeTestCharacters = "-äé"
+const TagConstants = NodeID3.TagConstants
 
 describe('NodeID3 frames', function () {
     it('read() matches create()', function () {
-        const TagConstants = NodeID3.TagConstants
         const tags = {
             /**
              * COMM
@@ -161,5 +162,124 @@ describe('NodeID3 frames', function () {
         const createdBuffer = NodeID3.create(tags)
         const readTags = NodeID3.read(createdBuffer, { noRaw: true})
         assert.deepStrictEqual(tags, readTags)
+    })
+
+    describe('read() does not match create()', function() {
+        it('create throws', function() {
+            const throwingTags = [
+                { POPM: {} },
+                { POPM: {
+                    email: 'test'
+                }},
+                { POPM: {
+                    email: 'test',
+                    rating: 1
+                }},
+                { CTOC: {} },
+                { USLT: {} },
+                { CHAP: {} },
+                { COMM: {} },
+                { TALB: null },
+                { WCOM: null },
+                { APIC: {
+                    mime: "a",
+                    type: {
+                        id: TagConstants.AttachedPicture.PictureType.FRONT_COVER
+                    },
+                    description: "d",
+                    imageBuffer: ""
+                }},
+                { COMM: {
+                    language: 'asdf',
+                    text: 'text'
+                }},
+                { COMR: {
+                    prices: {
+                        EURO: 13
+                    }
+                }}
+            ]
+
+            for(const throwingTag of throwingTags) {
+                expect(() => NodeID3.create(throwingTag as never)).to.throw()
+            }
+        })
+
+        it('frame builder changes data', function() {
+            const tags = {
+                unsynchronisedLyrics: 'just a string',
+                commercialFrame: {
+                    validUntil: { year: 2023, month: 9, day: 'a'},
+                    receivedAs: TagConstants.CommercialFrame.ReceivedAs.OTHER,
+                },
+                tableOfContents: {
+                    elementID: "1"
+                },
+                synchronisedLyrics: {
+                    language: "eng",
+                    timeStampFormat: TagConstants.TimeStampFormat.MILLISECONDS,
+                    contentType: TagConstants.SynchronisedLyrics.ContentType.LYRICS,
+                    synchronisedText: []
+                },
+                private: {
+                    data: 'string'
+                },
+                uniqueFileIdentifier: {
+                    ownerIdentifier: 'a',
+                    identifier: 'b'
+                },
+                image: Buffer.from([0xff, 0xd8, 0xff, 0x00])
+            }
+            const expectedTags = {
+                unsynchronisedLyrics: {
+                    language: 'eng',
+                    shortText: '',
+                    text: tags.unsynchronisedLyrics
+                },
+                commercialFrame: [{
+                    ...tags.commercialFrame,
+                    validUntil: {
+                        year: 0, month: 0, day: 0
+                    },
+                    prices: {},
+                    contactUrl: '',
+                    nameOfSeller: '',
+                    description: '',
+                }],
+                tableOfContents: [{
+                    ...tags.tableOfContents,
+                    isOrdered: false,
+                    elements: [],
+                    tags: { raw: {} }
+                }],
+                synchronisedLyrics: [{
+                    ...tags.synchronisedLyrics,
+                    shortText: ''
+                }],
+                private: [{
+                    ownerIdentifier: '',
+                    data: Buffer.from(tags.private.data, 'utf8')
+                }],
+                uniqueFileIdentifier: [{
+                    ...tags.uniqueFileIdentifier,
+                    identifier: Buffer.from(
+                        tags.uniqueFileIdentifier.identifier
+                    , 'utf8')
+                }],
+                image: {
+                    mime: "image/jpeg",
+                    type: {
+                        id: TagConstants.AttachedPicture.PictureType.FRONT_COVER,
+                        name: "front cover"
+                    },
+                    description: '',
+                    imageBuffer: tags.image
+                }
+            } satisfies NodeID3.Tags
+            assert.deepStrictEqual(
+                NodeID3.read(NodeID3.create(tags as never), {noRaw: true}),
+                expectedTags
+            )
+        })
     })
 })
