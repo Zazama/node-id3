@@ -36,7 +36,7 @@ export async function processFileAsync<T>(
     }
 }
 
-export function getNextBufferSubarraySync(fileDescriptor: number, buffer: Buffer, offset: number = 0): Buffer {
+export function getNextBufferSubarraySync(fileDescriptor: number, buffer: Buffer, offset = 0): Buffer {
     const bytesRead = fs.readSync(
         fileDescriptor,
         buffer,
@@ -47,7 +47,7 @@ export function getNextBufferSubarraySync(fileDescriptor: number, buffer: Buffer
     return buffer.subarray(0, bytesRead + offset)
 }
 
-export async function getNextBufferSubarrayAsync(fileDescriptor: number, buffer: Buffer, offset: number = 0): Promise<Buffer> {
+export async function getNextBufferSubarrayAsync(fileDescriptor: number, buffer: Buffer, offset = 0): Promise<Buffer> {
     const bytesRead = (await fsReadPromise(
         fileDescriptor,
         buffer,
