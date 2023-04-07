@@ -38,6 +38,40 @@ describe('NodeID3 API', function () {
             })
         })
 
+        it('compare key', function() {
+            const beforeTags = {
+                userDefinedText: [{
+                    description: 'description',
+                    value: 'some value'
+                }],
+                private: [{
+                    ownerIdentifier: 'ownerIdentifier',
+                    data: Buffer.from('data')
+                }]
+            } satisfies NodeID3.Tags
+            const addTags = {
+                userDefinedText: [{
+                    description: 'description',
+                    value: 'some other value'
+                }],
+                private: {
+                    ownerIdentifier: 'ownerIdentifier',
+                    data: Buffer.from('data2')
+                }
+            } satisfies NodeID3.Tags
+            const afterTags = {
+                userDefinedText: addTags.userDefinedText,
+                private: [...beforeTags.private, addTags.private]
+            } satisfies NodeID3.Tags
+            const beforeBuffer = NodeID3.create(beforeTags)
+            const afterBuffer = NodeID3.update(addTags, beforeBuffer)
+
+            assert.deepStrictEqual(
+                NodeID3.read(afterBuffer, {noRaw: true}),
+                afterTags
+            )
+        })
+
         afterEach(function() {
             fs.unlinkSync(filepath)
         })
