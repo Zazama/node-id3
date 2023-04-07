@@ -6,6 +6,17 @@ import { updateTags } from '../updateTags'
 import { write, WriteCallback } from "./write"
 
 /**
+ * Updates ID3-Tags asynchronously in the specified file.
+ *
+ * @public
+ */
+export function update(
+    tags: WriteTags,
+    filebuffer: string | Buffer,
+    callback: WriteCallback
+): void
+
+/**
  * Updates ID3-Tags from the given buffer.
  *
  * @public
@@ -26,17 +37,6 @@ import { write, WriteCallback } from "./write"
     filepath: string,
     options?: Options
 ): true | Error
-
-/**
- * Updates ID3-Tags asynchronously in the specified file.
- *
- * @public
- */
- export function update(
-    tags: WriteTags,
-    filebuffer: string | Buffer,
-    callback: WriteCallback
-): void
 
 /**
  * Updates ID3-Tags asynchronously from the given buffer or specified file.
