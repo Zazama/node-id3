@@ -4,7 +4,7 @@ import { create } from "./create"
 import { read, ReadCallback } from "./read"
 import { removeTags } from "./remove"
 import { update } from "./update"
-import { write, WriteCallback } from "./write"
+import { write, WriteCallback, WriteFileCallback } from "./write"
 
 type Settle<T> = {
     (error: NodeJS.ErrnoException | Error, result: null): void
@@ -38,11 +38,11 @@ export const Promises = {
             create(tags, result => settle(null, result)),
     ),
     write: (tags: WriteTags, filebuffer: string | Buffer) =>
-        makePromise<Buffer>((callback: WriteCallback) =>
+        makePromise<Buffer|null>((callback: WriteCallback | WriteFileCallback) =>
             write(tags, filebuffer, callback)
         ),
     update: (tags: WriteTags, filebuffer: string | Buffer, options?: Options) =>
-        makePromise<Buffer>((callback: WriteCallback) =>
+        makePromise<Buffer>((callback: WriteCallback | WriteFileCallback) =>
             update(tags, filebuffer, options ?? {}, callback)
         ),
     read: (file: string | Buffer, options?: Options) =>

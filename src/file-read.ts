@@ -1,12 +1,8 @@
 import * as fs from 'fs'
-import { promisify } from 'util'
 import { findId3TagPosition, getId3TagSize, Header } from './id3-tag'
+import { fsReadPromise, getNextBufferSubarrayAsync, getNextBufferSubarraySync, processFile, processFileAsync } from './util-file'
 
 const FileBufferSize = 20 * 1024 * 1024
-
-const fsOpenPromise = promisify(fs.open)
-const fsReadPromise = promisify(fs.read)
-const fsClosePromise = promisify(fs.close)
 
 type SuccessCallback = (err: null, buffer: Buffer|null) => void
 type ErrorCallback = (err: Error, buffer: null) => void
@@ -39,7 +35,7 @@ export function getId3TagDataFromFileAsync(filepath: string, callback: Callback)
 function findPartialId3TagSync(fileDescriptor: number): Buffer|null {
     const buffer = Buffer.alloc(FileBufferSize)
     let data
-    while((data = getNextBufferSubarraySync(fileDescriptor, buffer)).length > Header.size) {
+    while((data = getNextBufferSubarraySync(fileDescriptor, buffer, Header.size)).length > Header.size) {
         const id3TagPosition = findId3TagPosition(data)
         if(id3TagPosition !== -1) {
             return data.subarray(id3TagPosition)
@@ -52,7 +48,7 @@ function findPartialId3TagSync(fileDescriptor: number): Buffer|null {
 async function findPartialId3TagAsync(fileDescriptor: number): Promise<Buffer|null> {
     const buffer = Buffer.alloc(FileBufferSize)
     let data
-    while((data = await getNextBufferSubarrayAsync(fileDescriptor, buffer)).length > Header.size) {
+    while((data = await getNextBufferSubarrayAsync(fileDescriptor, buffer, Header.size)).length > Header.size) {
         const id3TagPosition = findId3TagPosition(data)
         if(id3TagPosition !== -1) {
             return data.subarray(id3TagPosition)
@@ -60,56 +56,6 @@ async function findPartialId3TagAsync(fileDescriptor: number): Promise<Buffer|nu
         buffer.copyWithin(0, buffer.length - Header.size)
     }
     return null
-}
-
-function getNextBufferSubarraySync(fileDescriptor: number, buffer: Buffer): Buffer {
-    const bytesRead = fs.readSync(
-        fileDescriptor,
-        buffer,
-        Header.size,
-        buffer.length - Header.size,
-        null
-    )
-    return buffer.subarray(0, bytesRead + Header.size)
-}
-
-async function getNextBufferSubarrayAsync(fileDescriptor: number, buffer: Buffer): Promise<Buffer> {
-    const bytesRead = (await fsReadPromise(
-        fileDescriptor,
-        buffer,
-        Header.size,
-        buffer.length - Header.size,
-        null
-    )).bytesRead
-    return buffer.subarray(0, bytesRead + Header.size)
-}
-
-function processFile<T>(
-    filepath: string,
-    flags: string,
-    process: (fileDescriptor: number) => T
-) {
-    const fileDescriptor = fs.openSync(filepath, flags)
-    try {
-        return process(fileDescriptor)
-    }
-    finally {
-        fs.closeSync(fileDescriptor)
-    }
-}
-
-async function processFileAsync<T>(
-    filepath: string,
-    flags: string,
-    process: (fileDescriptor: number) => Promise<T>
-): Promise<T> {
-    const fileDescriptor = await fsOpenPromise(filepath, flags)
-    try {
-        return await process(fileDescriptor)
-    }
-    finally {
-        await fsClosePromise(fileDescriptor)
-    }
 }
 
 function calculateMissingBytes(id3TagSize: number, id3TagBuffer: Buffer): number {
