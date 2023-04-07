@@ -41,6 +41,7 @@ export function writeId3TagToFileAsync(filepath: string, id3Tag: Buffer, callbac
         }).then(async () => {
             await fsUnlinkPromise(filepath)
             await fsRenamePromise(tmpFile, filepath)
+            callback(null)
         }).catch((error) => {
             callback(error)
         })
