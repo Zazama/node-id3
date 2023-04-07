@@ -92,10 +92,6 @@ export function removeId3Tag(data: Buffer) {
     }
     const encodedSize = subarray(data, tagPosition + Header.offset.size, 4)
 
-    if (!isValidEncodedSize(encodedSize)) {
-        return false
-    }
-
     if (data.length >= tagPosition + Header.size) {
         const size = decodeSize(encodedSize)
         return Buffer.concat([
