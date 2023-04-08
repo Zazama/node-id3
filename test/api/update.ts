@@ -2,15 +2,14 @@ import * as NodeID3 from '../../index'
 import assert = require('assert')
 import chai = require('chai')
 import * as fs from 'fs'
-import { WriteCallback } from '../../index'
 
 describe('NodeID3 API', function () {
     describe('#update()', function() {
         const titleTag = {
-            title: "abc"
+            title: 'title'
         } satisfies NodeID3.WriteTags
         const albumTag = {
-            album: "def"
+            album: 'album'
         }
         const tags = {...titleTag, ...albumTag}
         const filepath = './testfile.mp3'
@@ -28,7 +27,7 @@ describe('NodeID3 API', function () {
         })
 
         it('async add tag to existing', function(done) {
-            NodeID3.update(albumTag, filepath, (error, data) => {
+            NodeID3.update(albumTag, filepath, (error) => {
                 chai.assert.isNull(error)
                 assert.deepStrictEqual(
                     NodeID3.read(filepath, {noRaw: true}),
@@ -38,7 +37,8 @@ describe('NodeID3 API', function () {
             })
         })
 
-        it('compare key', function() {
+        // TODO: Remove in new API release
+        it('update compare key is respected when available', function() {
             const beforeTags = {
                 userDefinedText: [{
                     description: 'description',
@@ -59,6 +59,10 @@ describe('NodeID3 API', function () {
                     data: Buffer.from('data2')
                 }
             } satisfies NodeID3.Tags
+
+            // userDefinedText should update the value because of equal descriptions.
+            // private frame does not have an update compare key specified,
+            // which is why the new one is added next to the old.
             const afterTags = {
                 userDefinedText: addTags.userDefinedText,
                 private: [...beforeTags.private, addTags.private]
