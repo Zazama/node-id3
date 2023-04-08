@@ -200,9 +200,9 @@ describe('NodeID3 frames', function () {
                 }}
             ]
 
-            for(const throwingTag of throwingTags) {
+            throwingTags.forEach((throwingTag) => {
                 expect(() => NodeID3.create(throwingTag as never)).to.throw()
-            }
+            })
         })
 
         it('frame builder changes data', function() {

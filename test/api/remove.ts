@@ -16,13 +16,13 @@ describe('NodeID3 API', function () {
             chai.assert.isFalse(fs.existsSync(nonExistingFilepath))
             NodeID3.removeTags(nonExistingFilepath, function(err) {
                 if(!(err instanceof Error)) {
-                    assert.fail("No error thrown on non-existing filepath")
+                    assert.fail('No error thrown on non-existing filepath')
                 }
             })
         })
 
         const titleTag = {
-            title: "abc"
+            title: 'title'
         } satisfies NodeID3.WriteTags
         const filepath = './testfile.mp3'
 
