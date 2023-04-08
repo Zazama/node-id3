@@ -12,7 +12,7 @@
     "parserOptions": {
         "sourceType": "module"
     },
-    "ignorePatterns": [ "/dist/**" ],
+    "ignorePatterns": [ "/dist/**", "/example/**" ],
     "overrides": [
         {
             "files": ["**/*.ts"],
@@ -50,6 +50,7 @@
         "semi": [ "error", "never" ],
         "@typescript-eslint/no-unused-vars": [
             "off", { "argsIgnorePattern": "^_" }
-        ]
+        ],
+        "eol-last": [ "error", "always" ]
     }
 }
