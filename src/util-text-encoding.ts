@@ -21,16 +21,21 @@ export function bufferToDecodedString(
     ).replace(/\0/g, '')
 }
 
+const TO_ICON_ENCODING = {
+    [TextEncoding.ISO_8859_1]: 'ISO-8859-1',
+    [TextEncoding.UTF_16_WITH_BOM]: 'UTF-16',
+    [TextEncoding.UTF_16_BE]: 'UTF-16BE',
+    [TextEncoding.UTF_8]: 'UTF-8'
+} satisfies Record<TextEncoding, string>
+
+export function validateEncoding(encoding: number): TextEncoding {
+    if (encoding in TO_ICON_ENCODING) {
+        return encoding as TextEncoding
+    }
+    throw new RangeError(`Unknown encoding value ${encoding}`)
+}
+
 function convertTextEncodingToIconEncoding(encoding: TextEncoding) {
-    const toIconvEncoding = {
-        [TextEncoding.ISO_8859_1]: 'ISO-8859-1',
-        [TextEncoding.UTF_16_WITH_BOM]: 'UTF-16',
-        [TextEncoding.UTF_16_BE]: 'UTF-16BE',
-        [TextEncoding.UTF_8]: 'UTF-8'
-    }
-    if (toIconvEncoding[encoding]) {
-        return toIconvEncoding[encoding]
-    }
-    throw new RangeError(`Unknown encoding value ${encoding}, can't decode`)
+    return TO_ICON_ENCODING[validateEncoding(encoding)]
 }
 

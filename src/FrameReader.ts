@@ -1,5 +1,5 @@
 import { TextEncoding } from "./definitions/Encoding"
-import { bufferToDecodedString } from "./util-text-encoding"
+import { bufferToDecodedString, validateEncoding } from "./util-text-encoding"
 
 type FrameReaderOptions = {
     consumeEncodingByte?: boolean
@@ -22,7 +22,7 @@ export class FrameReader {
         this._buffer = buffer
         if (consumeEncodingByte) {
             const encoding = this.consumeBuffer({ size: 1 })
-            this._encoding = encoding[0] as TextEncoding
+            this._encoding = validateEncoding(encoding[0])
         }
     }
 
