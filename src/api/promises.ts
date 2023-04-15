@@ -27,6 +27,7 @@ function makePromise<T>(callback: (settle: Settle<T>) => void) {
     })
 }
 
+// TODO use util.promisify instead
 /**
  * Asynchronous API for files and buffers operations using promises.
  *
