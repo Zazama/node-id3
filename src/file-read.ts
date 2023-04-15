@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import { findId3TagPosition, getId3TagSize, Header } from './id3-tag'
-import { fsReadPromise, getNextBufferSubarrayAsync, getNextBufferSubarraySync, processFile, processFileAsync } from './util-file'
+import { fsReadPromise, fillBufferAsync, fillBufferSync, processFileSync, processFileAsync } from './util-file'
 
 const FileBufferSize = 20 * 1024 * 1024
 
@@ -9,7 +9,7 @@ type ErrorCallback = (err: Error, buffer: null) => void
 type Callback = SuccessCallback & ErrorCallback
 
 export function getId3TagDataFromFileSync(filepath: string): Buffer|null {
-    return processFile(filepath, 'r', (fileDescriptor) => {
+    return processFileSync(filepath, 'r', (fileDescriptor) => {
         const partialId3TagData = findPartialId3TagSync(fileDescriptor)
         return partialId3TagData ? completePartialId3TagData(
             fileDescriptor,
@@ -35,7 +35,7 @@ export function getId3TagDataFromFileAsync(filepath: string, callback: Callback)
 function findPartialId3TagSync(fileDescriptor: number): Buffer|null {
     const buffer = Buffer.alloc(FileBufferSize)
     let data
-    while((data = getNextBufferSubarraySync(fileDescriptor, buffer, Header.size)).length > Header.size) {
+    while((data = fillBufferSync(fileDescriptor, buffer, Header.size)).length > Header.size) {
         const id3TagPosition = findId3TagPosition(data)
         if(id3TagPosition !== -1) {
             return data.subarray(id3TagPosition)
@@ -48,7 +48,7 @@ function findPartialId3TagSync(fileDescriptor: number): Buffer|null {
 async function findPartialId3TagAsync(fileDescriptor: number): Promise<Buffer|null> {
     const buffer = Buffer.alloc(FileBufferSize)
     let data
-    while((data = await getNextBufferSubarrayAsync(fileDescriptor, buffer, Header.size)).length > Header.size) {
+    while((data = await fillBufferAsync(fileDescriptor, buffer, Header.size)).length > Header.size) {
         const id3TagPosition = findId3TagPosition(data)
         if(id3TagPosition !== -1) {
             return data.subarray(id3TagPosition)

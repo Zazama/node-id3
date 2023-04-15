@@ -8,7 +8,7 @@ export const fsWritePromise = promisify(fs.write)
 export const fsUnlinkPromise = promisify(fs.unlink)
 export const fsRenamePromise = promisify(fs.rename)
 
-export function processFile<T>(
+export function processFileSync<T>(
     filepath: string,
     flags: string,
     process: (fileDescriptor: number) => T
@@ -36,7 +36,11 @@ export async function processFileAsync<T>(
     }
 }
 
-export function getNextBufferSubarraySync(fileDescriptor: number, buffer: Buffer, offset = 0): Buffer {
+export function fillBufferSync(
+    fileDescriptor: number,
+    buffer: Buffer,
+    offset = 0
+): Buffer {
     const bytesRead = fs.readSync(
         fileDescriptor,
         buffer,
@@ -47,7 +51,11 @@ export function getNextBufferSubarraySync(fileDescriptor: number, buffer: Buffer
     return buffer.subarray(0, bytesRead + offset)
 }
 
-export async function getNextBufferSubarrayAsync(fileDescriptor: number, buffer: Buffer, offset = 0): Promise<Buffer> {
+export async function fillBufferAsync(
+    fileDescriptor: number,
+    buffer: Buffer,
+    offset = 0
+): Promise<Buffer> {
     const bytesRead = (await fsReadPromise(
         fileDescriptor,
         buffer,
