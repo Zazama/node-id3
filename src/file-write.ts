@@ -3,7 +3,12 @@ import {
     fillBufferAsync,
     fillBufferSync,
     processFileSync,
-    processFileAsync
+    processFileAsync,
+    fsExistsPromise,
+    fsWriteFilePromise,
+    fsRenamePromise,
+    unlinkIfExistSync,
+    unlinkIfExist
 } from "./util-file"
 import * as fs from 'fs'
 import { findId3TagPosition, getId3TagSize } from "./id3-tag"
@@ -12,38 +17,50 @@ import { hrtime } from "process"
 const FileBufferSize = 20 * 1024 * 1024
 
 export function writeId3TagToFileSync(filepath: string, id3Tag: Buffer) {
+    if (!fs.existsSync(filepath)) {
+        fs.writeFileSync(filepath, id3Tag)
+        return
+    }
     const tempFilepath = makeTempFilepath(filepath)
     processFileSync(filepath, 'r', (readFileDescriptor) => {
         try {
             processFileSync(tempFilepath, 'w', (writeFileDescriptor) => {
                 fs.writeSync(writeFileDescriptor, id3Tag)
-                copyFileWithoutId3TagSync(readFileDescriptor, writeFileDescriptor)
+                copyFileWithoutId3TagSync(
+                    readFileDescriptor, writeFileDescriptor
+                )
             })
         } catch(error) {
-            fs.unlinkSync(tempFilepath)
+            unlinkIfExistSync(tempFilepath)
             throw error
         }
     })
     fs.renameSync(tempFilepath, filepath)
 }
 
-export function writeId3TagToFileAsync(
-    filepath: string,
-    id3Tag: Buffer,
-    callback: (err: Error|null) => void
-) {
+export async function writeId3TagToFileAsync(filepath: string, id3Tag: Buffer) {
+    if (!await fsExistsPromise(filepath)) {
+        await fsWriteFilePromise(filepath, id3Tag)
+        return
+    }
     const tempFilepath = makeTempFilepath(filepath)
-    processFileAsync(filepath, 'r', async (readFileDescriptor) => {
-        processFileAsync(tempFilepath, 'w', async (writeFileDescriptor) => {
-            await fsWritePromise(writeFileDescriptor, id3Tag)
-            await copyFileWithoutId3TagAsync(readFileDescriptor, writeFileDescriptor)
-        }).catch((error) => {
-            fs.unlink(tempFilepath, callback)
+    await processFileAsync(filepath, 'r', async (readFileDescriptor) => {
+        try {
+            await processFileAsync(tempFilepath, 'w',
+                async (writeFileDescriptor) => {
+                    await fsWritePromise(writeFileDescriptor, id3Tag)
+                    await copyFileWithoutId3TagAsync(
+                        readFileDescriptor, writeFileDescriptor
+                    )
+                }
+            )
+        } catch(error) {
+            await unlinkIfExist(tempFilepath)
             throw error
-        })
-    }).then(() => {
-        fs.rename(tempFilepath, filepath, callback)
-    }).catch(callback)
+        }
+
+    })
+    await fsRenamePromise(tempFilepath, filepath)
 }
 
 function makeTempFilepath(filepath: string) {

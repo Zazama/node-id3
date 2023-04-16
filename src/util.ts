@@ -9,6 +9,13 @@ export const isString = (value: unknown): value is string =>
 export const isBuffer =
     (value: unknown): value is Buffer => value instanceof Buffer
 
+export const validateString = (value: unknown): string => {
+    if (isString(value)) {
+        return value
+    }
+    throw new TypeError("A string is expected")
+}
+
 export const deduplicate = <T>(values: T[]) => [ ...new Set(values)]
 
 /**
