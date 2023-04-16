@@ -1,103 +1,60 @@
 import fs = require('fs')
-import * as NodeID3 from '../../index'
+import { Promises } from '../../index'
 import chai = require('chai')
 import chaiAsPromised = require('chai-as-promised')
+import { unlinkIfExistSync } from '../../src/util-file'
 const { expect } = chai
 chai.use(chaiAsPromised)
 
-describe('NodeID3 API Promises', function () {
-    const invalidFilepath = 'should-hopefully-not-be-a-valid-file.mp3'
-    const testFilepath = 'write-promise-test-file.mp3'
-    describe('#create()', function () {
-        it('resolve', function () {
-            return expect(
-                NodeID3.Promises.create({})
-            ).to.eventually.be.instanceOf(Buffer)
-        })
+describe('NodeID3.Promises', function () {
+    const nonExistingFile = {
+        path: "hopefully-non-existing-file.mp3",
+        name: "path on non-existing file"
+    }
+    const existingFile = {
+        path: "promise-test-file.mp3",
+        name: "path on existing file"
+    }
+    beforeEach(function() {
+        unlinkIfExistSync(nonExistingFile.path)
+        fs.writeFileSync(existingFile.path, Buffer.alloc(0))
     })
-    const writeTestCases = [
-        ['#write()', NodeID3.Promises.write],
-        ['#update()', NodeID3.Promises.update]
-    ] as const
-    writeTestCases.forEach(([name, fn]) => {
-        describe(name, function () {
-            describe('with buffer', function() {
-                it('resolve', function () {
-                    return expect(
-                        fn({}, Buffer.alloc(0))
-                    ).to.eventually.be.instanceOf(Buffer)
-                })
-            })
-            describe('with invalid file path', function() {
-                it('reject', function () {
-                    return expect(
-                        fn({}, invalidFilepath)
-                    ).to.eventually.be.rejectedWith(Error)
-                })
-            })
-            describe('with valid file path', function() {
-                before(function() {
-                    fs.writeFileSync(testFilepath, Buffer.alloc(0))
-                })
-                it('resolve', function () {
-                    return expect(
-                        fn({}, testFilepath)
-                    ).to.eventually.be.fulfilled
-                })
-                after(function() {
-                    fs.unlinkSync(testFilepath)
-                })
-            })
-        })
+    afterEach(function() {
+        unlinkIfExistSync(nonExistingFile.path)
+        unlinkIfExistSync(existingFile.path)
     })
-    describe('#read()', function () {
-        describe('with buffer', function() {
-            it('resolve', function () {
+    type TestCase = [
+        string,
+        {path: string, name: string},
+        (path: string) => Promise<unknown>
+    ]
+    const successfulTestCases: TestCase[] = [
+        ["read()", existingFile, path => Promises.read(path)],
+        ["write()", existingFile, path => Promises.write({}, path)],
+        ["write()", nonExistingFile, path => Promises.write({}, path)],
+        ["update()", existingFile, path => Promises.update({}, path)],
+        ["removeTags()", existingFile, path => Promises.removeTags(path)]
+    ]
+    successfulTestCases.forEach(([funcName, fileCase, operation]) => {
+        describe(`${funcName} with ${fileCase.name}`, function() {
+            it('should resolve', function() {
                 return expect(
-                    NodeID3.Promises.read(Buffer.alloc(0))
-                ).to.eventually.to.have.key('raw')
-            })
-        })
-        describe('with invalid file path', function() {
-            it('reject', function () {
-                return expect(
-                    NodeID3.Promises.read(invalidFilepath)
-                ).to.eventually.be.rejectedWith(Error)
-            })
-        })
-        describe('with valid file path', function() {
-            before(function() {
-                fs.writeFileSync(testFilepath, Buffer.alloc(0))
-            })
-            it('resolve', function () {
-                return expect(
-                    NodeID3.Promises.read(testFilepath)
-                ).to.eventually.to.have.key('raw')
-            })
-            after(function() {
-                fs.unlinkSync(testFilepath)
-            })
-        })
-    })
-    describe('#removeTags()', function () {
-        describe('with invalid file path', function() {
-            it('reject', function () {
-                return expect(
-                    NodeID3.Promises.removeTags(invalidFilepath)
-                ).to.eventually.be.rejectedWith(Error)
-            })
-        })
-        describe('with valid file path', function() {
-            before(function() {
-                fs.writeFileSync(testFilepath, Buffer.alloc(0))
-            })
-            it('resolve', function () {
-                return expect(
-                    NodeID3.Promises.removeTags(testFilepath)
+                    operation(fileCase.path)
                 ).to.eventually.be.fulfilled
             })
-            after(function() {
-                fs.unlinkSync(testFilepath)
+        })
+    })
+    const failingTestCases: TestCase[] = [
+        ["read()", nonExistingFile, path => Promises.read(path)],
+        ["update()", nonExistingFile, path => Promises.update({}, path)],
+        ["removeTags()", nonExistingFile, path => Promises.removeTags(path)]
+    ]
+    failingTestCases.forEach(([funcName, fileCase, operation]) => {
+        describe(`${funcName} with ${fileCase.name}`, function() {
+            it('should reject', function() {
+                return expect(
+                    operation(fileCase.path)
+                ).to.eventually.be.rejectedWith(Error)
             })
         })
     })

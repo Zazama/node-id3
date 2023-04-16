@@ -1,35 +1,12 @@
-import * as fs from 'fs'
 import { getTagsFromId3Tag } from '../id3-tag'
 import { isFunction, isString } from '../util'
 import { Tags, TagIdentifiers } from '../types/Tags'
 import { Options } from '../types/Options'
-import { getId3TagDataFromFileAsync, getId3TagDataFromFileSync } from '../file-read'
-
-/**
- * Callback signature for successful asynchronous read operation.
- *
- * @param tags - `TagsIdentifiers` if the `rawOnly` option was true otherwise
- *               `Tags`
- * @public
- */
-export type ReadSuccessCallback =
-    (error: null, tags: Tags | TagIdentifiers) => void
-
-/**
- * Callback signatures for failing asynchronous read operation.
- *
- * @public
- */
-export type ReadErrorCallback =
-    (error: NodeJS.ErrnoException | Error, tags: null) => void
-
-/**
- * Callback signatures for asynchronous read operation.
- *
- * @public
- */
-export type ReadCallback =
-    ReadSuccessCallback & ReadErrorCallback
+import {
+    getId3TagDataFromFileAsync,
+    getId3TagDataFromFileSync
+} from '../file-read'
+import { ReadCallback } from '../types/read'
 
 /**
  * Reads ID3-Tags synchronously from passed buffer/filepath.
@@ -39,19 +16,19 @@ export type ReadCallback =
 export function read(filebuffer: string | Buffer, options?: Options): Tags
 
 /**
- * Reads ID3-Tags asynchronously from passed buffer/filepath.
+ * Reads ID3-Tags asynchronously from passed filepath.
  *
  * @public
  */
-export function read(filebuffer: string | Buffer, callback: ReadCallback): void
+export function read(filebuffer: string, callback: ReadCallback): void
 
 /**
- * Reads ID3-Tags asynchronously from passed buffer/filepath.
+ * Reads ID3-Tags asynchronously from passed filepath.
  *
  * @public
  */
 export function read(
-    filebuffer: string | Buffer, options: Options, callback: ReadCallback
+    filebuffer: string, options: Options, callback: ReadCallback
 ): void
 
 export function read(

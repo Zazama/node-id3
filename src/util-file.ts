@@ -7,6 +7,30 @@ export const fsClosePromise = promisify(fs.close)
 export const fsWritePromise = promisify(fs.write)
 export const fsUnlinkPromise = promisify(fs.unlink)
 export const fsRenamePromise = promisify(fs.rename)
+export const fsExistsPromise = promisify(fs.exists)
+export const fsWriteFilePromise = promisify(fs.writeFile)
+
+/**
+ * @returns true if the file existed
+ */
+export function unlinkIfExistSync(filepath: string) {
+    const exist = fs.existsSync(filepath)
+    if (exist) {
+        fs.unlinkSync(filepath)
+    }
+    return exist
+}
+
+/**
+ * @returns true if the file existed
+ */
+export async function unlinkIfExist(filepath: string) {
+    const exist = await fsExistsPromise(filepath)
+    if (exist) {
+        await fsUnlinkPromise(filepath)
+    }
+    return exist
+}
 
 export function processFileSync<T>(
     filepath: string,
