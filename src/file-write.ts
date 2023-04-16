@@ -5,27 +5,26 @@ import {
     processFileSync,
     processFileAsync
 } from "./util-file"
-import * as tmp from 'tmp'
-import * as path from 'path'
 import * as fs from 'fs'
 import { findId3TagPosition, getId3TagSize } from "./id3-tag"
+import { hrtime } from "process"
 
 const FileBufferSize = 20 * 1024 * 1024
 
 export function writeId3TagToFileSync(filepath: string, id3Tag: Buffer) {
-    const tmpFilepath = tmp.tmpNameSync(getTmpFileOptions(filepath))
+    const tempFilepath = makeTempFilepath(filepath)
     processFileSync(filepath, 'r', (readFileDescriptor) => {
         try {
-            processFileSync(tmpFilepath, 'w', (writeFileDescriptor) => {
+            processFileSync(tempFilepath, 'w', (writeFileDescriptor) => {
                 fs.writeSync(writeFileDescriptor, id3Tag)
                 copyFileWithoutId3TagSync(readFileDescriptor, writeFileDescriptor)
             })
         } catch(error) {
-            fs.unlinkSync(tmpFilepath)
+            fs.unlinkSync(tempFilepath)
             throw error
         }
     })
-    fs.renameSync(tmpFilepath, filepath)
+    fs.renameSync(tempFilepath, filepath)
 }
 
 export function writeId3TagToFileAsync(
@@ -33,30 +32,25 @@ export function writeId3TagToFileAsync(
     id3Tag: Buffer,
     callback: (err: Error|null) => void
 ) {
-    tmp.tmpName(getTmpFileOptions(filepath), (error, tmpFilepath) => {
-        if (error) {
-            return callback(error)
-        }
-        processFileAsync(filepath, 'r', async (readFileDescriptor) => {
-            processFileAsync(tmpFilepath, 'w', async (writeFileDescriptor) => {
-                await fsWritePromise(writeFileDescriptor, id3Tag)
-                await copyFileWithoutId3TagAsync(readFileDescriptor, writeFileDescriptor)
-            }).catch((error) => {
-                fs.unlink(tmpFilepath, callback)
-                throw error
-            })
-        }).then(() => {
-            fs.rename(tmpFilepath, filepath, callback)
-        }).catch(callback)
-    })
+    const tempFilepath = makeTempFilepath(filepath)
+    processFileAsync(filepath, 'r', async (readFileDescriptor) => {
+        processFileAsync(tempFilepath, 'w', async (writeFileDescriptor) => {
+            await fsWritePromise(writeFileDescriptor, id3Tag)
+            await copyFileWithoutId3TagAsync(readFileDescriptor, writeFileDescriptor)
+        }).catch((error) => {
+            fs.unlink(tempFilepath, callback)
+            throw error
+        })
+    }).then(() => {
+        fs.rename(tempFilepath, filepath, callback)
+    }).catch(callback)
 }
 
-function getTmpFileOptions(filepath: string): tmp.TmpNameOptions {
-    const parsedPath = path.parse(filepath)
-    return {
-        tmpdir: parsedPath.dir,
-        template: `${parsedPath.base}.tmp-XXXXXX`,
-    }
+function makeTempFilepath(filepath: string) {
+    // A high-resolution time is required to avoid potential conflicts
+    // when running multiple tests in parallel for example.
+    // Date.now() resolution is too low.
+    return `${filepath}.tmp-${hrtime.bigint()}`
 }
 
 function copyFileWithoutId3TagSync(
