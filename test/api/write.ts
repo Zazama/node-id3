@@ -2,7 +2,7 @@ import * as NodeID3 from '../../index'
 import { expect } from 'chai'
 import * as fs from 'fs'
 import { unlinkIfExistSync } from '../../src/util-file'
-import { promisify } from 'util'
+import { createTestBuffer } from '../util'
 
 describe('NodeID3.write()', function () {
     const nonExistingFilepath = './hopefully-does-not-exist.mp3'
@@ -31,7 +31,7 @@ describe('NodeID3.write()', function () {
     })
 
     const titleFrame = { title: "title "} satisfies NodeID3.WriteTags
-    const data = Buffer.from([0x02, 0x06, 0x12, 0x22])
+    const data = createTestBuffer(256)
     const titleTag = NodeID3.create(titleFrame)
     const albumTag = NodeID3.create({ album: "album" })
     const titleTagThenData = Buffer.concat([titleTag, data])
@@ -46,12 +46,15 @@ describe('NodeID3.write()', function () {
         ["file with different id3 tag", albumTagThenData, titleTagThenData],
     ] as const
 
+    // Forces the code path to read a split tag
+    const fileBufferSize = Math.min(titleTag.length, data.length) - 1
+
     testCases.forEach(([caseName, inputBuffer, expectedBuffer]) => {
         it(`sync write ${caseName}`, function() {
             if (inputBuffer) {
                 fs.writeFileSync(testFilepath, inputBuffer, 'binary')
             }
-            NodeID3.write(titleFrame, testFilepath)
+            NodeID3.writeInFileSync(titleFrame, testFilepath, { fileBufferSize })
             const newFileBuffer = fs.readFileSync(testFilepath)
             if (Buffer.compare(newFileBuffer, expectedBuffer)) {
                 console.log("newFileBuffer:", newFileBuffer)
@@ -61,20 +64,27 @@ describe('NodeID3.write()', function () {
                 Buffer.compare(newFileBuffer, expectedBuffer)
             ).to.equal(0)
         })
-        it(`async write ${caseName}`, async function() {
+        it(`async write ${caseName}`, function(done) {
             if (inputBuffer) {
                 fs.writeFileSync(testFilepath, inputBuffer, 'binary')
             }
-            const write = promisify(NodeID3.write)
-            await write(titleFrame, testFilepath)
-            const newFileBuffer = fs.readFileSync(testFilepath)
-            if (Buffer.compare(newFileBuffer, expectedBuffer)) {
-                console.log("newFileBuffer:", newFileBuffer)
-                console.log("expectedBuffer:", expectedBuffer)
-            }
-            expect(
-                Buffer.compare(newFileBuffer, expectedBuffer)
-            ).to.equal(0)
+            NodeID3.writeInFile(
+                titleFrame, testFilepath, { fileBufferSize }, (error) => {
+                    if (error) {
+                        done(error)
+                        return
+                    }
+                    const newFileBuffer = fs.readFileSync(testFilepath)
+                    if (Buffer.compare(newFileBuffer, expectedBuffer)) {
+                        console.log("newFileBuffer:", newFileBuffer)
+                        console.log("expectedBuffer:", expectedBuffer)
+                    }
+                    expect(
+                        Buffer.compare(newFileBuffer, expectedBuffer)
+                    ).to.equal(0)
+                    done()
+                }
+            )
         })
     })
 })

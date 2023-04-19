@@ -11,12 +11,18 @@ import {
     unlinkIfExist
 } from "./util-file"
 import * as fs from 'fs'
-import { findId3TagPosition, getId3TagSize } from "./id3-tag"
+import { Header, findId3TagPosition, getId3TagSize } from "./id3-tag"
+import { WriteCallback, WriteOptions } from "./types/write"
 import { hrtime } from "process"
 
-const FileBufferSize = 20 * 1024 * 1024
+const MinBufferSize = Header.size
+const DefaultFileBufferSize = 20 * 1024 * 1024
 
-export function writeId3TagToFileSync(filepath: string, id3Tag: Buffer) {
+export function writeId3TagToFileSync(
+    filepath: string,
+    id3Tag: Buffer,
+    options: WriteOptions
+): void {
     if (!fs.existsSync(filepath)) {
         fs.writeFileSync(filepath, id3Tag)
         return
@@ -27,7 +33,9 @@ export function writeId3TagToFileSync(filepath: string, id3Tag: Buffer) {
             processFileSync(tempFilepath, 'w', (writeFileDescriptor) => {
                 fs.writeSync(writeFileDescriptor, id3Tag)
                 copyFileWithoutId3TagSync(
-                    readFileDescriptor, writeFileDescriptor
+                    readFileDescriptor,
+                    writeFileDescriptor,
+                    getFileBufferSize(options)
                 )
             })
         } catch(error) {
@@ -38,7 +46,24 @@ export function writeId3TagToFileSync(filepath: string, id3Tag: Buffer) {
     fs.renameSync(tempFilepath, filepath)
 }
 
-export async function writeId3TagToFileAsync(filepath: string, id3Tag: Buffer) {
+export function writeId3TagToFile(
+    filepath: string,
+    id3Tag: Buffer,
+    options: WriteOptions,
+    callback: WriteCallback
+): void {
+    writeId3TagToFileAsync(filepath, id3Tag, options)
+    .then(
+        () => callback(null),
+        (error) => callback(error)
+    )
+}
+
+export async function writeId3TagToFileAsync(
+    filepath: string,
+    id3Tag: Buffer,
+    options: WriteOptions
+): Promise<void> {
     if (!await fsExistsPromise(filepath)) {
         await fsWriteFilePromise(filepath, id3Tag)
         return
@@ -50,7 +75,9 @@ export async function writeId3TagToFileAsync(filepath: string, id3Tag: Buffer) {
                 async (writeFileDescriptor) => {
                     await fsWritePromise(writeFileDescriptor, id3Tag)
                     await copyFileWithoutId3TagAsync(
-                        readFileDescriptor, writeFileDescriptor
+                        readFileDescriptor,
+                        writeFileDescriptor,
+                        getFileBufferSize(options)
                     )
                 }
             )
@@ -63,6 +90,12 @@ export async function writeId3TagToFileAsync(filepath: string, id3Tag: Buffer) {
     await fsRenamePromise(tempFilepath, filepath)
 }
 
+function getFileBufferSize(options: WriteOptions) {
+    return Math.max(
+        options.fileBufferSize ?? DefaultFileBufferSize,
+        MinBufferSize
+    )
+}
 function makeTempFilepath(filepath: string) {
     // A high-resolution time is required to avoid potential conflicts
     // when running multiple tests in parallel for example.
@@ -72,9 +105,10 @@ function makeTempFilepath(filepath: string) {
 
 function copyFileWithoutId3TagSync(
     readFileDescriptor: number,
-    writeFileDescriptor: number
+    writeFileDescriptor: number,
+    fileBufferSize: number
 ) {
-    const buffer = Buffer.alloc(FileBufferSize)
+    const buffer = Buffer.alloc(fileBufferSize)
     let readData
     while((readData = fillBufferSync(readFileDescriptor, buffer)).length) {
         const { data, bytesToSkip } = removeId3TagIfFound(readData)
@@ -87,9 +121,10 @@ function copyFileWithoutId3TagSync(
 
 async function copyFileWithoutId3TagAsync(
     readFileDescriptor: number,
-    writeFileDescriptor: number
+    writeFileDescriptor: number,
+    fileBufferSize: number
 ) {
-    const buffer = Buffer.alloc(FileBufferSize)
+    const buffer = Buffer.alloc(fileBufferSize)
     let readData
     while((readData = await fillBufferAsync(readFileDescriptor, buffer)).length) {
         const { data, bytesToSkip } = removeId3TagIfFound(readData)
