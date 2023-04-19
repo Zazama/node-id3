@@ -18,7 +18,10 @@ export function getId3TagDataFromFileSync(filepath: string): Buffer|null {
     })
 }
 
-export function getId3TagDataFromFileAsync(filepath: string, callback: Callback) {
+export function getId3TagDataFromFileAsync(
+    filepath: string,
+    callback: Callback
+) {
     processFileAsync(filepath, 'r', async (fileDescriptor) => {
         const partialId3TagData = await findPartialId3TagAsync(fileDescriptor)
         return partialId3TagData ? completePartialId3TagDataAsync(
