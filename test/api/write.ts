@@ -30,58 +30,105 @@ describe('NodeID3.write()', function () {
         })
     })
 
-    const titleFrame = { title: "title "} satisfies NodeID3.WriteTags
     const data = createTestBuffer(256)
-    const titleTag = NodeID3.create(titleFrame)
-    const albumTag = NodeID3.create({ album: "album" })
-    const titleTagThenData = Buffer.concat([titleTag, data])
-    const dataThenTitleTag = Buffer.concat([data, titleTag])
-    const albumTagThenData = Buffer.concat([albumTag, data])
+    const tag = NodeID3.create({ album: "album"})
+    const newFrame = { title: "title "} satisfies NodeID3.WriteTags
+    const newTag = NodeID3.create(newFrame)
 
-    const testCases = [
-        ["without file", null, titleTag],
-        ["file without id3 tag", data, titleTagThenData],
-        ["file with same id3 tag", titleTagThenData, titleTagThenData],
-        ["file with id3 tag after data", dataThenTitleTag, titleTagThenData],
-        ["file with different id3 tag", albumTagThenData, titleTagThenData],
-    ] as const
+    type TestCase = [
+        // Name
+        string,
+        // Input data
+        readonly Buffer[] | null,
+        // Expected data
+        readonly Buffer[],
+        // File buffer size
+        number | null
+    ]
+    const testCases: TestCase[] = [
+        [
+            "without file",
+            null, [newTag], null
+        ],
+        [
+            "without tag (buffer.length > data.length)",
+            [data], [newTag, data], data.length + 1
+        ],
+        [
+            "without tag (buffer.length === data.length)",
+            [data], [newTag, data], data.length / 2
+        ],
+        [
+            "without tag (buffer.length < data.length)",
+            [data], [newTag, data], data.length - 1
+        ],
+        [
+            "with same tag",
+            [newTag, data], [newTag, data], newTag.length - 1
+        ],
+        [
+            "with tag at the start",
+            [tag, data], [newTag, data], tag.length - 1
+        ],
+        [
+            "with tag in the middle (ID3 identifier crossover)",
+            [data, tag, data], [newTag, data, data], data.length + 1
+        ],
+        [
+            "with tag in the middle (at ID3 identifier position)",
+            [data, tag, data], [newTag, data, data], data.length
+        ],
+        [
+            "with tag in the middle (before ID3 identifier position)",
+            [data, tag, data], [newTag, data, data], data.length - 1
+        ],
+        [
+            "with multiple tags",
+            [data, tag, data, tag, data], [newTag, data, data, data], data.length - 1
+        ],
+        [
+            "with multiple tags (buffer smaller than tag)",
+            [data, tag, data, tag, data], [newTag, data, data, data], tag.length - 1
+        ],
+        [
+            "with multiple tags (2nd tag across reads)",
+            [data, tag, tag, data], [newTag, data, data], data.length
+        ],
+        [
+            "w/ multiple tags (2nd tag across reads, buffer smalller than tag)",
+            [data, tag, tag, data], [newTag, data, data], tag.length - 1
+        ],
+        [
+            "with tag at the end",
+            [data, tag], [newTag, data], data.length - 1
+        ],
+    ]
 
-    // Forces the code path to read a split tag
-    const fileBufferSize = Math.min(titleTag.length, data.length) - 1
-
-    testCases.forEach(([caseName, inputBuffer, expectedBuffer]) => {
+    testCases.forEach(
+        ([caseName, inputBuffers, expectedBuffers, fileBufferSize]) => {
+        const options = fileBufferSize ? { fileBufferSize } : {}
+        const inputBuffer = inputBuffers ? Buffer.concat(inputBuffers) : null
+        const expectedBuffer = Buffer.concat(expectedBuffers)
         it(`sync write ${caseName}`, function() {
             if (inputBuffer) {
                 fs.writeFileSync(testFilepath, inputBuffer, 'binary')
             }
-            NodeID3.writeInFileSync(titleFrame, testFilepath, { fileBufferSize })
+            NodeID3.writeInFileSync(newFrame, testFilepath, options)
             const newFileBuffer = fs.readFileSync(testFilepath)
-            if (Buffer.compare(newFileBuffer, expectedBuffer)) {
-                console.log("newFileBuffer:", newFileBuffer)
-                console.log("expectedBuffer:", expectedBuffer)
-            }
-            expect(
-                Buffer.compare(newFileBuffer, expectedBuffer)
-            ).to.equal(0)
+            expect(newFileBuffer).to.deep.equal(expectedBuffer)
         })
         it(`async write ${caseName}`, function(done) {
             if (inputBuffer) {
                 fs.writeFileSync(testFilepath, inputBuffer, 'binary')
             }
             NodeID3.writeInFile(
-                titleFrame, testFilepath, { fileBufferSize }, (error) => {
+                newFrame, testFilepath, options, (error) => {
                     if (error) {
                         done(error)
                         return
                     }
                     const newFileBuffer = fs.readFileSync(testFilepath)
-                    if (Buffer.compare(newFileBuffer, expectedBuffer)) {
-                        console.log("newFileBuffer:", newFileBuffer)
-                        console.log("expectedBuffer:", expectedBuffer)
-                    }
-                    expect(
-                        Buffer.compare(newFileBuffer, expectedBuffer)
-                    ).to.equal(0)
+                    expect(newFileBuffer).to.deep.equal(expectedBuffer)
                     done()
                 }
             )
