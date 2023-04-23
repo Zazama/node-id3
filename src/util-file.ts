@@ -89,3 +89,17 @@ export async function fillBufferAsync(
     )).bytesRead
     return buffer.subarray(0, bytesRead + offset)
 }
+
+export async function fsReadAsync(
+    fileDescriptor: number,
+    buffer: Buffer,
+    offset = 0
+): Promise<number> {
+    return (await fsReadPromise(
+        fileDescriptor,
+        buffer,
+        offset,
+        buffer.length,
+        null
+    )).bytesRead
+}

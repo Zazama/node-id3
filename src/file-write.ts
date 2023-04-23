@@ -1,22 +1,25 @@
 import {
     fsWritePromise,
-    fillBufferAsync,
-    fillBufferSync,
     processFileSync,
     processFileAsync,
     fsExistsPromise,
     fsWriteFilePromise,
     fsRenamePromise,
     unlinkIfExistSync,
-    unlinkIfExist
+    unlinkIfExist,
+    fsReadAsync
 } from "./util-file"
 import * as fs from 'fs'
-import { Header, findId3TagPosition, getId3TagSize } from "./id3-tag"
+import { Header, getId3Tag } from "./id3-tag"
 import { WriteCallback, WriteOptions } from "./types/write"
 import { hrtime } from "process"
 
-const MinBufferSize = Header.size
-const DefaultFileBufferSize = 20 * 1024 * 1024
+// Must be at least Header.size which is the min size to detect an ID3 header.
+// Naming it help identifying the code handling it.
+const RolloverBufferSize = Header.size
+
+const MinBufferSize = RolloverBufferSize + 1
+const DefaultFileBufferSize = RolloverBufferSize + 20 * 1024 * 1024
 
 export function writeId3TagToFileSync(
     filepath: string,
@@ -96,6 +99,7 @@ function getFileBufferSize(options: WriteOptions) {
         MinBufferSize
     )
 }
+
 function makeTempFilepath(filepath: string) {
     // A high-resolution time is required to avoid potential conflicts
     // when running multiple tests in parallel for example.
@@ -103,20 +107,68 @@ function makeTempFilepath(filepath: string) {
     return `${filepath}.tmp-${hrtime.bigint()}`
 }
 
+class Id3TagRemover {
+    buffer: Buffer
+    rolloverSize = 0
+    continue = false
+
+    constructor(bufferSize: number) {
+        // TODO enforce min buffer size here,
+        // i.e. bufferSize + RolloverBufferSize + 1
+        this.buffer = Buffer.alloc(bufferSize)
+    }
+
+    getReadBuffer() {
+        return this.buffer.subarray(this.rolloverSize)
+    }
+
+    processReadBuffer(readSize: number) {
+        let data = this.buffer.subarray(0, this.rolloverSize + readSize)
+
+        // TODO extract that to id3-tag
+        // Remove tags from `data`
+        const parts: Buffer[] = []
+        let missingBytes = 0
+        let tag
+        while((tag = getId3Tag(data))) {
+            parts.push(tag.before)
+            data = tag.after
+            missingBytes = tag.missingBytes
+        }
+
+        // Exclude rollover window on the last part
+        this.rolloverSize = Math.min(RolloverBufferSize, data.length, readSize)
+        const rolloverStart = data.length - this.rolloverSize
+        const rolloverData = Buffer.from(data.subarray(rolloverStart))
+        parts.push(data.subarray(0, rolloverStart))
+
+        const writeBuffer = Buffer.concat(parts)
+
+        // Update rollover window
+        rolloverData.copy(this.buffer)
+
+        this.continue = this.rolloverSize !==0 || missingBytes !== 0
+
+        return {
+            skipBuffer: Buffer.alloc(missingBytes),
+            writeBuffer
+        }
+    }
+}
+
 function copyFileWithoutId3TagSync(
     readFileDescriptor: number,
     writeFileDescriptor: number,
     fileBufferSize: number
 ) {
-    const buffer = Buffer.alloc(fileBufferSize)
-    let readData
-    while((readData = fillBufferSync(readFileDescriptor, buffer)).length) {
-        const { data, bytesToSkip } = removeId3TagIfFound(readData)
-        if (bytesToSkip) {
-            fillBufferSync(readFileDescriptor, Buffer.alloc(bytesToSkip))
-        }
-        fs.writeSync(writeFileDescriptor, data, 0, data.length, null)
-    }
+    const remover = new Id3TagRemover(fileBufferSize)
+    do {
+        const readBuffer = remover.getReadBuffer()
+        const sizeRead = fs.readSync(readFileDescriptor, readBuffer)
+        const { skipBuffer, writeBuffer } = remover.processReadBuffer(sizeRead)
+        fs.readSync(readFileDescriptor, skipBuffer)
+        fs.writeSync(writeFileDescriptor, writeBuffer)
+    } while(remover.continue)
 }
 
 async function copyFileWithoutId3TagAsync(
@@ -124,29 +176,12 @@ async function copyFileWithoutId3TagAsync(
     writeFileDescriptor: number,
     fileBufferSize: number
 ) {
-    const buffer = Buffer.alloc(fileBufferSize)
-    let readData
-    while((readData = await fillBufferAsync(readFileDescriptor, buffer)).length) {
-        const { data, bytesToSkip } = removeId3TagIfFound(readData)
-        if (bytesToSkip) {
-            await fillBufferAsync(readFileDescriptor, Buffer.alloc(bytesToSkip))
-        }
-        await fsWritePromise(writeFileDescriptor, data, 0, data.length, null)
-    }
-}
-
-function removeId3TagIfFound(data: Buffer) {
-    const id3TagPosition = findId3TagPosition(data)
-    if (id3TagPosition === -1) {
-        return { data }
-    }
-    const dataFromId3Start = data.subarray(id3TagPosition)
-    const id3TagSize = getId3TagSize(dataFromId3Start)
-    return {
-        data: Buffer.concat([
-            data.subarray(0, id3TagPosition),
-            dataFromId3Start.subarray(Math.min(id3TagSize, dataFromId3Start.length))
-        ]),
-        bytesToSkip: Math.max(0, id3TagSize - dataFromId3Start.length)
-    }
+    const remover = new Id3TagRemover(fileBufferSize)
+    do {
+        const readBuffer = remover.getReadBuffer()
+        const sizeRead = await fsReadAsync(readFileDescriptor, readBuffer)
+        const { skipBuffer, writeBuffer } = remover.processReadBuffer(sizeRead)
+        await fsReadAsync(readFileDescriptor, skipBuffer)
+        await fsWriteFilePromise(writeFileDescriptor, writeBuffer)
+    } while(remover.continue)
 }

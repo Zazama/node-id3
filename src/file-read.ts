@@ -35,6 +35,7 @@ export function getId3TagDataFromFileAsync(
     })
 }
 
+// Need to handle the case when the id3 tag size is larger than the buffer
 function findPartialId3TagSync(fileDescriptor: number): Buffer|null {
     const buffer = Buffer.alloc(FileBufferSize)
     let data
