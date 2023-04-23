@@ -204,6 +204,23 @@ function parseTagHeaderFlags(header: Buffer): TagHeaderFlags {
     }
 }
 
+export function getId3Tag(data: Buffer) {
+    const position = findId3TagPosition(data)
+    if (position === -1) {
+        return null
+    }
+    const from = data.subarray(position)
+    const size = getId3TagSize(from)
+    return {
+        size,
+        from,
+        before: data.subarray(0, position),
+        data: from.subarray(0, size),
+        after: from.subarray(size),
+        missingBytes: Math.max(0, size - from.length)
+    }
+}
+
 /**
  * Returns the position of the first valid tag found or -1 if no tag was found.
  */
