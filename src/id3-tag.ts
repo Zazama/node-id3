@@ -85,26 +85,10 @@ export function embedFramesInId3Tag(frames: Buffer) {
 /**
  * Remove already written ID3-Frames from a buffer
  */
-export function removeId3Tag(data: Buffer) {
-    const tagPosition = findId3TagPosition(data)
-    if (tagPosition === -1) {
-        return data
-    }
-    const encodedSize = subarray(data, tagPosition + Header.offset.size, 4)
-
-    if (!isValidEncodedSize(encodedSize)) {
-        return false
-    }
-
-    if (data.length >= tagPosition + Header.size) {
-        const size = decodeSize(encodedSize)
-        return Buffer.concat([
-            data.subarray(0, tagPosition),
-            data.subarray(tagPosition + size + Header.size)
-        ])
-    }
-
-    return data
+export function removeId3Tag(data: Buffer): Buffer {
+    // TODO support multiple-frames, improve tests
+    const tag = getId3Tag(data)
+    return tag ? Buffer.concat([tag.before, tag.after]) : data
 }
 
 export function getTagsFromId3Tag(buffer: Buffer, options: Options) {
