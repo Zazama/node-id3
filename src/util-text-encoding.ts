@@ -1,40 +1,41 @@
 import iconv = require('iconv-lite')
-import { isString } from "./util"
+import { TextEncoding } from './definitions/Encoding'
 
 export function stringToEncodedBuffer(
     value: string,
-    encodingByte: string | number
+    encoding: TextEncoding
 ) {
     return iconv.encode(
         value,
-        encodingFromStringOrByte(encodingByte)
+        convertTextEncodingToIconEncoding(encoding)
     )
 }
 
 export function bufferToDecodedString(
     buffer: Buffer,
-    encodingByte: string | number
+    encoding: TextEncoding
 ) {
     return iconv.decode(
         buffer,
-        encodingFromStringOrByte(encodingByte)
+        convertTextEncodingToIconEncoding(encoding)
     ).replace(/\0/g, '')
 }
 
-function encodingFromStringOrByte(encoding: string | number) {
-    const ENCODINGS = [
-        'ISO-8859-1', 'UTF-16', 'UTF-16BE', 'UTF-8'
-    ]
+const TO_ICON_ENCODING = {
+    [TextEncoding.ISO_8859_1]: 'ISO-8859-1',
+    [TextEncoding.UTF_16_WITH_BOM]: 'UTF-16',
+    [TextEncoding.UTF_16_BE]: 'UTF-16BE',
+    [TextEncoding.UTF_8]: 'UTF-8'
+} satisfies Record<TextEncoding, string>
 
-    if (isString(encoding) && ENCODINGS.includes(encoding)) {
-        return encoding
+export function validateEncoding(encoding: number): TextEncoding {
+    if (encoding in TO_ICON_ENCODING) {
+        return encoding as TextEncoding
     }
-    if (
-        typeof encoding === "number" &&
-        encoding >= 0 && encoding < ENCODINGS.length
-    ) {
-        return ENCODINGS[encoding]
-    }
-    return ENCODINGS[0]
+    throw new RangeError(`Unknown encoding value ${encoding}`)
+}
+
+function convertTextEncodingToIconEncoding(encoding: TextEncoding) {
+    return TO_ICON_ENCODING[validateEncoding(encoding)]
 }
 
