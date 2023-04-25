@@ -114,8 +114,7 @@ function getId3TagBody(buffer: Buffer) {
 
     // Copy for now, it might not be necessary, but we are not really sure for
     // now, will be re-assessed if we can avoid the copy.
-    const body = Buffer.alloc(bodySize)
-    tagBuffer.copy(body, 0, totalHeaderSize)
+    const body = Buffer.from(subarray(tagBuffer, totalHeaderSize, bodySize))
 
     return {
         version: tagHeader.version.major,
