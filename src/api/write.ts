@@ -3,7 +3,7 @@ import { WriteCallback, WriteOptions } from "../types/write"
 import { create }  from "./create"
 import { removeTagsFromBuffer } from "./remove"
 import { isFunction, isString, validateString } from "../util"
-import { writeId3TagToFile, writeId3TagToFileSync } from "../file-write"
+import { writeId3TagToFileAsync, writeId3TagToFileSync } from "../file-write"
 
 /**
  * Replaces any existing tags with the given tags in the given buffer.
@@ -114,7 +114,7 @@ export function writeInFile(
     tags: WriteTags,
     filepath: string,
     optionsOrCallback: WriteOptions | WriteCallback,
-    maybeCallback?: WriteCallback
+    maybeCallback: WriteCallback = () => { /* */ }
 ): void {
     const options =
         (isFunction(optionsOrCallback) ? {} : optionsOrCallback) ?? {}
@@ -122,5 +122,8 @@ export function writeInFile(
         isFunction(optionsOrCallback) ? optionsOrCallback : maybeCallback
 
     const id3Tag = create(tags)
-    writeId3TagToFile(filepath, id3Tag, options, callback ?? (() => { /* */ }))
+    writeId3TagToFileAsync(filepath, id3Tag, options).then(
+        () => callback(null),
+        (error) => callback(error)
+    )
 }
