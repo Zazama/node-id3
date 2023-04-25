@@ -11,7 +11,7 @@ import {
 } from "./util-file"
 import * as fs from 'fs'
 import { Header, getId3Tag } from "./id3-tag"
-import { WriteCallback, WriteOptions } from "./types/write"
+import { WriteOptions } from "./types/write"
 import { hrtime } from "process"
 
 // Must be at least Header.size which is the min size to detect an ID3 header.
@@ -47,19 +47,6 @@ export function writeId3TagToFileSync(
         }
     })
     fs.renameSync(tempFilepath, filepath)
-}
-
-export function writeId3TagToFile(
-    filepath: string,
-    id3Tag: Buffer,
-    options: WriteOptions,
-    callback: WriteCallback
-): void {
-    writeId3TagToFileAsync(filepath, id3Tag, options)
-    .then(
-        () => callback(null),
-        (error) => callback(error)
-    )
 }
 
 export async function writeId3TagToFileAsync(
@@ -108,8 +95,8 @@ function makeTempFilepath(filepath: string) {
 }
 
 class Id3TagRemover {
-    buffer: Buffer
-    rolloverSize = 0
+    private buffer: Buffer
+    private rolloverSize = 0
     continue = false
 
     constructor(bufferSize: number) {
