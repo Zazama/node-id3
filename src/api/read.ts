@@ -3,7 +3,7 @@ import { isFunction, isString } from '../util'
 import { Tags, TagIdentifiers } from '../types/Tags'
 import { Options } from '../types/Options'
 import {
-    getId3TagDataFromFileAsync,
+    getId3TagDataFromFile,
     getId3TagDataFromFileSync
 } from '../file-read'
 import { ReadCallback } from '../types/read'
@@ -60,7 +60,7 @@ function readAsync(
     callback: ReadCallback
 ) {
     if (isString(filebuffer)) {
-        getId3TagDataFromFileAsync(filebuffer, (error, data) => {
+        getId3TagDataFromFile(filebuffer, (error, data) => {
             if(error) {
                 callback(error, null)
             } else {
