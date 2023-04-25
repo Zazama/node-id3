@@ -127,14 +127,15 @@ class Id3TagRemover {
 
         // TODO extract that to id3-tag
         // Remove tags from `data`
-        const parts: Buffer[] = []
         let missingBytes = 0
-        let tag
-        while((tag = getId3Tag(data))) {
-            parts.push(tag.before)
-            data = tag.after
-            missingBytes = tag.missingBytes
-        }
+        const parts = Array.from((function*() {
+            let tag
+            while((tag = getId3Tag(data))) {
+                yield tag.before
+                data = tag.after
+                missingBytes = tag.missingBytes
+            }
+        })())
 
         // Exclude rollover window on the last part
         this.rolloverSize = Math.min(RolloverBufferSize, data.length, readSize)
