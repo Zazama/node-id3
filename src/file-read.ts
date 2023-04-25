@@ -18,7 +18,7 @@ export function getId3TagDataFromFileSync(filepath: string): Buffer|null {
     })
 }
 
-export function getId3TagDataFromFileAsync(
+export function getId3TagDataFromFile(
     filepath: string,
     callback: Callback
 ) {
