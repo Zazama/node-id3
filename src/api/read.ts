@@ -3,7 +3,7 @@ import { isFunction, isString } from '../util'
 import { Tags, TagIdentifiers } from '../types/Tags'
 import { Options } from '../types/Options'
 import {
-    getId3TagDataFromFile,
+    getId3TagDataFromFileAsync,
     getId3TagDataFromFileSync
 } from '../file-read'
 import { ReadCallback } from '../types/read'
@@ -49,7 +49,7 @@ export function read(
 
 function readSync(filebuffer: string | Buffer, options: Options) {
     if (isString(filebuffer)) {
-        filebuffer = getId3TagDataFromFileSync(filebuffer) ?? Buffer.alloc(0)
+        filebuffer = getId3TagDataFromFileSync(filebuffer)[0] ?? Buffer.alloc(0)
     }
     return getTagsFromId3Tag(filebuffer, options)
 }
@@ -60,13 +60,12 @@ function readAsync(
     callback: ReadCallback
 ) {
     if (isString(filebuffer)) {
-        getId3TagDataFromFile(filebuffer, (error, data) => {
-            if(error) {
-                callback(error, null)
-            } else {
-                callback(null, getTagsFromId3Tag(data ?? Buffer.alloc(0), options))
-            }
-        })
+        getId3TagDataFromFileAsync(filebuffer).then(
+            (data) => callback(
+                null, getTagsFromId3Tag(data[0] ?? Buffer.alloc(0), options)
+            ),
+            (error) => callback(error, null)
+        )
     } else {
         callback(null, getTagsFromId3Tag(filebuffer, options))
     }
