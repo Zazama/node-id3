@@ -7,12 +7,12 @@ import {
     fsRenamePromise,
     unlinkIfExistSync,
     unlinkIfExist,
-    fsReadAsync
+    fsReadAsync,
+    makeTempFilepath
 } from "./util-file"
 import * as fs from 'fs'
 import { Header } from "./id3-tag"
 import { WriteOptions } from "./types/write"
-import { hrtime } from "process"
 import { Id3TagRemover } from "./file-stream-processor"
 
 // Must be at least Header.size which is the min size to detect an ID3 header.
@@ -86,13 +86,6 @@ function getFileBufferSize(options: WriteOptions) {
         options.fileBufferSize ?? DefaultFileBufferSize,
         MinBufferSize
     )
-}
-
-function makeTempFilepath(filepath: string) {
-    // A high-resolution time is required to avoid potential conflicts
-    // when running multiple tests in parallel for example.
-    // Date.now() resolution is too low.
-    return `${filepath}.tmp-${hrtime.bigint()}`
 }
 
 function copyFileWithoutId3TagSync(

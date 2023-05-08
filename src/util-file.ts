@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import { promisify } from 'util'
+import { hrtime } from "process"
 
 export const fsOpenPromise = promisify(fs.open)
 export const fsReadPromise = promisify(fs.read)
@@ -72,4 +73,11 @@ export async function processFileAsync<T>(
     finally {
         await fsClosePromise(fileDescriptor)
     }
+}
+
+export function makeTempFilepath(filepath: string) {
+    // A high-resolution time is required to avoid potential conflicts
+    // when running multiple tests in parallel for example.
+    // Date.now() resolution is too low.
+    return `${filepath}.tmp-${hrtime.bigint()}`
 }
