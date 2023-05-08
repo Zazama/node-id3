@@ -11,16 +11,8 @@ import {
     makeTempFilepath
 } from "./util-file"
 import * as fs from 'fs'
-import { Header } from "./id3-tag"
 import { WriteOptions } from "./types/write"
 import { Id3TagRemover } from "./file-stream-processor"
-
-// Must be at least Header.size which is the min size to detect an ID3 header.
-// Naming it help identifying the code handling it.
-const RolloverBufferSize = Header.size
-
-const MinBufferSize = RolloverBufferSize + 1
-const DefaultFileBufferSize = RolloverBufferSize + 20 * 1024 * 1024
 
 export function writeId3TagToFileSync(
     filepath: string,
@@ -39,7 +31,7 @@ export function writeId3TagToFileSync(
                 copyFileWithoutId3TagSync(
                     readFileDescriptor,
                     writeFileDescriptor,
-                    getFileBufferSize(options)
+                    options.fileBufferSize
                 )
             })
         } catch(error) {
@@ -68,7 +60,7 @@ export async function writeId3TagToFileAsync(
                     await copyFileWithoutId3TagAsync(
                         readFileDescriptor,
                         writeFileDescriptor,
-                        getFileBufferSize(options)
+                        options.fileBufferSize
                     )
                 }
             )
@@ -81,17 +73,10 @@ export async function writeId3TagToFileAsync(
     await fsRenamePromise(tempFilepath, filepath)
 }
 
-function getFileBufferSize(options: WriteOptions) {
-    return Math.max(
-        options.fileBufferSize ?? DefaultFileBufferSize,
-        MinBufferSize
-    )
-}
-
 function copyFileWithoutId3TagSync(
     readFileDescriptor: number,
     writeFileDescriptor: number,
-    fileBufferSize: number
+    fileBufferSize?: number
 ) {
     const remover = new Id3TagRemover(fileBufferSize)
     do {
@@ -106,7 +91,7 @@ function copyFileWithoutId3TagSync(
 async function copyFileWithoutId3TagAsync(
     readFileDescriptor: number,
     writeFileDescriptor: number,
-    fileBufferSize: number
+    fileBufferSize?: number
 ) {
     const remover = new Id3TagRemover(fileBufferSize)
     do {

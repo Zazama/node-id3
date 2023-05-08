@@ -6,6 +6,9 @@ import { getId3Tag, Header } from './id3-tag'
 // Naming it help identifying the code handling it.
 const RolloverBufferSize = Header.size
 
+const MinBufferSize = RolloverBufferSize + 1
+const DefaultFileBufferSize = RolloverBufferSize + 20 * 1024 * 1024
+
 export class Id3TagStreamProcessor {
     private buffer: Buffer
     private tags: Buffer[] = []
@@ -54,15 +57,22 @@ export class Id3TagStreamProcessor {
     }
 }
 
+function getBufferSize(bufferSize?: number) {
+    return Math.max(
+        bufferSize ?? DefaultFileBufferSize,
+        MinBufferSize
+    )
+}
+
 export class Id3TagRemover {
     private buffer: Buffer
     private rolloverSize = 0
     continue = false
 
-    constructor(bufferSize: number) {
+    constructor(bufferSize?: number) {
         // TODO enforce min buffer size here,
         // i.e. bufferSize + RolloverBufferSize + 1
-        this.buffer = Buffer.alloc(bufferSize)
+        this.buffer = Buffer.alloc(getBufferSize(bufferSize))
     }
 
     getReadBuffer() {
