@@ -10,6 +10,20 @@ export const fsRenamePromise = promisify(fs.rename)
 export const fsExistsPromise = promisify(fs.exists)
 export const fsWriteFilePromise = promisify(fs.writeFile)
 
+export async function fsReadAsync(
+    fileDescriptor: number,
+    buffer: Buffer,
+    offset = 0
+): Promise<number> {
+    return (await fsReadPromise(
+        fileDescriptor,
+        buffer,
+        offset,
+        buffer.length,
+        null
+    )).bytesRead
+}
+
 /**
  * @returns true if the file existed
  */
@@ -58,48 +72,4 @@ export async function processFileAsync<T>(
     finally {
         await fsClosePromise(fileDescriptor)
     }
-}
-
-export function fillBufferSync(
-    fileDescriptor: number,
-    buffer: Buffer,
-    offset = 0
-): Buffer {
-    const bytesRead = fs.readSync(
-        fileDescriptor,
-        buffer,
-        offset,
-        buffer.length - offset,
-        null
-    )
-    return buffer.subarray(0, bytesRead + offset)
-}
-
-export async function fillBufferAsync(
-    fileDescriptor: number,
-    buffer: Buffer,
-    offset = 0
-): Promise<Buffer> {
-    const bytesRead = (await fsReadPromise(
-        fileDescriptor,
-        buffer,
-        offset,
-        buffer.length - offset,
-        null
-    )).bytesRead
-    return buffer.subarray(0, bytesRead + offset)
-}
-
-export async function fsReadAsync(
-    fileDescriptor: number,
-    buffer: Buffer,
-    offset = 0
-): Promise<number> {
-    return (await fsReadPromise(
-        fileDescriptor,
-        buffer,
-        offset,
-        buffer.length,
-        null
-    )).bytesRead
 }
