@@ -26,7 +26,7 @@ export type RemoveCallback =
  *
  * @public
  */
-export function removeTags(filepath: string): boolean | Error
+export function removeTags(filepath: string): true | Error
 
 /**
  * Removes asynchronously any written ID3-Frames from the specified file.
@@ -51,9 +51,6 @@ function removeTagsSync(filepath: string) {
     }
 
     const newData = removeTagsFromBuffer(data)
-    if(!newData) {
-        return false
-    }
 
     try {
         fs.writeFileSync(filepath, newData, 'binary')
@@ -72,10 +69,6 @@ function removeTagsAsync(filepath: string, callback: RemoveCallback) {
         }
 
         const newData = removeTagsFromBuffer(data)
-        if(!newData) {
-            callback(error)
-            return
-        }
 
         fs.writeFile(filepath, newData, 'binary', (error) => {
             if(error) {
