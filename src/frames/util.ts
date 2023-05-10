@@ -29,7 +29,7 @@ export function validateLanguageCode(languageCode: string) {
 export function validateCurrencyCode(currencyCode: string) {
     if (currencyCode.length !== 3) {
         throw new RangeError(
-            "Currency string length must be 3, see "
+            "Currency string length must be 3, see ISO 4217 codes"
         )
     }
     return currencyCode
