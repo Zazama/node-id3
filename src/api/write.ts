@@ -8,6 +8,7 @@ import { writeId3TagToFileAsync, writeId3TagToFileSync } from "../file-write"
 /**
  * Replaces any existing tags with the given tags in the given buffer.
  * Throws in case of error.
+ * @deprecated Use `writeInBuffer` instead.
  * @public
  */
 export function write(tags: WriteTags, buffer: Buffer): Buffer
@@ -16,6 +17,7 @@ export function write(tags: WriteTags, buffer: Buffer): Buffer
  * Replaces synchronously any existing tags with the given tags in the
  * specified file.
  * Throws in case of error.
+ * @deprecated Use `writeInFileSync` instead.
  * @public
  */
 export function write(
@@ -27,10 +29,13 @@ export function write(
 /**
  * Replaces asynchronously any existing tags with the given tags in the
  * specified file.
+ * @deprecated Use `writeInFile` instead.
  * @public
  */
 export function write(
-    tags: WriteTags, filepath: string, callback: WriteCallback
+    tags: WriteTags,
+    filepath: string,
+    callback: WriteCallback
 ): void
 
 export function write(
@@ -45,11 +50,11 @@ export function write(
         isFunction(optionsOrCallback) ? optionsOrCallback : maybeCallback
 
     if (isFunction(callback)) {
-        writeInFile(tags, validateString(filebuffer), options, callback)
+        writeToFile(tags, validateString(filebuffer), options, callback)
         return
     }
     if (isString(filebuffer)) {
-        return writeInFileSync(tags, filebuffer, options)
+        return writeToFileSync(tags, filebuffer, options)
     }
     return writeInBuffer(tags, filebuffer)
 }
@@ -73,7 +78,7 @@ export function writeInBuffer(tags: WriteTags, buffer: Buffer): Buffer {
  * Throws in case of error.
  * @public
  */
-export function writeInFileSync(
+export function writeToFileSync(
     tags: WriteTags,
     filepath: string,
     options: WriteOptions = {}
@@ -87,7 +92,7 @@ export function writeInFileSync(
  * specified file.
  * @public
  */
-export function writeInFile(
+export function writeToFile(
     tags: WriteTags,
     filepath: string,
     callback: WriteCallback
@@ -98,7 +103,7 @@ export function writeInFile(
  * specified file.
  * @public
  */
-export function writeInFile(
+export function writeToFile(
     tags: WriteTags,
     filepath: string,
     options: WriteOptions,
@@ -110,7 +115,7 @@ export function writeInFile(
  * specified file.
  * @public
  */
-export function writeInFile(
+export function writeToFile(
     tags: WriteTags,
     filepath: string,
     optionsOrCallback: WriteOptions | WriteCallback,

@@ -113,7 +113,7 @@ describe('NodeID3.write()', function () {
             if (inputBuffer) {
                 fs.writeFileSync(testFilepath, inputBuffer, 'binary')
             }
-            NodeID3.writeInFileSync(newFrame, testFilepath, options)
+            NodeID3.writeToFileSync(newFrame, testFilepath, options)
             const newFileBuffer = fs.readFileSync(testFilepath)
             expect(newFileBuffer).to.deep.equal(expectedBuffer)
         })
@@ -121,7 +121,7 @@ describe('NodeID3.write()', function () {
             if (inputBuffer) {
                 fs.writeFileSync(testFilepath, inputBuffer, 'binary')
             }
-            NodeID3.writeInFile(
+            NodeID3.writeToFile(
                 newFrame, testFilepath, options, (error) => {
                     if (error) {
                         done(error)
