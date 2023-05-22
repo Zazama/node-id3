@@ -1,6 +1,6 @@
 import { WriteTags } from "../types/Tags"
 import { Options } from "../types/Options"
-import { isFunction, isString, validateString } from "../util"
+import { isBuffer, isFunction, isString, validateString } from "../util"
 import { read } from "./read"
 import { updateTags } from '../updateTags'
 import { write } from "./write"
@@ -66,7 +66,8 @@ export function update(
     callback =
         isFunction(optionsOrCallback) ? optionsOrCallback : callback
 
-    const currentTags = read(filebuffer, options)
+    const currentTags = isBuffer(filebuffer) ?
+        read(filebuffer, options) : read(filebuffer, options)
     const updatedTags = updateTags(tags, currentTags)
     if (isFunction(callback)) {
         return write(updatedTags, validateString(filebuffer), callback)

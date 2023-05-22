@@ -15,10 +15,8 @@ export class Id3TagStreamProcessor {
     private rolloverSize = 0
     continue = false
 
-    constructor(bufferSize: number) {
-        // TODO enforce min buffer size here,
-        // i.e. bufferSize + RolloverBufferSize + 1
-        this.buffer = Buffer.alloc(bufferSize)
+    constructor(bufferSize?: number) {
+        this.buffer = Buffer.alloc(getBufferSize(bufferSize))
     }
 
     getReadBuffer() {
@@ -70,8 +68,6 @@ export class Id3TagRemover {
     continue = false
 
     constructor(bufferSize?: number) {
-        // TODO enforce min buffer size here,
-        // i.e. bufferSize + RolloverBufferSize + 1
         this.buffer = Buffer.alloc(getBufferSize(bufferSize))
     }
 

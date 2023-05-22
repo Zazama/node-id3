@@ -11,8 +11,8 @@ import {
     makeTempFilepath
 } from "./util-file"
 import * as fs from 'fs'
-import { WriteOptions } from "./types/write"
 import { Id3TagRemover } from "./file-stream-processor"
+import { WriteOptions } from "./types/write"
 
 export function writeId3TagToFileSync(
     filepath: string,

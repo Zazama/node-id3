@@ -1,3 +1,5 @@
+import { FileOptions } from "./FileOptions"
+import { Options } from "./Options"
 import { TagIdentifiers, Tags } from "./Tags"
 
 /**
@@ -26,3 +28,4 @@ export type ReadErrorCallback =
 export type ReadCallback =
     ReadSuccessCallback & ReadErrorCallback
 
+export type FileReadOptions = FileOptions & Options

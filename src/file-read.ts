@@ -1,9 +1,13 @@
 import * as fs from 'fs'
 import { Id3TagStreamProcessor } from './file-stream-processor'
 import { processFileSync, processFileAsync, fsReadAsync } from './util-file'
+import { FileOptions } from './types/FileOptions'
 
-export function getId3TagDataFromFileSync(filepath: string) {
-    const reader = new Id3TagStreamProcessor(12)
+export function getId3TagDataFromFileSync(
+    filepath: string,
+    options: FileOptions
+) {
+    const reader = new Id3TagStreamProcessor(options.fileBufferSize)
     processFileSync(filepath, 'r', (fileDescriptor) => {
         do {
             const readBuffer = reader.getReadBuffer()
@@ -15,8 +19,11 @@ export function getId3TagDataFromFileSync(filepath: string) {
     return reader.getTags()
 }
 
-export async function getId3TagDataFromFileAsync(filepath: string) {
-    const reader = new Id3TagStreamProcessor(12)
+export async function getId3TagDataFromFileAsync(
+    filepath: string,
+    options: FileOptions
+) {
+    const reader = new Id3TagStreamProcessor(options.fileBufferSize)
     await processFileAsync(filepath, 'r', async (fileDescriptor) => {
         do {
             const readBuffer = reader.getReadBuffer()
