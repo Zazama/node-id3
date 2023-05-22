@@ -85,26 +85,10 @@ export function embedFramesInId3Tag(frames: Buffer) {
 /**
  * Remove already written ID3-Frames from a buffer
  */
-export function removeId3Tag(data: Buffer) {
-    const tagPosition = findId3TagPosition(data)
-    if (tagPosition === -1) {
-        return data
-    }
-    const encodedSize = subarray(data, tagPosition + Header.offset.size, 4)
-
-    if (!isValidEncodedSize(encodedSize)) {
-        return false
-    }
-
-    if (data.length >= tagPosition + Header.size) {
-        const size = decodeSize(encodedSize)
-        return Buffer.concat([
-            data.subarray(0, tagPosition),
-            data.subarray(tagPosition + size + Header.size)
-        ])
-    }
-
-    return data
+export function removeId3Tag(data: Buffer): Buffer {
+    // TODO support multiple-frames, improve tests
+    const tag = getId3Tag(data)
+    return tag ? Buffer.concat([tag.before, tag.after]) : data
 }
 
 export function getTagsFromId3Tag(buffer: Buffer, options: Options) {
@@ -130,8 +114,7 @@ function getId3TagBody(buffer: Buffer) {
 
     // Copy for now, it might not be necessary, but we are not really sure for
     // now, will be re-assessed if we can avoid the copy.
-    const body = Buffer.alloc(bodySize)
-    tagBuffer.copy(body, 0, totalHeaderSize)
+    const body = Buffer.from(subarray(tagBuffer, totalHeaderSize, bodySize))
 
     return {
         version: tagHeader.version.major,
@@ -201,6 +184,23 @@ function parseTagHeaderFlags(header: Buffer): TagHeaderFlags {
         unsynchronisation: false,
         extendedHeader: false,
         experimentalIndicator: false
+    }
+}
+
+export function getId3Tag(data: Buffer) {
+    const position = findId3TagPosition(data)
+    if (position === -1) {
+        return null
+    }
+    const from = data.subarray(position)
+    const size = getId3TagSize(from)
+    return {
+        size,
+        from,
+        before: data.subarray(0, position),
+        data: from.subarray(0, size),
+        after: from.subarray(size),
+        missingBytes: Math.max(0, size - from.length)
     }
 }
 

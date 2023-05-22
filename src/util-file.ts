@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import { promisify } from 'util'
+import { hrtime } from "process"
 
 export const fsOpenPromise = promisify(fs.open)
 export const fsReadPromise = promisify(fs.read)
@@ -7,8 +8,46 @@ export const fsClosePromise = promisify(fs.close)
 export const fsWritePromise = promisify(fs.write)
 export const fsUnlinkPromise = promisify(fs.unlink)
 export const fsRenamePromise = promisify(fs.rename)
+export const fsExistsPromise = promisify(fs.exists)
+export const fsWriteFilePromise = promisify(fs.writeFile)
 
-export function processFile<T>(
+export async function fsReadAsync(
+    fileDescriptor: number,
+    buffer: Buffer,
+    offset = 0
+): Promise<number> {
+    return (await fsReadPromise(
+        fileDescriptor,
+        buffer,
+        offset,
+        buffer.length,
+        null
+    )).bytesRead
+}
+
+/**
+ * @returns true if the file existed
+ */
+export function unlinkIfExistSync(filepath: string) {
+    const exist = fs.existsSync(filepath)
+    if (exist) {
+        fs.unlinkSync(filepath)
+    }
+    return exist
+}
+
+/**
+ * @returns true if the file existed
+ */
+export async function unlinkIfExist(filepath: string) {
+    const exist = await fsExistsPromise(filepath)
+    if (exist) {
+        await fsUnlinkPromise(filepath)
+    }
+    return exist
+}
+
+export function processFileSync<T>(
     filepath: string,
     flags: string,
     process: (fileDescriptor: number) => T
@@ -36,24 +75,9 @@ export async function processFileAsync<T>(
     }
 }
 
-export function getNextBufferSubarraySync(fileDescriptor: number, buffer: Buffer, offset = 0): Buffer {
-    const bytesRead = fs.readSync(
-        fileDescriptor,
-        buffer,
-        offset,
-        buffer.length - offset,
-        null
-    )
-    return buffer.subarray(0, bytesRead + offset)
-}
-
-export async function getNextBufferSubarrayAsync(fileDescriptor: number, buffer: Buffer, offset = 0): Promise<Buffer> {
-    const bytesRead = (await fsReadPromise(
-        fileDescriptor,
-        buffer,
-        offset,
-        buffer.length - offset,
-        null
-    )).bytesRead
-    return buffer.subarray(0, bytesRead + offset)
+export function makeTempFilepath(filepath: string) {
+    // A high-resolution time is required to avoid potential conflicts
+    // when running multiple tests in parallel for example.
+    // Date.now() resolution is too low.
+    return `${filepath}.tmp-${hrtime.bigint()}`
 }

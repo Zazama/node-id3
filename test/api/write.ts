@@ -1,91 +1,137 @@
 import * as NodeID3 from '../../index'
-import assert = require('assert')
-import chai = require('chai')
+import { expect } from 'chai'
 import * as fs from 'fs'
+import { unlinkIfExistSync } from '../../src/util-file'
+import { createTestBuffer } from '../util'
 
-describe('NodeID3 API', function () {
-    describe('#write()', function() {
-        const nonExistingFilepath = './hopefully-does-not-exist.mp3'
-        it('sync not existing filepath', function() {
-            chai.assert.isFalse(fs.existsSync(nonExistingFilepath))
-            chai.assert.instanceOf(
-                NodeID3.write({}, nonExistingFilepath), Error
+describe('NodeID3.write()', function () {
+    const nonExistingFilepath = './hopefully-does-not-exist.mp3'
+    const testFilepath = './write-test-file.mp3'
+    beforeEach(function () {
+        unlinkIfExistSync(nonExistingFilepath)
+        unlinkIfExistSync(testFilepath)
+    })
+    afterEach(function() {
+        unlinkIfExistSync(nonExistingFilepath)
+        unlinkIfExistSync(testFilepath)
+    })
+    it('sync creates a file when non-existing', function() {
+        NodeID3.write({}, nonExistingFilepath)
+        expect(fs.existsSync(nonExistingFilepath)).to.be.true
+    })
+    it('async creates a file when non-existing', function(done) {
+        NodeID3.write({}, nonExistingFilepath, function(error) {
+            if (error) {
+                done(new Error("Unexpected error"))
+            } else {
+                expect(fs.existsSync(nonExistingFilepath)).to.be.true
+                done()
+            }
+        })
+    })
+
+    const data = createTestBuffer(256)
+    const tag = NodeID3.create({ album: "album"})
+    const newFrame = { title: "title "} satisfies NodeID3.WriteTags
+    const newTag = NodeID3.create(newFrame)
+
+    type TestCase = [
+        // Name
+        string,
+        // Input data
+        readonly Buffer[] | null,
+        // Expected data
+        readonly Buffer[],
+        // File buffer size
+        number | null
+    ]
+    const testCases: TestCase[] = [
+        [
+            "without file",
+            null, [newTag], null
+        ],
+        [
+            "without tag (buffer.length > data.length)",
+            [data], [newTag, data], data.length + 1
+        ],
+        [
+            "without tag (buffer.length === data.length)",
+            [data], [newTag, data], data.length / 2
+        ],
+        [
+            "without tag (buffer.length < data.length)",
+            [data], [newTag, data], data.length - 1
+        ],
+        [
+            "with same tag",
+            [newTag, data], [newTag, data], newTag.length - 1
+        ],
+        [
+            "with tag at the start",
+            [tag, data], [newTag, data], tag.length - 1
+        ],
+        [
+            "with tag in the middle (ID3 identifier crossover)",
+            [data, tag, data], [newTag, data, data], data.length + 1
+        ],
+        [
+            "with tag in the middle (at ID3 identifier position)",
+            [data, tag, data], [newTag, data, data], data.length
+        ],
+        [
+            "with tag in the middle (before ID3 identifier position)",
+            [data, tag, data], [newTag, data, data], data.length - 1
+        ],
+        [
+            "with multiple tags",
+            [data, tag, data, tag, data], [newTag, data, data, data], data.length - 1
+        ],
+        [
+            "with multiple tags (buffer smaller than tag)",
+            [data, tag, data, tag, data], [newTag, data, data, data], tag.length - 1
+        ],
+        [
+            "with multiple tags (2nd tag across reads)",
+            [data, tag, tag, data], [newTag, data, data], data.length
+        ],
+        [
+            "w/ multiple tags (2nd tag across reads, buffer smalller than tag)",
+            [data, tag, tag, data], [newTag, data, data], tag.length - 1
+        ],
+        [
+            "with tag at the end",
+            [data, tag], [newTag, data], data.length - 1
+        ],
+    ]
+
+    testCases.forEach(
+        ([caseName, inputBuffers, expectedBuffers, fileBufferSize]) => {
+        const options = fileBufferSize ? { fileBufferSize } : {}
+        const inputBuffer = inputBuffers ? Buffer.concat(inputBuffers) : null
+        const expectedBuffer = Buffer.concat(expectedBuffers)
+        it(`sync write ${caseName}`, function() {
+            if (inputBuffer) {
+                fs.writeFileSync(testFilepath, inputBuffer, 'binary')
+            }
+            NodeID3.writeToFileSync(newFrame, testFilepath, options)
+            const newFileBuffer = fs.readFileSync(testFilepath)
+            expect(newFileBuffer).to.deep.equal(expectedBuffer)
+        })
+        it(`async write ${caseName}`, function(done) {
+            if (inputBuffer) {
+                fs.writeFileSync(testFilepath, inputBuffer, 'binary')
+            }
+            NodeID3.writeToFile(
+                newFrame, testFilepath, options, (error) => {
+                    if (error) {
+                        done(error)
+                        return
+                    }
+                    const newFileBuffer = fs.readFileSync(testFilepath)
+                    expect(newFileBuffer).to.deep.equal(expectedBuffer)
+                    done()
+                }
             )
         })
-        it('async not existing filepath', function() {
-            chai.assert.isFalse(fs.existsSync(nonExistingFilepath))
-            NodeID3.write({}, nonExistingFilepath, function(err) {
-                if(!(err instanceof Error)) {
-                    assert.fail("No error thrown on non-existing filepath")
-                }
-            })
-        })
-
-        const buffer = Buffer.from([0x02, 0x06, 0x12, 0x22])
-        const titleTag = {
-            title: "abc"
-        } satisfies NodeID3.WriteTags
-        const filepath = './testfile.mp3'
-
-        it('sync write file without id3 tag', function() {
-            fs.writeFileSync(filepath, buffer, 'binary')
-            NodeID3.write(titleTag, filepath)
-            const newFileBuffer = fs.readFileSync(filepath)
-            fs.unlinkSync(filepath)
-            assert.strictEqual(Buffer.compare(
-                newFileBuffer,
-                Buffer.concat([NodeID3.create(titleTag), buffer])
-            ), 0)
-        })
-
-        it('async write file without id3 tag', function(done) {
-            fs.writeFileSync(filepath, buffer, 'binary')
-            NodeID3.write(titleTag, filepath, function() {
-                const newFileBuffer = fs.readFileSync(filepath)
-                fs.unlinkSync(filepath)
-                if(Buffer.compare(
-                    newFileBuffer,
-                    Buffer.concat([NodeID3.create(titleTag), buffer])
-                ) === 0) {
-                    done()
-                } else {
-                    done(new Error("buffer not the same"))
-                }
-            })
-        })
-
-        {
-
-        const bufferWithTag = Buffer.concat([NodeID3.create(titleTag), buffer])
-        const albumTag = {
-            album: "ix123"
-        } satisfies NodeID3.WriteTags
-
-        it('sync write file with id3 tag', function() {
-            fs.writeFileSync(filepath, bufferWithTag, 'binary')
-            NodeID3.write(albumTag, filepath)
-            const newFileBuffer = fs.readFileSync(filepath)
-            fs.unlinkSync(filepath)
-            assert.strictEqual(Buffer.compare(
-                newFileBuffer,
-                Buffer.concat([NodeID3.create(albumTag), buffer])
-            ), 0)
-        })
-        it('async write file with id3 tag', function(done) {
-            fs.writeFileSync(filepath, bufferWithTag, 'binary')
-            NodeID3.write(albumTag, filepath, function() {
-                const newFileBuffer = fs.readFileSync(filepath)
-                fs.unlinkSync(filepath)
-                if(Buffer.compare(
-                    newFileBuffer,
-                    Buffer.concat([NodeID3.create(albumTag), buffer])
-                ) === 0) {
-                    done()
-                } else {
-                    done(new Error("file written incorrectly"))
-                }
-            })
-        })
-    }
     })
 })

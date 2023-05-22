@@ -1,40 +1,14 @@
-import * as fs from "fs"
 import { WriteTags } from "../types/Tags"
+import { WriteCallback, WriteOptions } from "../types/write"
 import { create }  from "./create"
 import { removeTagsFromBuffer } from "./remove"
-import { isFunction, isString } from "../util"
+import { isFunction, isString, validateString } from "../util"
 import { writeId3TagToFileAsync, writeId3TagToFileSync } from "../file-write"
 
 /**
- * Callback signature for successful asynchronous update and write operations.
- *
- * @public
- */
-export type WriteSuccessCallback =
-    (error: null, data: Buffer) => void
-
-/**
- * Callback signature for failing asynchronous update and write operations.
- *
- * @public
- */
-export type WriteErrorCallback =
-    (error: NodeJS.ErrnoException | Error, data: null) => void
-
-/**
- * Callback signatures for asynchronous update and write operations.
- *
- * @public
- */
-export type WriteCallback =
-    WriteSuccessCallback & WriteErrorCallback
-
-export type WriteFileCallback =
-    (error: NodeJS.ErrnoException | Error | null) => void
-
-/**
  * Replaces any existing tags with the given tags in the given buffer.
- *
+ * Throws in case of error.
+ * @deprecated Use `writeInBuffer` instead.
  * @public
  */
 export function write(tags: WriteTags, buffer: Buffer): Buffer
@@ -42,76 +16,119 @@ export function write(tags: WriteTags, buffer: Buffer): Buffer
 /**
  * Replaces synchronously any existing tags with the given tags in the
  * specified file.
- *
- * @public
- */
-export function write(tags: WriteTags, filepath: string): true | Error
-
-/**
- * Replaces asynchronously any existing tags with the given tags in the
- * given buffer.
- *
+ * Throws in case of error.
+ * @deprecated Use `writeInFileSync` instead.
  * @public
  */
 export function write(
-    tags: WriteTags, filebuffer: Buffer, callback: WriteCallback
+    tags: WriteTags,
+    filepath: string,
+    options?: WriteOptions
 ): void
 
 /**
  * Replaces asynchronously any existing tags with the given tags in the
- * given file.
- *
+ * specified file.
+ * @deprecated Use `writeInFile` instead.
  * @public
  */
 export function write(
-    tags: WriteTags, filebuffer: string, callback: WriteFileCallback
-): void
-
-/**
- * Replaces asynchronously any existing tags with the given tags in the
- * given buffer or specified file.
- *
- * @public
- */
-export function write(
-    tags: WriteTags, filebuffer: string | Buffer, callback: WriteFileCallback | WriteCallback
+    tags: WriteTags,
+    filepath: string,
+    callback: WriteCallback
 ): void
 
 export function write(
     tags: WriteTags,
     filebuffer: string | Buffer,
-    callback?: WriteCallback | WriteFileCallback
-): Buffer | true | Error | void {
-    const tagsBuffer = create(tags)
+    optionsOrCallback?: WriteOptions | WriteCallback,
+    maybeCallback?: WriteCallback
+): Buffer | void {
+    const options =
+        (isFunction(optionsOrCallback) ? {} : optionsOrCallback) ?? {}
+    const callback =
+        isFunction(optionsOrCallback) ? optionsOrCallback : maybeCallback
 
     if (isFunction(callback)) {
-        if (isString(filebuffer)) {
-            return writeAsync(tagsBuffer, filebuffer, callback as WriteFileCallback)
-        }
-        return callback(null, writeInBuffer(tagsBuffer, filebuffer))
+        writeToFile(tags, validateString(filebuffer), options, callback)
+        return
     }
     if (isString(filebuffer)) {
-        return writeSync(tagsBuffer, filebuffer)
+        return writeToFileSync(tags, filebuffer, options)
     }
-    return writeInBuffer(tagsBuffer, filebuffer)
+    return writeInBuffer(tags, filebuffer)
 }
 
-function writeInBuffer(tags: Buffer, buffer: Buffer) {
-    buffer = removeTagsFromBuffer(buffer) || buffer
-    return Buffer.concat([tags, buffer])
+// New API
+
+/**
+ * Replaces any existing tags with the given tags in the given buffer.
+ * Throws in case of error.
+ * @public
+ */
+export function writeInBuffer(tags: WriteTags, buffer: Buffer): Buffer {
+    const id3Tag = create(tags)
+    const bufferWithoutId3Tag = removeTagsFromBuffer(buffer) || buffer
+    return Buffer.concat([id3Tag, bufferWithoutId3Tag])
 }
 
-function writeAsync(tags: Buffer, filepath: string, callback: WriteFileCallback) {
-    writeId3TagToFileAsync(filepath, tags, (err) => {
-        callback(err)
-    })
+/**
+ * Replaces synchronously any existing tags with the given tags in the
+ * specified file.
+ * Throws in case of error.
+ * @public
+ */
+export function writeToFileSync(
+    tags: WriteTags,
+    filepath: string,
+    options: WriteOptions = {}
+): void {
+    const id3Tag = create(tags)
+    writeId3TagToFileSync(filepath, id3Tag, options)
 }
 
-function writeSync(tags: Buffer, filepath: string) {
-    try {
-        writeId3TagToFileSync(filepath, tags)
-        return true
-    } catch(error) {
-        return error as Error
-    }
+/**
+ * Replaces asynchronously any existing tags with the given tags in the
+ * specified file.
+ * @public
+ */
+export function writeToFile(
+    tags: WriteTags,
+    filepath: string,
+    callback: WriteCallback
+): void
+
+/**
+ * Replaces asynchronously any existing tags with the given tags in the
+ * specified file.
+ * @public
+ */
+export function writeToFile(
+    tags: WriteTags,
+    filepath: string,
+    options: WriteOptions,
+    callback: WriteCallback
+): void
+
+/**
+ * Replaces asynchronously any existing tags with the given tags in the
+ * specified file.
+ * @public
+ */
+export function writeToFile(
+    tags: WriteTags,
+    filepath: string,
+    optionsOrCallback: WriteOptions | WriteCallback,
+    maybeCallback: WriteCallback = () => { /* */ }
+): void {
+    const options =
+        (isFunction(optionsOrCallback) ? {} : optionsOrCallback) ?? {}
+    const callback =
+        isFunction(optionsOrCallback) ? optionsOrCallback : maybeCallback
+
+    const id3Tag = create(tags)
+    writeId3TagToFileAsync(filepath, id3Tag, options).then(
+        () => callback(null),
+        (error) => callback(error)
+    )
 }

@@ -1,135 +1,104 @@
 import {
-    fsReadPromise,
-    fsRenamePromise,
-    fsUnlinkPromise,
     fsWritePromise,
-    getNextBufferSubarrayAsync,
-    getNextBufferSubarraySync,
-    processFile,
-    processFileAsync
+    processFileSync,
+    processFileAsync,
+    fsExistsPromise,
+    fsWriteFilePromise,
+    fsRenamePromise,
+    unlinkIfExistSync,
+    unlinkIfExist,
+    fsReadAsync,
+    makeTempFilepath
 } from "./util-file"
-import * as tmp from 'tmp'
-import * as path from 'path'
 import * as fs from 'fs'
-import { findId3TagPosition, getId3TagSize } from "./id3-tag"
+import { Id3TagRemover } from "./file-stream-processor"
+import { WriteOptions } from "./types/write"
 
-const FileBufferSize = 20 * 1024 * 1024
-
-export function writeId3TagToFileSync(filepath: string, id3Tag: Buffer) {
-    const tmpFile = getTmpFilePathSync(filepath)
-    processFile(filepath, 'r', (readFileDescriptor) => {
-        processFile(tmpFile, 'w', (writeFileDescriptor) => {
-            fs.writeSync(writeFileDescriptor, id3Tag)
-            streamOriginalIntoNewFileSync(readFileDescriptor, writeFileDescriptor)
-        })
-    })
-    fs.unlinkSync(filepath)
-    fs.renameSync(tmpFile, filepath)
-}
-
-export function writeId3TagToFileAsync(filepath: string, id3Tag: Buffer, callback: (err: Error|null) => void) {
-    getTmpFileAsync(filepath, (err, tmpFile) => {
-        if(err || !tmpFile) {
-            return callback(err)
-        }
-
-        processFileAsync(filepath, 'r', async (readFileDescriptor) => {
-            return processFileAsync(tmpFile, 'w', async (writeFileDescriptor) => {
-                await fsWritePromise(writeFileDescriptor, id3Tag)
-                await streamOriginalIntoNewFileAsync(readFileDescriptor, writeFileDescriptor)
+export function writeId3TagToFileSync(
+    filepath: string,
+    id3Tag: Buffer,
+    options: WriteOptions
+): void {
+    if (!fs.existsSync(filepath)) {
+        fs.writeFileSync(filepath, id3Tag)
+        return
+    }
+    const tempFilepath = makeTempFilepath(filepath)
+    processFileSync(filepath, 'r', (readFileDescriptor) => {
+        try {
+            processFileSync(tempFilepath, 'w', (writeFileDescriptor) => {
+                fs.writeSync(writeFileDescriptor, id3Tag)
+                copyFileWithoutId3TagSync(
+                    readFileDescriptor,
+                    writeFileDescriptor,
+                    options.fileBufferSize
+                )
             })
-        }).then(async () => {
-            await fsUnlinkPromise(filepath)
-            await fsRenamePromise(tmpFile, filepath)
-            callback(null)
-        }).catch((error) => {
-            callback(error)
-        })
-    })
-}
-
-function getTmpFilePathSync(filepath: string): string {
-    const parsedPath = path.parse(filepath)
-    return tmp.tmpNameSync({
-        tmpdir: parsedPath.dir,
-        template: `${parsedPath.base}.tmp-XXXXXX`,
-    })
-}
-
-function getTmpFileAsync(filepath: string, callback: tmp.TmpNameCallback) {
-    const parsedPath = path.parse(filepath)
-    tmp.tmpName({
-        tmpdir: parsedPath.dir,
-        template: `${parsedPath.base}.tmp-XXXXXX`,
-    }, (err, filename) => {
-        callback(err, filename)
-    })
-}
-
-function streamOriginalIntoNewFileSync(readFileDescriptor: number, writeFileDescriptor: number) {
-    const buffer = Buffer.alloc(FileBufferSize)
-    let data
-    while((data = getNextBufferSubarraySync(readFileDescriptor, buffer)).length) {
-        const id3TagPosition = findId3TagPosition(data)
-        if(id3TagPosition !== -1) {
-            data = getBufferWithoutId3TagAndSkipSync(readFileDescriptor, data, id3TagPosition)
+        } catch(error) {
+            unlinkIfExistSync(tempFilepath)
+            throw error
         }
-        fs.writeSync(writeFileDescriptor, data, 0, data.length, null)
-    }
+    })
+    fs.renameSync(tempFilepath, filepath)
 }
 
-async function streamOriginalIntoNewFileAsync(readFileDescriptor: number, writeFileDescriptor: number) {
-    const buffer = Buffer.alloc(FileBufferSize)
-    let data
-    while((data = await getNextBufferSubarrayAsync(readFileDescriptor, buffer)).length) {
-        const id3TagPosition = findId3TagPosition(data)
-        if(id3TagPosition !== -1) {
-            data = await getBufferWithoutId3TagAndSkipAsync(readFileDescriptor, data, id3TagPosition)
+export async function writeId3TagToFileAsync(
+    filepath: string,
+    id3Tag: Buffer,
+    options: WriteOptions
+): Promise<void> {
+    if (!await fsExistsPromise(filepath)) {
+        await fsWriteFilePromise(filepath, id3Tag)
+        return
+    }
+    const tempFilepath = makeTempFilepath(filepath)
+    await processFileAsync(filepath, 'r', async (readFileDescriptor) => {
+        try {
+            await processFileAsync(tempFilepath, 'w',
+                async (writeFileDescriptor) => {
+                    await fsWritePromise(writeFileDescriptor, id3Tag)
+                    await copyFileWithoutId3TagAsync(
+                        readFileDescriptor,
+                        writeFileDescriptor,
+                        options.fileBufferSize
+                    )
+                }
+            )
+        } catch(error) {
+            await unlinkIfExist(tempFilepath)
+            throw error
         }
-        await fsWritePromise(writeFileDescriptor, data, 0, data.length, null)
-    }
+
+    })
+    await fsRenamePromise(tempFilepath, filepath)
 }
 
-function getBufferWithoutId3TagAndSkipSync(fileDescriptor: number, data: Buffer, id3TagPosition: number): Buffer {
-    const dataFromId3Start = data.subarray(id3TagPosition)
-    const id3TagSize = getId3TagSize(dataFromId3Start)
-    if(id3TagSize > dataFromId3Start.length) {
-        const missingBytesCount = id3TagSize - dataFromId3Start.length
-        fs.readSync(
-            fileDescriptor,
-            Buffer.alloc(missingBytesCount),
-            0,
-            missingBytesCount,
-            null
-        )
-        return data.subarray(0, id3TagPosition)
-    }
-
-    const id3TagEndPosition = id3TagPosition + id3TagSize
-    return Buffer.concat([
-        data.subarray(0, id3TagPosition),
-        data.subarray(id3TagEndPosition)
-    ])
+function copyFileWithoutId3TagSync(
+    readFileDescriptor: number,
+    writeFileDescriptor: number,
+    fileBufferSize?: number
+) {
+    const remover = new Id3TagRemover(fileBufferSize)
+    do {
+        const readBuffer = remover.getReadBuffer()
+        const sizeRead = fs.readSync(readFileDescriptor, readBuffer)
+        const { skipBuffer, writeBuffer } = remover.processReadBuffer(sizeRead)
+        fs.readSync(readFileDescriptor, skipBuffer)
+        fs.writeSync(writeFileDescriptor, writeBuffer)
+    } while(remover.continue)
 }
 
-async function getBufferWithoutId3TagAndSkipAsync(fileDescriptor: number, data: Buffer, id3TagPosition: number): Promise<Buffer> {
-    const dataFromId3Start = data.subarray(id3TagPosition)
-    const id3TagSize = getId3TagSize(dataFromId3Start)
-    if(id3TagSize > dataFromId3Start.length) {
-        const missingBytesCount = id3TagSize - dataFromId3Start.length
-        await fsReadPromise(
-            fileDescriptor,
-            Buffer.alloc(missingBytesCount),
-            0,
-            missingBytesCount,
-            null
-        )
-        return data.subarray(0, id3TagPosition)
-    }
-
-    const id3TagEndPosition = id3TagPosition + id3TagSize
-    return Buffer.concat([
-        data.subarray(0, id3TagPosition),
-        data.subarray(id3TagEndPosition)
-    ])
+async function copyFileWithoutId3TagAsync(
+    readFileDescriptor: number,
+    writeFileDescriptor: number,
+    fileBufferSize?: number
+) {
+    const remover = new Id3TagRemover(fileBufferSize)
+    do {
+        const readBuffer = remover.getReadBuffer()
+        const sizeRead = await fsReadAsync(readFileDescriptor, readBuffer)
+        const { skipBuffer, writeBuffer } = remover.processReadBuffer(sizeRead)
+        await fsReadAsync(readFileDescriptor, skipBuffer)
+        await fsWriteFilePromise(writeFileDescriptor, writeBuffer)
+    } while(remover.continue)
 }
