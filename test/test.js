@@ -866,14 +866,6 @@ describe('NodeID3', function () {
         
             // Assert the values match exactly
             assert.deepStrictEqual(NodeID3.read(frameGeneralObject).generalObject, tags.generalObject)
-            // assert.deepStrictEqual(generalObjects[0].filename, tags.generalObject[0].filename)
-            // assert.deepStrictEqual(generalObjects[0].data, tags.generalObject[0].data)
-            // assert.deepStrictEqual(generalObjects[0].mimeType, tags.generalObject[0].mimeType)
-
-            // assert.deepStrictEqual(generalObjects[1].description, tags.generalObject[1].description)
-            // assert.deepStrictEqual(generalObjects[1].filename, tags.generalObject[1].filename)
-            // assert.deepStrictEqual(generalObjects[1].data, tags.generalObject[1].data)
-            // assert.deepStrictEqual(generalObjects[1].mimeType, tags.generalObject[1].mimeType)
         })
 
         it('create mixed v3/v4 tag', function() {
