@@ -74,12 +74,12 @@ module.exports.APIC = {
             const { description = '' } = data
             const encoding = description ? 0x01 : 0x00
             return new ID3FrameBuilder('APIC')
-              .appendStaticNumber(encoding, 1)
-              .appendNullTerminatedValue(mime_type)
-              .appendStaticNumber(pictureTypeId, 1)
-              .appendNullTerminatedValue(description, encoding)
-              .appendStaticValue(data.imageBuffer)
-              .getBuffer()
+                .appendStaticNumber(encoding, 1)
+                .appendNullTerminatedValue(mime_type)
+                .appendStaticNumber(pictureTypeId, 1)
+                .appendNullTerminatedValue(description, encoding)
+                .appendStaticValue(data.imageBuffer)
+                .getBuffer()
         } catch(error) {
             return error
         }
@@ -290,7 +290,7 @@ module.exports.UFID = {
             .appendNullTerminatedValue(ufid.ownerIdentifier)
             .appendStaticValue(
                 ufid.identifier instanceof Buffer ?
-                ufid.identifier : Buffer.from(ufid.identifier, "utf8")
+                    ufid.identifier : Buffer.from(ufid.identifier, "utf8")
             )
             .getBuffer()))
     },
@@ -543,5 +543,32 @@ module.exports.COMR = {
         }
 
         return tag
+    }
+}
+
+module.exports.GEOB = {
+    create: (data) => {
+        if (!(data instanceof Array)) {
+            data = [data]
+        }
+
+        return Buffer.concat(data.map((geob) => {
+            return new ID3FrameBuilder("GEOB")
+                .appendNullTerminatedValue(geob.mimeType ? geob.mimeType : '', 0x00)
+                .appendNullTerminatedValue(geob.filename ? geob.filename : '', 0x00)
+                .appendNullTerminatedValue(geob.description ? geob.description : '', 0x00)
+                .appendStaticValue(geob.data)
+                .getBuffer()
+        }))
+    },
+
+    read: (buffer) => {
+        const reader = new ID3FrameReader(buffer)
+        return {
+            mimeType: reader.consumeNullTerminatedValue('string', 0x00),
+            filename: reader.consumeNullTerminatedValue('string', 0x00),
+            description: reader.consumeNullTerminatedValue('string', 0x00),
+            data: reader.consumeStaticValue('buffer')
+        }
     }
 }

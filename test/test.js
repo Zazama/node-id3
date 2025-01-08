@@ -12,6 +12,7 @@ describe('NodeID3', function () {
         it('empty tags', function () {
             assert.strictEqual(NodeID3.create({}).compare(Buffer.from([0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])), 0)
         })
+
         it('text frames', function () {
             const tags = {
                 TIT2: "abcdeÜ看板かんばん",
@@ -339,6 +340,46 @@ describe('NodeID3', function () {
             )
         })
 
+        it('create GEOB frame', function() {
+            const frameBuf = Buffer.from('4944330300000000004747454f420000003d00006170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d65006465736372697074696f6e00131313131313131313131313131313', 'hex')
+            const tags = {
+                generalObject: {
+                    mimeType: 'application/octet-stream',
+                    filename: 'filename',
+                    description: 'description',
+                    data: Buffer.alloc(15, 0x13),
+                }
+            }
+
+            assert.deepStrictEqual(
+                NodeID3.create(tags),
+                frameBuf
+            )
+        })
+
+        it('create GEOB frames', function() {
+            const framesBuf = Buffer.from('4944330300000000011047454f420000003d00006170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d65006465736372697074696f6e0013131313131313131313131313131347454f420000003f00006170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d6532006465736372697074696f6e3200141414141414141414141414141414', 'hex')
+            const tags = {
+                generalObject: [{
+                    mimeType: 'application/octet-stream',
+                    filename: 'filename',
+                    description: 'description',
+                    data: Buffer.alloc(15, 0x13),
+                },
+                {
+                    mimeType: 'application/octet-stream',
+                    filename: 'filename2',
+                    description: 'description2',
+                    data: Buffer.alloc(15, 0x14),
+                }]
+            }
+
+            assert.deepStrictEqual(
+                NodeID3.create(tags),
+                framesBuf
+            )
+        })
+
         it('create COMR frame', function() {
             const frameBufRandomImage = Buffer.from('49443303000000000076434f4d520000006c00000145555231352f444b4b31372e39323200303939393039303168747470733a2f2f6578616d706c652e636f6d0005fffe53006f006d0065006f006e0065000000fffe53006f006d0065007400680069006e0067000000696d6167652f00131313131313131313131313131313', 'hex')
             const tags = {
@@ -397,12 +438,14 @@ describe('NodeID3', function () {
 
     describe('#write()', function() {
         const nonExistingFilepath = './hopefully-does-not-exist.mp3'
+
         it('sync not existing filepath', function() {
             chai.assert.isFalse(fs.existsSync(nonExistingFilepath))
             chai.assert.instanceOf(
                 NodeID3.write({}, nonExistingFilepath), Error
             )
         })
+
         it('async not existing filepath', function() {
             chai.assert.isFalse(fs.existsSync(nonExistingFilepath))
             NodeID3.write({}, nonExistingFilepath, function(err) {
@@ -426,6 +469,7 @@ describe('NodeID3', function () {
                 Buffer.concat([NodeID3.create(tags), buffer])
             ), 0)
         })
+
         it('async write file without id3 tag', function(done) {
             fs.writeFileSync(filepath, buffer, 'binary')
             NodeID3.write(tags, filepath, function() {
@@ -455,6 +499,7 @@ describe('NodeID3', function () {
                 Buffer.concat([NodeID3.create(tags), buffer])
             ), 0)
         })
+
         it('async write file with id3 tag', function(done) {
             fs.writeFileSync(filepath, bufferWithTag, 'binary')
             NodeID3.write(tags, filepath, function() {
@@ -777,6 +822,58 @@ describe('NodeID3', function () {
                 NodeID3.read(frameBufNoImage).commercialFrame[0],
                 tags.commercialFrame
             )
+        })
+
+        it('read GEOB frame', function() {
+            const frameGeneralObject = Buffer.from('4944330300000000004747454f420000003d00006170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d65006465736372697074696f6e00131313131313131313131313131313', 'hex')
+    
+            const tags = {
+                generalObject: {
+                    mimeType: 'application/octet-stream',
+                    filename: 'filename',
+                    description: 'description',
+                    data: Buffer.alloc(15, 0x13),
+                }
+            }     
+        
+            // Ensure we are reading the correct frame
+            const generalObject = NodeID3.read(frameGeneralObject).generalObject[0]
+        
+            // Assert the values match exactly
+            assert.deepStrictEqual(generalObject.description, tags.generalObject.description)
+            assert.deepStrictEqual(generalObject.filename, tags.generalObject.filename)
+            assert.deepStrictEqual(generalObject.data, tags.generalObject.data)
+            assert.deepStrictEqual(generalObject.mimeType, tags.generalObject.mimeType)
+        })
+
+        it('read GEOB frames', function() {
+            const frameGeneralObject = Buffer.from('4944330300000000011047454f420000003d00006170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d65006465736372697074696f6e0013131313131313131313131313131347454f420000003f00006170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d6532006465736372697074696f6e3200141414141414141414141414141414', 'hex')
+    
+            const tags = {
+                generalObject: [{
+                    mimeType: 'application/octet-stream',
+                    filename: 'filename',
+                    description: 'description',
+                    data: Buffer.alloc(15, 0x13),
+                },
+                {
+                    mimeType: 'application/octet-stream',
+                    filename: 'filename2',
+                    description: 'description2',
+                    data: Buffer.alloc(15, 0x14),
+                }]
+            } 
+        
+            // Assert the values match exactly
+            assert.deepStrictEqual(NodeID3.read(frameGeneralObject).generalObject, tags.generalObject)
+            // assert.deepStrictEqual(generalObjects[0].filename, tags.generalObject[0].filename)
+            // assert.deepStrictEqual(generalObjects[0].data, tags.generalObject[0].data)
+            // assert.deepStrictEqual(generalObjects[0].mimeType, tags.generalObject[0].mimeType)
+
+            // assert.deepStrictEqual(generalObjects[1].description, tags.generalObject[1].description)
+            // assert.deepStrictEqual(generalObjects[1].filename, tags.generalObject[1].filename)
+            // assert.deepStrictEqual(generalObjects[1].data, tags.generalObject[1].data)
+            // assert.deepStrictEqual(generalObjects[1].mimeType, tags.generalObject[1].mimeType)
         })
 
         it('create mixed v3/v4 tag', function() {
