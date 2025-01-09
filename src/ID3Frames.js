@@ -551,23 +551,25 @@ module.exports.GEOB = {
         if (!(data instanceof Array)) {
             data = [data]
         }
-
+        const encoding = 3 // UTF-8
         return Buffer.concat(data.map((geob) => {
             return new ID3FrameBuilder("GEOB")
-                .appendNullTerminatedValue(geob.mimeType ? geob.mimeType : '', 0x00)
-                .appendNullTerminatedValue(geob.filename ? geob.filename : '', 0x00)
-                .appendNullTerminatedValue(geob.description ? geob.description : '', 0x00)
+                .appendStaticNumber(encoding)
+                .appendNullTerminatedValue(geob.mimeType ? geob.mimeType : '')
+                .appendNullTerminatedValue(geob.filename ? geob.filename : '', encoding)
+                .appendNullTerminatedValue(geob.description ? geob.description : '', encoding)
                 .appendStaticValue(geob.data)
                 .getBuffer()
         }))
     },
 
     read: (buffer) => {
-        const reader = new ID3FrameReader(buffer)
+        const encoding = 3 // UTF-8
+        const reader = new ID3FrameReader(buffer, 0)
         return {
-            mimeType: reader.consumeNullTerminatedValue('string', 0x00),
-            filename: reader.consumeNullTerminatedValue('string', 0x00),
-            description: reader.consumeNullTerminatedValue('string', 0x00),
+            mimeType: reader.consumeNullTerminatedValue('string'),
+            filename: reader.consumeNullTerminatedValue('string', encoding),
+            description: reader.consumeNullTerminatedValue('string', encoding),
             data: reader.consumeStaticValue('buffer')
         }
     }
