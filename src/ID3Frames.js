@@ -564,12 +564,11 @@ module.exports.GEOB = {
     },
 
     read: (buffer) => {
-        const encoding = 3 // UTF-8
         const reader = new ID3FrameReader(buffer, 0)
         return {
-            mimeType: reader.consumeNullTerminatedValue('string'),
-            filename: reader.consumeNullTerminatedValue('string', encoding),
-            description: reader.consumeNullTerminatedValue('string', encoding),
+            mimeType: reader.consumeNullTerminatedValue('string', 0),
+            filename: reader.consumeNullTerminatedValue('string'),
+            description: reader.consumeNullTerminatedValue('string'),
             data: reader.consumeStaticValue('buffer')
         }
     }
