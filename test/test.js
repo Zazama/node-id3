@@ -341,12 +341,12 @@ describe('NodeID3', function () {
         })
 
         it('create GEOB frame', function() {
-            const frameBuf = Buffer.from('4944330300000000004847454f420000003e0000036170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d65006465736372697074696f6e00131313131313131313131313131313', 'hex')
+            const frameBuf = Buffer.from('4944330300000000006147454f42000000570000016170706c69636174696f6e2f6f637465742d73747265616d00fffe660069006c0065006e0061006d0065000000fffe6400650073006300720069007000740069006f006e000000131313131313131313131313131313', 'hex')
             const tags = {
                 generalObject: {
                     mimeType: 'application/octet-stream',
                     filename: 'filename',
-                    description: 'description',
+                    contentDescription: 'description',
                     data: Buffer.alloc(15, 0x13),
                 }
             }
@@ -358,18 +358,18 @@ describe('NodeID3', function () {
         })
 
         it('create GEOB frames', function() {
-            const framesBuf = Buffer.from('4944330300000000011247454f420000003e0000036170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d65006465736372697074696f6e0013131313131313131313131313131347454f42000000400000036170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d6532006465736372697074696f6e3200141414141414141414141414141414', 'hex')
+            const framesBuf = Buffer.from('4944330300000000014647454f42000000570000016170706c69636174696f6e2f6f637465742d73747265616d00fffe660069006c0065006e0061006d0065000000fffe6400650073006300720069007000740069006f006e00000013131313131313131313131313131347454f420000005b0000016170706c69636174696f6e2f6f637465742d73747265616d00fffe660069006c0065006e0061006d00650032000000fffe6400650073006300720069007000740069006f006e0032000000141414141414141414141414141414', 'hex')
             const tags = {
                 generalObject: [{
                     mimeType: 'application/octet-stream',
                     filename: 'filename',
-                    description: 'description',
+                    contentDescription: 'description',
                     data: Buffer.alloc(15, 0x13),
                 },
                 {
                     mimeType: 'application/octet-stream',
                     filename: 'filename2',
-                    description: 'description2',
+                    contentDescription: 'description2',
                     data: Buffer.alloc(15, 0x14),
                 }]
             }
@@ -825,13 +825,13 @@ describe('NodeID3', function () {
         })
 
         it('read GEOB frame', function() {
-            const frameGeneralObject = Buffer.from('4944330300000000004847454f420000003e0000036170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d65006465736372697074696f6e00131313131313131313131313131313', 'hex')
+            const frameGeneralObject = Buffer.from('4944330300000000006147454f42000000570000016170706c69636174696f6e2f6f637465742d73747265616d00fffe660069006c0065006e0061006d0065000000fffe6400650073006300720069007000740069006f006e000000131313131313131313131313131313', 'hex')
     
             const tags = {
                 generalObject: {
                     mimeType: 'application/octet-stream',
                     filename: 'filename',
-                    description: 'description',
+                    contentDescription: 'description',
                     data: Buffer.alloc(15, 0x13),
                 }
             }     
@@ -847,19 +847,19 @@ describe('NodeID3', function () {
         })
 
         it('read GEOB frames', function() {
-            const frameGeneralObject = Buffer.from('4944330300000000011247454f420000003e0000036170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d65006465736372697074696f6e0013131313131313131313131313131347454f42000000400000036170706c69636174696f6e2f6f637465742d73747265616d0066696c656e616d6532006465736372697074696f6e3200141414141414141414141414141414', 'hex')
+            const frameGeneralObject = Buffer.from('4944330300000000014647454f42000000570000016170706c69636174696f6e2f6f637465742d73747265616d00fffe660069006c0065006e0061006d0065000000fffe6400650073006300720069007000740069006f006e00000013131313131313131313131313131347454f420000005b0000016170706c69636174696f6e2f6f637465742d73747265616d00fffe660069006c0065006e0061006d00650032000000fffe6400650073006300720069007000740069006f006e0032000000141414141414141414141414141414', 'hex')
     
             const tags = {
                 generalObject: [{
                     mimeType: 'application/octet-stream',
                     filename: 'filename',
-                    description: 'description',
+                    contentDescription: 'description',
                     data: Buffer.alloc(15, 0x13),
                 },
                 {
                     mimeType: 'application/octet-stream',
                     filename: 'filename2',
-                    description: 'description2',
+                    contentDescription: 'description2',
                     data: Buffer.alloc(15, 0x14),
                 }]
             } 

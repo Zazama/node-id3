@@ -551,13 +551,30 @@ module.exports.GEOB = {
         if (!(data instanceof Array)) {
             data = [data]
         }
-        const encoding = 3 // UTF-8
+
+        const uniqueSet = new Set()
+        data.forEach(item => {
+            if(item.data == null || item.data.length === 0) {
+                throw new Error("data is required in GEOB frames")
+            }
+
+            if(item.contentDescription == null || item.contentDescription === "") {
+                throw new Error("contentDescription is required for GEOB frames")
+            }
+
+            if (uniqueSet.has(item.contentDescription)) {
+                throw new Error(`duplicate GEOB contentDescription found: ${item.contentDescription}`)
+            }
+            uniqueSet.add(item.contentDescription)
+        })
+
+        const encoding = 0x01 // UTF-16 BOM
         return Buffer.concat(data.map((geob) => {
             return new ID3FrameBuilder("GEOB")
                 .appendStaticNumber(encoding)
                 .appendNullTerminatedValue(geob.mimeType ? geob.mimeType : '')
                 .appendNullTerminatedValue(geob.filename ? geob.filename : '', encoding)
-                .appendNullTerminatedValue(geob.description ? geob.description : '', encoding)
+                .appendNullTerminatedValue(geob.contentDescription, encoding)
                 .appendStaticValue(geob.data)
                 .getBuffer()
         }))
@@ -568,7 +585,7 @@ module.exports.GEOB = {
         return {
             mimeType: reader.consumeNullTerminatedValue('string', 0),
             filename: reader.consumeNullTerminatedValue('string'),
-            description: reader.consumeNullTerminatedValue('string'),
+            contentDescription: reader.consumeNullTerminatedValue('string'),
             data: reader.consumeStaticValue('buffer')
         }
     }
