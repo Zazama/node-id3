@@ -306,8 +306,8 @@ commercialFrame: [{
 generalObject: [{
   mimeType: 'application/octet-stream',
   filename: 'filename',
-  description: 'description',
-  data: Buffer.alloc(15, 0x13),
+  contentDescription: 'description',
+  encapsulatedObject: Buffer.alloc(15, 0x13),
 }]
 ```
 
