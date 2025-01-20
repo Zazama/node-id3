@@ -554,8 +554,8 @@ module.exports.GEOB = {
 
         const uniqueSet = new Set()
         data.forEach(item => {
-            if(item.data == null || item.data.length === 0) {
-                throw new Error("data is required in GEOB frames")
+            if(item.encapsulatedObject == null || item.encapsulatedObject.length === 0) {
+                throw new Error("encapsulatedObject is required in GEOB frames")
             }
 
             if(item.contentDescription == null || item.contentDescription === "") {
@@ -575,7 +575,7 @@ module.exports.GEOB = {
                 .appendNullTerminatedValue(geob.mimeType ? geob.mimeType : '')
                 .appendNullTerminatedValue(geob.filename ? geob.filename : '', encoding)
                 .appendNullTerminatedValue(geob.contentDescription, encoding)
-                .appendStaticValue(geob.data)
+                .appendStaticValue(geob.encapsulatedObject)
                 .getBuffer()
         }))
     },
@@ -586,7 +586,7 @@ module.exports.GEOB = {
             mimeType: reader.consumeNullTerminatedValue('string', 0),
             filename: reader.consumeNullTerminatedValue('string'),
             contentDescription: reader.consumeNullTerminatedValue('string'),
-            data: reader.consumeStaticValue('buffer')
+            encapsulatedObject: reader.consumeStaticValue('buffer')
         }
     }
 }

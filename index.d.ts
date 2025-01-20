@@ -554,7 +554,7 @@ declare module "node-id3" {
              * one with the same content description.
              */
             contentDescription: string,
-            data: Buffer,
+            encapsulatedObject: Buffer,
          }>,
          raw?: Tags
       }

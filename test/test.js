@@ -347,7 +347,7 @@ describe('NodeID3', function () {
                     mimeType: 'application/octet-stream',
                     filename: 'filename',
                     contentDescription: 'description',
-                    data: Buffer.alloc(15, 0x13),
+                    encapsulatedObject: Buffer.alloc(15, 0x13),
                 }
             }
 
@@ -364,13 +364,13 @@ describe('NodeID3', function () {
                     mimeType: 'application/octet-stream',
                     filename: 'filename',
                     contentDescription: 'description',
-                    data: Buffer.alloc(15, 0x13),
+                    encapsulatedObject: Buffer.alloc(15, 0x13),
                 },
                 {
                     mimeType: 'application/octet-stream',
                     filename: 'filename2',
                     contentDescription: 'description2',
-                    data: Buffer.alloc(15, 0x14),
+                    encapsulatedObject: Buffer.alloc(15, 0x14),
                 }]
             }
 
@@ -832,7 +832,7 @@ describe('NodeID3', function () {
                     mimeType: 'application/octet-stream',
                     filename: 'filename',
                     contentDescription: 'description',
-                    data: Buffer.alloc(15, 0x13),
+                    encapsulatedObject: Buffer.alloc(15, 0x13),
                 }
             }     
         
@@ -842,7 +842,7 @@ describe('NodeID3', function () {
             // Assert the values match exactly
             assert.deepStrictEqual(generalObject.description, tags.generalObject.description)
             assert.deepStrictEqual(generalObject.filename, tags.generalObject.filename)
-            assert.deepStrictEqual(generalObject.data, tags.generalObject.data)
+            assert.deepStrictEqual(generalObject.encapsulatedObject, tags.generalObject.encapsulatedObject)
             assert.deepStrictEqual(generalObject.mimeType, tags.generalObject.mimeType)
         })
 
@@ -854,13 +854,13 @@ describe('NodeID3', function () {
                     mimeType: 'application/octet-stream',
                     filename: 'filename',
                     contentDescription: 'description',
-                    data: Buffer.alloc(15, 0x13),
+                    encapsulatedObject: Buffer.alloc(15, 0x13),
                 },
                 {
                     mimeType: 'application/octet-stream',
                     filename: 'filename2',
                     contentDescription: 'description2',
-                    data: Buffer.alloc(15, 0x14),
+                    encapsulatedObject: Buffer.alloc(15, 0x14),
                 }]
             } 
         
