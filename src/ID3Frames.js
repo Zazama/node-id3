@@ -74,12 +74,12 @@ module.exports.APIC = {
             const { description = '' } = data
             const encoding = description ? 0x01 : 0x00
             return new ID3FrameBuilder('APIC')
-              .appendStaticNumber(encoding, 1)
-              .appendNullTerminatedValue(mime_type)
-              .appendStaticNumber(pictureTypeId, 1)
-              .appendNullTerminatedValue(description, encoding)
-              .appendStaticValue(data.imageBuffer)
-              .getBuffer()
+                .appendStaticNumber(encoding, 1)
+                .appendNullTerminatedValue(mime_type)
+                .appendStaticNumber(pictureTypeId, 1)
+                .appendNullTerminatedValue(description, encoding)
+                .appendStaticValue(data.imageBuffer)
+                .getBuffer()
         } catch(error) {
             return error
         }
@@ -290,7 +290,7 @@ module.exports.UFID = {
             .appendNullTerminatedValue(ufid.ownerIdentifier)
             .appendStaticValue(
                 ufid.identifier instanceof Buffer ?
-                ufid.identifier : Buffer.from(ufid.identifier, "utf8")
+                    ufid.identifier : Buffer.from(ufid.identifier, "utf8")
             )
             .getBuffer()))
     },
@@ -543,5 +543,50 @@ module.exports.COMR = {
         }
 
         return tag
+    }
+}
+
+module.exports.GEOB = {
+    create: (data) => {
+        if (!(data instanceof Array)) {
+            data = [data]
+        }
+
+        const uniqueSet = new Set()
+        data.forEach(item => {
+            if(item.encapsulatedObject == null || item.encapsulatedObject.length === 0) {
+                throw new Error("encapsulatedObject is required in GEOB frames")
+            }
+
+            if(item.contentDescription == null || item.contentDescription === "") {
+                throw new Error("contentDescription is required for GEOB frames")
+            }
+
+            if (uniqueSet.has(item.contentDescription)) {
+                throw new Error(`duplicate GEOB contentDescription found: ${item.contentDescription}`)
+            }
+            uniqueSet.add(item.contentDescription)
+        })
+
+        const encoding = 0x01 // UTF-16 BOM
+        return Buffer.concat(data.map((geob) => {
+            return new ID3FrameBuilder("GEOB")
+                .appendStaticNumber(encoding)
+                .appendNullTerminatedValue(geob.mimeType ? geob.mimeType : '')
+                .appendNullTerminatedValue(geob.filename ? geob.filename : '', encoding)
+                .appendNullTerminatedValue(geob.contentDescription, encoding)
+                .appendStaticValue(geob.encapsulatedObject)
+                .getBuffer()
+        }))
+    },
+
+    read: (buffer) => {
+        const reader = new ID3FrameReader(buffer, 0)
+        return {
+            mimeType: reader.consumeNullTerminatedValue('string', 0),
+            filename: reader.consumeNullTerminatedValue('string'),
+            contentDescription: reader.consumeNullTerminatedValue('string'),
+            encapsulatedObject: reader.consumeStaticValue('buffer')
+        }
     }
 }

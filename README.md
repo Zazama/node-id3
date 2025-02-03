@@ -303,6 +303,12 @@ commercialFrame: [{
     picture: Buffer.alloc(15, 0x13)
   }
 }]
+generalObject: [{
+  mimeType: 'application/octet-stream',
+  filename: 'filename',
+  contentDescription: 'description',
+  encapsulatedObject: Buffer.alloc(15, 0x13),
+}]
 ```
 
 ### Supported raw IDs
@@ -382,4 +388,5 @@ publisherUrl          "WPUB"
 userDefinedUrl        "WXXX"
 eventTimingCodes      "ETCO"
 commercialFrame       "COMR"
+generalObject         "GEOB"
 ```
