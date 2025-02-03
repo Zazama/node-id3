@@ -552,7 +552,6 @@ module.exports.GEOB = {
             data = [data]
         }
 
-        const uniqueSet = new Set()
         data.forEach(item => {
             if(item.encapsulatedObject == null) {
                 throw new Error("encapsulatedObject is required in GEOB frames")
@@ -561,8 +560,6 @@ module.exports.GEOB = {
             if(item.contentDescription == null) {
                 throw new Error("contentDescription is required for GEOB frames")
             }
-
-            uniqueSet.add(item.contentDescription)
         })
 
         const encoding = 0x01 // UTF-16 BOM
