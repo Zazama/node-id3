@@ -554,17 +554,14 @@ module.exports.GEOB = {
 
         const uniqueSet = new Set()
         data.forEach(item => {
-            if(item.encapsulatedObject == null || item.encapsulatedObject.length === 0) {
+            if(item.encapsulatedObject == null) {
                 throw new Error("encapsulatedObject is required in GEOB frames")
             }
 
-            if(item.contentDescription == null || item.contentDescription === "") {
+            if(item.contentDescription == null) {
                 throw new Error("contentDescription is required for GEOB frames")
             }
 
-            if (uniqueSet.has(item.contentDescription)) {
-                throw new Error(`duplicate GEOB contentDescription found: ${item.contentDescription}`)
-            }
             uniqueSet.add(item.contentDescription)
         })
 
