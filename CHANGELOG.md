@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.7] - 2025-02-04
+
+### Added
+
+- Add support for GEOB tag by @Nytrm
+
 ## [0.2.6] - 2023-02-18
 
 ### Fixed
@@ -272,7 +278,8 @@
 
 - Fix node v6
 
-[unreleased](https://github.com/Zazama/node-id3/compare/0.2.6...HEAD)
+[unreleased](https://github.com/Zazama/node-id3/compare/0.2.7...HEAD)
+[0.2.7](https://github.com/Zazama/node-id3/compare/0.2.6...0.2.7)
 [0.2.6](https://github.com/Zazama/node-id3/compare/0.2.5...0.2.6)
 [0.2.5](https://github.com/Zazama/node-id3/compare/0.2.4...0.2.5)
 [0.2.4](https://github.com/Zazama/node-id3/compare/0.2.3...0.2.4)
