@@ -540,7 +540,7 @@ declare module "node-id3" {
           * one "GEOB" frame in each tag, but only one with the same content 
           * descriptor.
           */
-         generalObject: Array<{
+         generalObject?: Array<{
             /**
              * Encoded with ISO-8859-1
              */
