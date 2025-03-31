@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.9]
+
+### Fixed
+
+- Fix TXXX and PRIV tags from tuple to array in type file (by @pbricout)
+
+## [0.2.8]
+
+### Fixed
+
+- Make GEOB tag optional in type file (by @Nytrm)
+
 ## [0.2.7] - 2025-02-04
 
 ### Added
