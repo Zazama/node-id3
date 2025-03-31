@@ -343,10 +343,10 @@ declare module "node-id3" {
                timeStamp: number
             }>
          }>,
-         userDefinedText?: [{
+         userDefinedText?: {
             description: string,
             value: string
-         }]
+         }[]
          /**
           * `APIC` (attached picture) tag frames
           *
@@ -379,10 +379,10 @@ declare module "node-id3" {
             rating: number,
             counter: number,
          },
-         private?: [{
+         private?: {
             ownerIdentifier: string,
             data: string
-         }],
+         }[],
          /**
           * This frame's purpose is to be able to identify the audio file in a
           * database that may contain more information relevant to the content.
@@ -530,14 +530,14 @@ declare module "node-id3" {
             }
          }>,
          /**
-          * In this frame any type of file can be encapsulated. After the 
-          * header, 'Frame size' and 'Encoding' follows 'MIME type' represented 
-          * as as a terminated string encoded with ISO-8859-1. The filename is 
-          * case sensitive and is encoded as 'Encoding'. Then follows a content 
-          * description as terminated string, encoded as 'Encoding'. The last 
-          * thing in the frame is the actual object. The first two strings may 
-          * be omitted, leaving only their terminations. There may be more than 
-          * one "GEOB" frame in each tag, but only one with the same content 
+          * In this frame any type of file can be encapsulated. After the
+          * header, 'Frame size' and 'Encoding' follows 'MIME type' represented
+          * as as a terminated string encoded with ISO-8859-1. The filename is
+          * case sensitive and is encoded as 'Encoding'. Then follows a content
+          * description as terminated string, encoded as 'Encoding'. The last
+          * thing in the frame is the actual object. The first two strings may
+          * be omitted, leaving only their terminations. There may be more than
+          * one "GEOB" frame in each tag, but only one with the same content
           * descriptor.
           */
          generalObject?: Array<{
