@@ -992,10 +992,113 @@ describe('ID3 helper functions', function () {
                 NodeID3.create({title: "abc"}),
                 buffer
             ])
+            // ID3v2 tags should only be detected at position 0
+            // Tags in the middle should NOT be removed to prevent corruption
             assert.strictEqual(Buffer.compare(
                 NodeID3.removeTagsFromBuffer(bufferWithID3),
-                Buffer.concat([buffer, buffer])
+                bufferWithID3  // Should return unchanged since no tags at position 0
             ), 0)
+        })
+
+        /**
+         * Test for the fix of a critical bug where removeTags() + write() could corrupt MP3 files
+         * 
+         * Bug description:
+         * When an MP3 file contains the bytes "ID3" in its audio data that accidentally pass 
+         * the ID3 header validation, calling removeTags() followed by write() would cause
+         * the library to remove large chunks of audio data, corrupting the file.
+         * 
+         * Example case:
+         * - Original file: 82 MB
+         * - After corruption: 15.1 MB (66.8 MB of audio data lost!)
+         * 
+         * Root cause:
+         * The getFramePosition() function searched for "ID3" patterns throughout the entire
+         * buffer, not just at position 0 where ID3v2 tags are supposed to be.
+         * 
+         * Fix:
+         * Only look for ID3 tags at position 0, as per ID3v2 specification.
+         */
+        it('should not corrupt files when "ID3" appears in audio data', function() {
+            // Create a test buffer that simulates the problematic scenario
+            // 1. Start with a valid ID3 tag
+            const validID3Tag = NodeID3.create({
+                title: "Original Title",
+                artist: "Test Artist"
+            })
+            
+            // 2. Create some MP3 audio data that happens to contain "ID3" pattern
+            // This simulates the real-world case where audio data contains these bytes
+            const audioDataBefore = Buffer.alloc(1000, 0xFF) // Simulate MP3 sync bytes
+            const problematicPattern = Buffer.from([
+                0x49, 0x44, 0x33, 0x04, 0x00, 0x3d, 0x30, 0x32, 0x01, 0x33, // "ID3" + valid-looking header
+                ...Array(1000).fill(0xAA) // More audio data
+            ])
+            const audioDataAfter = Buffer.alloc(5000, 0xBB) // More audio data
+            
+            // 3. Combine to create the full "file"
+            const originalBuffer = Buffer.concat([
+                validID3Tag,
+                audioDataBefore,
+                problematicPattern,
+                audioDataAfter
+            ])
+            
+            const originalSize = originalBuffer.length
+            
+            // 4. Simulate the problematic sequence: removeTags + write
+            const bufferWithoutTags = NodeID3.removeTagsFromBuffer(originalBuffer)
+            const newTags = NodeID3.create({
+                title: "New Title",
+                genre: "Test"
+            })
+            
+            // This is where the bug would occur - writeInBuffer calls removeTagsFromBuffer again
+            // With the old code, it would find the "ID3" pattern in the audio data and remove it
+            const finalBuffer = Buffer.concat([newTags, bufferWithoutTags])
+            
+            // 5. Verify the file wasn't corrupted
+            // The size should only change by the difference in tag sizes, not lose chunks of audio
+            const actualSizeDiff = Math.abs(originalSize - finalBuffer.length)
+            
+            // Allow for small differences in tag encoding, but not massive data loss
+            assert(actualSizeDiff < 1000, `File was corrupted! Size difference: ${actualSizeDiff} bytes`)
+            
+            // Verify the problematic pattern is still in the audio data
+            const patternStillExists = finalBuffer.includes(problematicPattern.slice(0, 20))
+            assert(patternStillExists, 'Audio data was incorrectly removed')
+        })
+        
+        it('should only detect ID3 tags at position 0', function() {
+            // Create a buffer with "ID3" NOT at the start
+            const buffer = Buffer.concat([
+                Buffer.from([0xFF, 0xFB, 0x90, 0x00]), // MP3 sync bytes
+                Buffer.from('Some data before ID3'),
+                Buffer.from([0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7F]) // "ID3" pattern
+            ])
+            
+            // Should not find any ID3 tag since it's not at position 0
+            const tags = NodeID3.read(buffer)
+            // node-id3 returns { raw: {} } when no tags are found
+            const expectedEmpty = { raw: {} }
+            assert.deepEqual(tags, expectedEmpty, 'Should not detect ID3 tags in the middle of data')
+        })
+        
+        it('should still correctly read ID3v2 tags at position 0', function() {
+            const tags = {
+                title: "Test Title",
+                artist: "Test Artist",
+                album: "Test Album",
+                year: "2025"
+            }
+            
+            const buffer = NodeID3.create(tags)
+            const readTags = NodeID3.read(buffer)
+            
+            assert.equal(readTags.title, tags.title)
+            assert.equal(readTags.artist, tags.artist)
+            assert.equal(readTags.album, tags.album)
+            assert.equal(readTags.year, tags.year)
         })
     })
 })
