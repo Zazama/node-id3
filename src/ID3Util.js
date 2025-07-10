@@ -81,18 +81,18 @@ module.exports.isValidID3Header = function(buffer) {
 }
 
 module.exports.getFramePosition = function(buffer) {
-    /* Search Buffer for valid ID3 frame */
+    /* ID3v2 tags are ALWAYS at the beginning of the file (position 0)
+     * This prevents false positives from "ID3" patterns in audio data
+     * which can cause severe file corruption when removed
+     */
     let framePosition = -1
     let frameHeaderValid = false
-    do {
-        framePosition = buffer.indexOf("ID3", framePosition + 1)
-        if(framePosition !== -1) {
-            /* It's possible that there is a "ID3" sequence without being an ID3 Frame,
-             * so we need to check for validity of the next 10 bytes
-             */
-            frameHeaderValid = this.isValidID3Header(buffer.slice(framePosition, framePosition + 10))
-        }
-    } while (framePosition !== -1 && !frameHeaderValid)
+    
+    // Only check position 0
+    if (buffer.length >= 3 && buffer.slice(0, 3).toString() === "ID3") {
+        framePosition = 0
+        frameHeaderValid = this.isValidID3Header(buffer.slice(0, 10))
+    }
 
     if(!frameHeaderValid) {
         return -1
