@@ -562,7 +562,7 @@ module.exports.GEOB = {
             }
         })
 
-        const encoding = 0x01 // 16 bit unicode
+        const encoding = 0x01 // UTF-16 BOM
         return Buffer.concat(data.map((geob) => {
             return new ID3FrameBuilder("GEOB")
                 .appendStaticNumber(encoding)
