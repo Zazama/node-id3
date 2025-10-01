@@ -562,11 +562,11 @@ module.exports.GEOB = {
             }
         })
 
-        const encoding = 0x00 // latin1 (ISO-8859-1)
+        const encoding = 0x01 // 16 bit unicode
         return Buffer.concat(data.map((geob) => {
             return new ID3FrameBuilder("GEOB")
                 .appendStaticNumber(encoding)
-                .appendNullTerminatedValue(geob.mimeType ? geob.mimeType : '')
+                .appendNullTerminatedValue(geob.mimeType ? geob.mimeType : '', 0x00)
                 .appendNullTerminatedValue(geob.filename ? geob.filename : '', encoding)
                 .appendNullTerminatedValue(geob.contentDescription, encoding)
                 .appendStaticValue(geob.encapsulatedObject)
