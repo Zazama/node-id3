@@ -172,6 +172,34 @@ function update(tags, filebuffer, options, fn) {
         options = {}
     }
 
+    const frameOptions = ['replaceFrames', 'removeFrames']
+    let optionError
+    for(const optionName of frameOptions) {
+        if(options[optionName] !== undefined && !Array.isArray(options[optionName])) {
+            optionError = new TypeError(`${optionName} must be an array of frame identifiers`)
+            break
+        }
+        if(options[optionName] && options[optionName].some((frameIdentifier) =>
+            typeof frameIdentifier !== 'string' || !/^[A-Z0-9]{4}$/.test(frameIdentifier)
+        )) {
+            optionError = new TypeError(`${optionName} must contain valid four-character frame identifiers`)
+            break
+        }
+    }
+
+    const replaceFrames = new Set(options.replaceFrames || [])
+    const removeFrames = new Set(options.removeFrames || [])
+    if(!optionError && [...replaceFrames].some((frameIdentifier) => removeFrames.has(frameIdentifier))) {
+        optionError = new TypeError('A frame identifier cannot be listed in both replaceFrames and removeFrames')
+    }
+    if(optionError) {
+        if(isFunction(fn)) {
+            fn(optionError)
+            return undefined
+        }
+        throw optionError
+    }
+
     const rawTags = Object.keys(tags).reduce((acc, val) => {
         if(ID3Definitions.FRAME_IDENTIFIERS.v3[val] !== undefined) {
             acc[ID3Definitions.FRAME_IDENTIFIERS.v3[val]] = tags[val]
@@ -183,7 +211,18 @@ function update(tags, filebuffer, options, fn) {
 
     const updateFn = (currentTags) => {
         currentTags = currentTags.raw || {}
+        removeFrames.forEach((frameIdentifier) => {
+            delete currentTags[frameIdentifier]
+        })
+        replaceFrames.forEach((frameIdentifier) => {
+            if(Object.prototype.hasOwnProperty.call(rawTags, frameIdentifier)) {
+                delete currentTags[frameIdentifier]
+            }
+        })
         Object.keys(rawTags).map((frameIdentifier) => {
+            if(removeFrames.has(frameIdentifier)) {
+                return
+            }
             const options = ID3Util.getSpecOptions(frameIdentifier, 3)
             const cCompare = {}
             if(options.multiple && currentTags[frameIdentifier] && rawTags[frameIdentifier]) {
