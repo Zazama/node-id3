@@ -1,5 +1,14 @@
 declare module "node-id3" {
    namespace NodeID3 {
+      export interface UpdateOptions {
+         include?: string[],
+         exclude?: string[],
+         onlyRaw?: boolean,
+         noRaw?: boolean,
+         replaceFrames?: string[],
+         removeFrames?: string[]
+      }
+
       export interface Tags {
          /**
           * The 'Album/Movie/Show title' frame is intended for the title of the recording(/source of sound) which the audio in the file is taken from.
@@ -709,12 +718,12 @@ declare module "node-id3" {
       export function read(filebuffer: string | Buffer, options: Object): Tags
       export function read(filebuffer: string | Buffer, fn: (err: NodeJS.ErrnoException | null, tags: Tags | null) => void): void
       export function read(filebuffer: string | Buffer, options: Object, fn: (err: NodeJS.ErrnoException | null, tags: Tags | null) => void): void
-      export function update(tags: Tags, filebuffer: Buffer, options?: Object): Buffer
-      export function update(tags: Tags, filepath: string, options?: Object): true | Error
+      export function update(tags: Tags, filebuffer: Buffer, options?: UpdateOptions): Buffer
+      export function update(tags: Tags, filepath: string, options?: UpdateOptions): true | Error
       export function update(tags: Tags, filepath: string, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
-      export function update(tags: Tags, filepath: string, options: Object, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
+      export function update(tags: Tags, filepath: string, options: UpdateOptions, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
       export function update(tags: Tags, filebuffer: Buffer, fn: (err: NodeJS.ErrnoException | null, buffer?: Buffer) => void): void
-      export function update(tags: Tags, filebuffer: Buffer, options: Object, fn: (err: NodeJS.ErrnoException | null, buffer?: Buffer) => void): void
+      export function update(tags: Tags, filebuffer: Buffer, options: UpdateOptions, fn: (err: NodeJS.ErrnoException | Error | null, buffer?: Buffer) => void): void
       export function removeTags(filepath: string): true | Error
       export function removeTags(filepath: string, fn: (err: NodeJS.ErrnoException | Error | null) => void): void
       export const Promise: {
@@ -723,8 +732,8 @@ declare module "node-id3" {
          create(tags: Tags) : Promise<Buffer>,
          read(filebuffer: Buffer, options?: Object) : Promise<Tags>,
          read(filepath: string, options?: Object) : Promise<Tags>,
-         update(tags: Tags, filebuffer: Buffer) : Promise<Buffer>,
-         update(tags: Tags, filepath: string) : Promise<boolean>,
+         update(tags: Tags, filebuffer: Buffer, options?: UpdateOptions) : Promise<Buffer>,
+         update(tags: Tags, filepath: string, options?: UpdateOptions) : Promise<boolean>,
          removeTags(filepath: string) : Promise<Buffer>,
          removeTags(filebuffer: Buffer) : Promise<Buffer>
       }

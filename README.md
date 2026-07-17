@@ -64,13 +64,35 @@ NodeID3.update(tags, filebuffer, function(err, buffer) {  })
 // Possible options
 const options = {
     include: ['TALB', 'TIT2'],    // only read the specified tags (default: all)
-    exclude: ['APIC']            // don't read the specified tags (default: [])
+    exclude: ['APIC'],            // don't read the specified tags (default: [])
+    replaceFrames: ['SYLT'],      // completely replace these frames with values from tags
+    removeFrames: ['PRIV']        // remove these frames, even when absent from tags
 }
 
 NodeID3.update(tags, filepath, options)
 const success = NodeID3.update(tags, filebuffer, options)
 NodeID3.update(tags, filepath, options, function(err, buffer) {  })
 NodeID3.update(tags, filebuffer, options, function(err, buffer) {  })
+```
+
+Updates merge with existing frames by default. Multiple-value frames can instead be replaced completely:
+
+```javascript
+NodeID3.update({
+    synchronisedLyrics: [{
+        language: 'eng',
+        timeStampFormat: NodeID3.TagConstants.TimeStampFormat.MILLISECONDS,
+        contentType: NodeID3.TagConstants.SynchronisedLyrics.ContentType.LYRICS,
+        shortText: 'Synchronized lyrics',
+        synchronisedText: [{ text: 'First line', timeStamp: 1234 }]
+    }]
+}, fileOrBuffer, { replaceFrames: ['SYLT'] })
+```
+
+Frames can also be removed without supplying a replacement value:
+
+```javascript
+NodeID3.update({}, fileOrBuffer, { removeFrames: ['SYLT'] })
 ```
 
 ### Create tags as buffer
