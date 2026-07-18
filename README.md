@@ -73,6 +73,33 @@ NodeID3.update(tags, filepath, options, function(err, buffer) {  })
 NodeID3.update(tags, filebuffer, options, function(err, buffer) {  })
 ```
 
+### ID3v1 tags
+
+ID3v1 operations are separate from the existing ID3v2 `write()` and `update()` functions. Applications that maintain
+both formats must map compatible fields and call the ID3v1 API explicitly.
+
+ID3v1 supports title, artist, and album fields up to 30 bytes, a four-byte year, and a 28-byte ID3v1.1 comment. It
+also supports numeric track numbers and genre IDs from 0 through 255. Values must already be expressed in their ID3v1
+representation; genre names and ID3v2 track forms such as `3/12` are not converted automatically.
+
+Text is encoded as Latin-1. By default, unsupported characters become `?`, embedded nulls are removed, and fields are
+truncated to their encoded byte limits. Use `id3v1Truncation: 'error'` to reject lossy values before changing a file.
+
+The dedicated APIs read, replace, or remove only the final 128-byte ID3v1 tag. `writeId3v1()` always writes ID3v1.1;
+the `version` property returned by `readId3v1()` reports the layout that was read.
+
+```javascript
+NodeID3.write(tags, filepath) // Optional, separate ID3v2 operation
+NodeID3.writeId3v1({ title: 'Tomorrow', trackNumber: 3 }, filepath)
+
+const id3v1 = NodeID3.readId3v1(filepath) // ID3v1 object or null
+const removed = NodeID3.removeId3v1(filebuffer) // Buffer without the trailing ID3v1 tag
+
+NodeID3.readId3v1(filepath, function(err, tag) {  })
+NodeID3.writeId3v1({ title: 'Tomorrow' }, filebuffer, function(err, buffer) {  })
+NodeID3.removeId3v1(filepath, function(err) {  })
+```
+
 ### Create tags as buffer
 
 The create method will return a buffer of your ID3-Tag. You can use it to e.g. write it into a file yourself instead of using the write method.
@@ -133,11 +160,14 @@ let bufferWithoutID3Frame = NodeID3.removeTagsFromBuffer(filebuffer)  //  Return
 ```javascript
 const NodeID3Promise = require('node-id3').Promise
 
-NodeID3.write(tags, fileOrBuffer)
-NodeID3.update(tags, fileOrBuffer)
-NodeID3.create(tags)
-NodeID3.read(filepath)
-NodeID3.removeTags(filepath)
+NodeID3Promise.write(tags, fileOrBuffer)
+NodeID3Promise.update(tags, fileOrBuffer)
+NodeID3Promise.create(tags)
+NodeID3Promise.read(filepath)
+NodeID3Promise.readId3v1(filepath)
+NodeID3Promise.writeId3v1({ title: 'Tomorrow' }, fileOrBuffer)
+NodeID3Promise.removeId3v1(fileOrBuffer)
+NodeID3Promise.removeTags(filepath)
 ```
 
 ## Supported aliases/fields
