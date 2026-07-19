@@ -3,6 +3,10 @@ const ID3Definitions = require("./src/ID3Definitions")
 const ID3Util = require('./src/ID3Util')
 const ID3Helpers = require('./src/ID3Helpers')
 const { isFunction, isString } = require('./src/util')
+const ID3v1 = require('./src/ID3v1')
+const readId3v1 = ID3v1.readId3v1
+const writeId3v1 = ID3v1.writeId3v1
+const removeId3v1 = ID3v1.removeId3v1
 
 /*
 **  Used specification: http://id3.org/id3v2.3.0
@@ -316,7 +320,10 @@ const PromiseExport = {
     write: (tags, file) => makePromise(write.bind(null, tags, file)),
     update: (tags, file, options) => makePromise(update.bind(null, tags, file, options)),
     read: (file, options) => makePromise(read.bind(null, file, options)),
-    removeTags: (filepath) => makePromise(removeTags.bind(null, filepath))
+    removeTags: (filepath) => makePromise(removeTags.bind(null, filepath)),
+    readId3v1: (file) => makePromise(readId3v1.bind(null, file)),
+    writeId3v1: (tag, file, options) => makePromise(writeId3v1.bind(null, tag, file, options)),
+    removeId3v1: (file) => makePromise(removeId3v1.bind(null, file))
 }
 
 module.exports = {
@@ -325,6 +332,9 @@ module.exports = {
     write,
     update,
     read,
+    readId3v1,
+    writeId3v1,
+    removeId3v1,
     removeTags,
     removeTagsFromBuffer,
     Promise: PromiseExport
